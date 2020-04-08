@@ -9,7 +9,7 @@ spoiler_span = 1.5  # Specify main spoiler span
 
 
 class Strut(GeomBase):
-    strut_type = Input(1)               # 1 for sym_airfoil, 2 for simple plate
+    strut_type = Input(2)               # 1 for sym_airfoil, 2 for simple plate
     strut_lat_location = Input(0.5)     # as fraction of spoiler half-span
     chord = Input(0.1)
     height = Input(0.6)
@@ -38,66 +38,56 @@ class Strut(GeomBase):
                             rotation_point=self.position,
                             vector=self.position.Vx, angle=radians(90))
 
-    @Attribute
-    def points2(self):
-        return [Point(0, 0, 0),
-                Point(self.chord, 0, 0),
-                Point(self.chord, self.thickness, 0),
-                Point(0, self.thickness, 0),
-                Point(0, 0, 0)]
-
     @Part(in_tree=False)
-    def curves2(self):
-        return LineSegment(quantify=4, start=self.points2[child.index], end=self.points2[child.index + 1])
-
-    @Part(in_tree=False)
-    def curves_option_2(self):
-        return ComposedCurve(built_from=self.curves2)
-
-    @Attribute
-    def strut_curve(self): # to either get the curves for the symmetric airfoil or thin plate below
-        if self.strut_type == 1:
-            crv = self.airfoil
-        elif self.strut_type == 2:
-            crv = self.curves_option_2
-        return crv
-
-    @Attribute
-    def factor(self): # different strut type requires different scaling factor below
-        if self.strut_type == 1:
-            fct = self.chord
-        elif self.strut_type == 2:
-            fct = 1
-        return fct
-
-    @Part(in_tree=False)
-    def upper_curve_scaled(self):
-        return ScaledCurve(curve_in=self.strut_curve,
+    def airfoil_scaled(self):
+        return ScaledCurve(curve_in=self.airfoil,
                            reference_point=self.position.point,
-                           factor=self.factor)
+                           factor=self.chord)
 
-    @Part
-    def upper_curve(self):
-        return TranslatedCurve(curve_in=self.upper_curve_scaled, displacement=Vector(0, self.strut_lat_location*spoiler_span, 0))
+    @Part(in_tree=False)
+    def upper_curve_airfoil(self):
+        return TranslatedCurve(curve_in=self.airfoil_scaled,
+                               displacement=Vector(0, self.strut_lat_location*spoiler_span/2, 0))
 
-    @Part
-    def lower_curve(self):
-        return TranslatedCurve(curve_in=self.upper_curve,
+    @Part(in_tree=False)
+    def lower_curve_airfoil(self):
+        return TranslatedCurve(curve_in=self.upper_curve_airfoil,
                                displacement=Vector(self.height*sin(radians(self.sweepback_angle)),
                                                    self.height*sin(radians(self.cant_angle)),
                                                    self.height))
 
+    @Part(in_tree=False)
+    def upper_curve_rectangle(self):
+        return Rectangle(width=self.chord, length=self.thickness,
+                         position=translate(self.position, "y", self.strut_lat_location*spoiler_span/2))
+
+    @Part(in_tree=False)
+    def lower_curve_rectangle(self):
+        return Rectangle(width=self.chord, length=self.thickness,
+                         position=translate(self.position, "x", self.height * sin(radians(self.sweepback_angle)),
+                                            "y", self.strut_lat_location*spoiler_span/2+self.height * sin(radians(self.cant_angle)),
+                                            "z", self.height))
+
+    @Attribute
+    def strut_curves(self): # to either get the curves for the symmetric airfoil or thin plate below
+        if self.strut_type == 1:
+            upper_curve = self.upper_curve_airfoil
+            lower_curve = self.lower_curve_airfoil
+        elif self.strut_type == 2:
+            upper_curve = self.upper_curve_rectangle
+            lower_curve = self.lower_curve_rectangle
+        return [upper_curve, lower_curve]
+
     @Part
     def surface(self):
-        return LoftedShell(profiles=[self.upper_curve, self.lower_curve],
-                           ruled=True)
+        return RuledSolid(profile1=self.strut_curves[0], profile2=self.strut_curves[1])
 
     @Part
     def mirrored(self):
-        return MirroredSurface(surface_in=self.surface.faces[0],
-                               reference_point=Point(0,0,0),
-                               vector1=self.position.Vx,
-                               vector2=self.position.Vz)
+        return MirroredShape(shape_in=self.surface,
+                             reference_point=Point(0, 0, 0),
+                             vector1=self.position.Vx,
+                             vector2=self.position.Vz)
 
 
 if __name__ == '__main__':
