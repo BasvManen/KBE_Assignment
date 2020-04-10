@@ -2,10 +2,13 @@ from parapy.core import *
 from parapy.geom import *
 from kbeutils.geom.curve import Naca5AirfoilCurve, Naca4AirfoilCurve
 
+from math import radians
+
 
 class Section(GeomBase):
     airfoil_name = Input()
     chord = Input()
+    angle = Input()
 
     @Part(in_tree=False)
     def airfoil(self):
@@ -15,10 +18,17 @@ class Section(GeomBase):
                            designation=self.airfoil_name)
 
     @Part
-    def curve(self):
+    def curve_flat(self):
         return ScaledCurve(curve_in=self.airfoil,
                            reference_point=self.position.point,
                            factor=self.chord)
+
+    @Part
+    def curve(self):
+        return RotatedCurve(curve_in=self.curve_flat,
+                            rotation_point=self.position,
+                            vector=self.position.Vy,
+                            angle=radians(self.angle))
 
 
 if __name__ == '__main__':
