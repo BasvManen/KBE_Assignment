@@ -22,6 +22,8 @@ class Spoiler(GeomBase):
     @Part
     def struts(self):
         return Strut(spoiler_span=self.main_plate.span,
+                     strut_type=1,
+                     chord=0.5*self.main_plate.chord,
                      position=self.strut_position)
 
     @Attribute
@@ -32,7 +34,9 @@ class Spoiler(GeomBase):
     def endplates(self):
         return Endplates(endplate_input=True,
                          spoiler_span=self.main_plate.span,
+                         endplate_position=0.7,
                          chord=self.main_plate.chord,
+                         height=0.4,
                          thickness=0.01,
                          position=self.endplate_position)
 
