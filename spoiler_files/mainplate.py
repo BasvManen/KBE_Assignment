@@ -1,8 +1,7 @@
 from parapy.core import *
 from parapy.geom import *
 
-from section import Section
-from math import radians
+from spoiler_files.section import Section
 
 
 class MainPlate(GeomBase):

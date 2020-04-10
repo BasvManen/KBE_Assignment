@@ -1,17 +1,16 @@
 from math import radians, sin
 
-from parapy.core import Input, Attribute, Part, child
+from parapy.core import Input, Attribute, Part
 from parapy.geom import *
+
 from kbeutils.geom.curve import Naca4AirfoilCurve
 
 
-spoiler_span = 1.5  # Specify main spoiler span
-
-
 class Strut(GeomBase):
+    spoiler_span = Input(3)                  # Specify main spoiler span
     strut_type = Input(2)               # 1 for sym_airfoil, 2 for simple plate
     strut_lat_location = Input(0.5)     # as fraction of spoiler half-span
-    chord = Input(0.1)
+    chord = Input(0.2)
     height = Input(0.6)
     thickness = Input(0.02)
     sweepback_angle = Input(15.)
@@ -47,7 +46,7 @@ class Strut(GeomBase):
     @Part(in_tree=False)
     def upper_curve_airfoil(self):
         return TranslatedCurve(curve_in=self.airfoil_scaled,
-                               displacement=Vector(0, self.strut_lat_location*spoiler_span/2, 0))
+                               displacement=Vector(0, self.strut_lat_location*self.spoiler_span/2, 0))
 
     @Part(in_tree=False)
     def lower_curve_airfoil(self):
@@ -59,13 +58,13 @@ class Strut(GeomBase):
     @Part(in_tree=False)
     def upper_curve_rectangle(self):
         return Rectangle(width=self.chord, length=self.thickness,
-                         position=translate(self.position, "y", self.strut_lat_location*spoiler_span/2))
+                         position=translate(self.position, "y", self.strut_lat_location*self.spoiler_span/2))
 
     @Part(in_tree=False)
     def lower_curve_rectangle(self):
         return Rectangle(width=self.chord, length=self.thickness,
                          position=translate(self.position, "x", self.height * sin(radians(self.sweepback_angle)),
-                                            "y", self.strut_lat_location*spoiler_span/2+self.height * sin(radians(self.cant_angle)),
+                                            "y", self.strut_lat_location*self.spoiler_span/2+self.height * sin(radians(self.cant_angle)),
                                             "z", self.height))
 
     @Attribute
