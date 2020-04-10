@@ -41,7 +41,7 @@ class Endplates(GeomBase):
 
     @Part
     def fillet(self):
-        return FilletedSolid(built_from=self.surface, radius=0.002)
+        return FilletedSolid(built_from=self.surface, radius=self.thickness/2)
 
     @Part
     def mirrored(self):
