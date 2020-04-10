@@ -32,11 +32,11 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../Tutorials/FastPrimiPlane/aircraft/section.py" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/section.py" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
-  <component name="RunManager" selected="Python.strut">
+  <component name="RunManager" selected="Python.section">
     <configuration name="endplates" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="KBE_Assignment" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -58,7 +58,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="strut" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="section" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="KBE_Assignment" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -70,7 +70,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/strut.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/section.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -100,9 +100,14 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.endplates" />
+      <item itemvalue="Python.section" />
+      <item itemvalue="Python.test" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.strut" />
+        <item itemvalue="Python.section" />
         <item itemvalue="Python.endplates" />
         <item itemvalue="Python.test" />
       </list>
@@ -122,30 +127,39 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
-    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1586003846802">
+    <state x="552" y="178" key="#Notifications" timestamp="1586508398768">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1586003846802" />
-    <state x="549" y="167" key="FileChooserDialogImpl" timestamp="1586184849328">
-      <screen x="0" y="0" width="1536" height="824" />
+    <state x="552" y="178" key="#Notifications/0.0.1920.1040@0.0.1920.1040" timestamp="1586508398768" />
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1586508108380">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1586508108380" />
+    <state x="686" y="211" key="FileChooserDialogImpl" timestamp="1586508107524">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1586184849328" />
-    <state width="745" height="104" key="GridCell.Tab.0.bottom" timestamp="1586380460914">
-      <screen x="0" y="0" width="1536" height="824" />
+    <state x="686" y="211" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1586508107524" />
+    <state width="1899" height="282" key="GridCell.Tab.0.bottom" timestamp="1586508375050">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="745" height="104" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1586380460914" />
-    <state width="745" height="104" key="GridCell.Tab.0.center" timestamp="1586380460914">
-      <screen x="0" y="0" width="1536" height="824" />
+    <state width="1899" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1586508375050" />
+    <state width="1899" height="282" key="GridCell.Tab.0.center" timestamp="1586508375050">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="745" height="104" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1586380460914" />
-    <state width="745" height="104" key="GridCell.Tab.0.left" timestamp="1586380460914">
-      <screen x="0" y="0" width="1536" height="824" />
+    <state width="1899" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1586508375050" />
+    <state width="1899" height="282" key="GridCell.Tab.0.left" timestamp="1586508375050">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="745" height="104" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1586380460914" />
-    <state width="745" height="104" key="GridCell.Tab.0.right" timestamp="1586380460914">
-      <screen x="0" y="0" width="1536" height="824" />
+    <state width="1899" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1586508375050" />
+    <state width="1899" height="282" key="GridCell.Tab.0.right" timestamp="1586508375050">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="745" height="104" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1586380460914" />
+    <state width="1899" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1586508375050" />
     <state x="461" y="162" key="SettingsEditor" timestamp="1586004408269">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -154,10 +168,11 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="465" y="236" key="com.intellij.ide.util.TipDialog/0.0.1536.824@0.0.1536.824" timestamp="1586371391930" />
-    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup" timestamp="1586186751392">
-      <screen x="0" y="0" width="1536" height="824" />
+    <state x="539" y="183" width="840" height="856" key="search.everywhere.popup" timestamp="1586507962161">
+      <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1586186751392" />
+    <state x="539" y="183" width="840" height="856" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1586507962161" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
