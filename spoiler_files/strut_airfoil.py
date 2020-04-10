@@ -7,13 +7,13 @@ from kbeutils.geom.curve import Naca4AirfoilCurve
 
 
 class StrutAirfoil(GeomBase):
-    spoiler_span = Input(3000.)                  # Specify main spoiler span
-    strut_lat_location = Input(0.5)     # as fraction of spoiler half-span
-    chord = Input(400.)
-    height = Input(600.)
-    thickness = Input(60.)
-    sweepback_angle = Input(25.)
-    cant_angle = Input(15.)
+    spoiler_span = Input()                  # Specify main spoiler span
+    strut_lat_location = Input()     # as fraction of spoiler half-span
+    chord = Input()
+    height = Input()
+    thickness = Input()
+    sweepback_angle = Input()
+    cant_angle = Input()
 
     @Attribute
     def thickness_to_chord(self): # this attribute is used to define a symmetric airfoil
@@ -33,7 +33,7 @@ class StrutAirfoil(GeomBase):
     @Part(in_tree=False)
     def airfoil(self):
         return RotatedCurve(curve_in=Naca4AirfoilCurve(self.symmetric_airfoil_name, n_points=200),
-                            rotation_point=self.position,
+                            rotation_point=self.position.point,
                             vector=self.position.Vx, angle=radians(90))
 
     @Part(in_tree=False)
@@ -56,7 +56,7 @@ class StrutAirfoil(GeomBase):
 
     @Part
     def solid(self):
-        return RuledSolid(profile1=self.upper_curve_airfoil, profile2=self.lower_curve_airfoil, position=self.position)
+        return RuledSolid(profile1=self.upper_curve_airfoil, profile2=self.lower_curve_airfoil)
 
     @Part
     def mirrored(self):

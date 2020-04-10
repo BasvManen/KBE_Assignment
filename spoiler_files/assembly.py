@@ -1,5 +1,6 @@
 from parapy.core import Input, Attribute, Part, child, DynamicType
 from parapy.geom import *
+from math import radians
 
 from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
 
@@ -31,7 +32,9 @@ class Spoiler(GeomBase):
                            thickness=20.,
                            sweepback_angle=15.,
                            cant_angle=25.,
-                           position=self.main_plate.position)
+                           position=XOY.translate("y", self.struts.height/self.struts.chord)
+                           if self.strut_airfoil else self.position.translate("z", -self.struts.height)
+                           ) # due to earlier used transformations and scaling this is used.
 
     @Attribute
     def endplate_position(self):
