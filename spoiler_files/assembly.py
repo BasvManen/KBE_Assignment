@@ -5,7 +5,6 @@ from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
 
 
 class Spoiler(GeomBase):
-    strut_airfoil = Input(True)
 
     @Part
     def main_plate(self):
@@ -15,25 +14,22 @@ class Spoiler(GeomBase):
                          chord=800.,
                          angle=-20)
 
-    @Attribute
-    def strut_position(self):
-        return self.position.translate("x", self.main_plate.position.x,
-                                       "z", -self.struts.height)
-
-    @Attribute
-    def strut_type(self):
-        if self.strut_airfoil:
-            return StrutAirfoil(spoiler_span=self.main_plate.span,
-                                chord=0.5*self.main_plate.chord,
-                                position=self.strut_position)
-        else:
-            return StrutPlate(spoiler_span=self.main_plate.span,
-                              chord=0.5*self.main_plate.chord,
-                              position=self.strut_position)
-
     @Part
     def struts(self):
-        return Part(self.strut_type)
+        return StrutAirfoil(spoiler_span=self.main_plate.span,
+                            chord=0.5*self.main_plate.chord,
+                            position=self.position.translate("x", self.main_plate.position.x))
+
+    # @Part
+    # def struts(self):
+    #     return StrutPlate(spoiler_span=self.main_plate.span,
+    #                       chord=0.5*self.main_plate.chord,
+    #                       position=self.strut_position)
+
+    # @Attribute
+    # def strut_position(self):
+    #     return self.position.translate("x", self.main_plate.position.x,
+    #                                    "z", -self.struts.height)
 
     @Attribute
     def endplate_position(self):

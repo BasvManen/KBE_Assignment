@@ -7,11 +7,11 @@ from kbeutils.geom.curve import Naca4AirfoilCurve
 
 
 class StrutAirfoil(GeomBase):
-    spoiler_span = Input(3000)                  # Specify main spoiler span
+    spoiler_span = Input()                  # Specify main spoiler span
     strut_lat_location = Input(0.5)     # as fraction of spoiler half-span
-    chord = Input(200)
-    height = Input(600)
-    thickness = Input(20)
+    chord = Input(200.)
+    height = Input(600.)
+    thickness = Input(20.)
     sweepback_angle = Input(15.)
     cant_angle = Input(25.)
 
