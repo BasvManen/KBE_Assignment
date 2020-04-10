@@ -5,14 +5,13 @@ from parapy.geom import *
 
 
 class Endplates(GeomBase):
-    spoiler_span = Input(3000.)        # Specify main spoiler span
-    endplate_input = Input(True)                # True for spoiler with, False for spoiler without endplates
-    endplate_position = Input(0.5)              # Point of attachment to spoiler, as fraction of endplate height
-    chord = Input(800.)               # Input(MainPlate.chord)              # Should be the same as tip-chord of spoiler
-    height = Input(600.)
-    thickness = Input(100.)
-    sweepback_angle = Input(15.)
-    cant_angle = Input(15.)
+    spoiler_span = Input()                   # Specify main spoiler span
+    endplate_position = Input()              # Point of attachment to spoiler, as fraction of endplate height
+    chord = Input()                          # Should be the same as tip-chord of spoiler
+    height = Input()
+    thickness = Input()
+    sweepback_angle = Input()
+    cant_angle = Input()
 
     @Part
     def mid_curve(self):

@@ -1,10 +1,12 @@
-from parapy.core import Input, Attribute, Part, child
-from parapy.geom import GeomBase, Plane
+from parapy.core import Input, Attribute, Part, child, DynamicType
+from parapy.geom import *
 
 from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
 
 
 class Spoiler(GeomBase):
+    strut_airfoil = Input()
+    endplate_input = Input()
 
     @Part
     def main_plate(self):
@@ -14,36 +16,39 @@ class Spoiler(GeomBase):
                          chord=800.,
                          angle=-20)
 
+    @Attribute
+    def strut_position(self):
+        return self.position.translate("x", self.struts.chord / 2,
+                                       "z", -self.struts.height)
+
     @Part
     def struts(self):
-        return StrutAirfoil(spoiler_span=self.main_plate.span,
-                            chord=0.5*self.main_plate.chord,
-                            position=self.position.translate("x", self.main_plate.position.x))
-
-    # @Part
-    # def struts(self):
-    #     return StrutPlate(spoiler_span=self.main_plate.span,
-    #                       chord=0.5*self.main_plate.chord,
-    #                       position=self.strut_position)
-
-    # @Attribute
-    # def strut_position(self):
-    #     return self.position.translate("x", self.main_plate.position.x,
-    #                                    "z", -self.struts.height)
+        return DynamicType(type=StrutAirfoil if self.strut_airfoil else StrutPlate,
+                           spoiler_span=self.main_plate.span,
+                           chord=0.5 * self.main_plate.chord,
+                           strut_lat_location=0.5,
+                           height=600.,
+                           thickness=20.,
+                           sweepback_angle=15.,
+                           cant_angle=25.,
+                           position=self.main_plate.position)
 
     @Attribute
     def endplate_position(self):
-        return self.position.translate("x", self.main_plate.position.x + self.main_plate.chord/2)
+        return self.position.translate("x", self.main_plate.position.x + self.main_plate.chord / 2)
 
     @Part
     def endplates(self):
-        return Endplates(endplate_input=True,
-                         spoiler_span=self.main_plate.span,
-                         endplate_position=0.7,
-                         chord=self.main_plate.chord,
-                         height=400.,
-                         thickness=10.,
-                         position=self.endplate_position)
+        return DynamicType(type=Endplates,
+                           spoiler_span=self.main_plate.span,
+                           endplate_position=0.7,
+                           chord=self.main_plate.chord,
+                           height=400.,
+                           thickness=10.,
+                           sweepback_angle=15.,
+                           cant_angle=15.,
+                           position=self.endplate_position,
+                           hidden=False if self.endplate_input else True)
 
 
 if __name__ == '__main__':

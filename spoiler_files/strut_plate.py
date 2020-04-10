@@ -5,13 +5,13 @@ from parapy.geom import *
 
 
 class StrutPlate(GeomBase):
-    spoiler_span = Input(3000)                  # Specify main spoiler span
-    strut_lat_location = Input(0.5)     # as fraction of spoiler half-span
-    chord = Input(200)
-    height = Input(600)
-    thickness = Input(20)
-    sweepback_angle = Input(15.)
-    cant_angle = Input(25.)
+    spoiler_span = Input()                  # Specify main spoiler span
+    strut_lat_location = Input()     # as fraction of spoiler half-span
+    chord = Input()
+    height = Input()
+    thickness = Input()
+    sweepback_angle = Input()
+    cant_angle = Input()
 
     @Part(in_tree=False)
     def upper_curve_rectangle(self):
