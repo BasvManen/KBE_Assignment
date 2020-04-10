@@ -5,12 +5,12 @@ from parapy.geom import *
 
 
 class Endplates(GeomBase):
-    spoiler_span = Input(3)        # Specify main spoiler span
+    spoiler_span = Input(3000.)        # Specify main spoiler span
     endplate_input = Input(True)                # True for spoiler with, False for spoiler without endplates
     endplate_position = Input(0.5)              # Point of attachment to spoiler, as fraction of endplate height
-    chord = Input(0.8)               # Input(MainPlate.chord)              # Should be the same as tip-chord of spoiler
-    height = Input(0.6)
-    thickness = Input(0.1)
+    chord = Input(800.)               # Input(MainPlate.chord)              # Should be the same as tip-chord of spoiler
+    height = Input(600.)
+    thickness = Input(100.)
     sweepback_angle = Input(15.)
     cant_angle = Input(15.)
 
@@ -35,18 +35,18 @@ class Endplates(GeomBase):
                                             "y", self.height*(self.endplate_position-1) * sin(radians(self.cant_angle)),
                                             "z", self.height * (self.endplate_position-1)))
 
-    @Part
-    def surface(self):
+    @Part(in_tree=False)
+    def solid(self):
         return RuledSolid(profile1=self.upper_curve, profile2=self.lower_curve)
 
     @Part
     def fillet(self):
-        return FilletedSolid(built_from=self.surface, radius=self.thickness/2)
+        return FilletedSolid(built_from=self.solid, radius=self.thickness/3)
 
     @Part
     def mirrored(self):
-        return MirroredShape(shape_in=self.surface,
-                             reference_point=Point(0, 0, 0),
+        return MirroredShape(shape_in=self.fillet,
+                             reference_point=self.position,
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
 

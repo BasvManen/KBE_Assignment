@@ -1,17 +1,18 @@
 from parapy.core import Input, Attribute, Part, child
 from parapy.geom import GeomBase, Plane
 
-from spoiler_files import MainPlate, Strut, Endplates
+from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
 
 
 class Spoiler(GeomBase):
+    strut_airfoil = Input(True)
 
     @Part
     def main_plate(self):
         return MainPlate(airfoil_mid='0012',
                          airfoil_tip='0008',
-                         span=3,
-                         chord=0.8,
+                         span=3000.,
+                         chord=800.,
                          angle=-20)
 
     @Attribute
@@ -19,12 +20,20 @@ class Spoiler(GeomBase):
         return self.position.translate("x", self.main_plate.position.x,
                                        "z", -self.struts.height)
 
+    @Attribute
+    def strut_type(self):
+        if self.strut_airfoil:
+            return StrutAirfoil(spoiler_span=self.main_plate.span,
+                                chord=0.5*self.main_plate.chord,
+                                position=self.strut_position)
+        else:
+            return StrutPlate(spoiler_span=self.main_plate.span,
+                              chord=0.5*self.main_plate.chord,
+                              position=self.strut_position)
+
     @Part
     def struts(self):
-        return Strut(spoiler_span=self.main_plate.span,
-                     strut_type=1,
-                     chord=0.5*self.main_plate.chord,
-                     position=self.strut_position)
+        return Part(self.strut_type)
 
     @Attribute
     def endplate_position(self):
@@ -36,8 +45,12 @@ class Spoiler(GeomBase):
                          spoiler_span=self.main_plate.span,
                          endplate_position=0.7,
                          chord=self.main_plate.chord,
-                         height=0.4,
-                         thickness=0.01,
+                         height=400.,
+                         thickness=10.,
                          position=self.endplate_position)
 
 
+if __name__ == '__main__':
+    from parapy.gui import display
+    obj = Spoiler(label='spoiler_assembly')
+    display(obj)

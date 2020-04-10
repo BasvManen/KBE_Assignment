@@ -6,13 +6,12 @@ from parapy.geom import *
 from kbeutils.geom.curve import Naca4AirfoilCurve
 
 
-class Strut(GeomBase):
-    spoiler_span = Input(3)                  # Specify main spoiler span
-    strut_type = Input(2)               # 1 for sym_airfoil, 2 for simple plate
+class StrutAirfoil(GeomBase):
+    spoiler_span = Input(3000)                  # Specify main spoiler span
     strut_lat_location = Input(0.5)     # as fraction of spoiler half-span
-    chord = Input(0.2)
-    height = Input(0.6)
-    thickness = Input(0.02)
+    chord = Input(200)
+    height = Input(600)
+    thickness = Input(20)
     sweepback_angle = Input(15.)
     cant_angle = Input(25.)
 
@@ -55,35 +54,13 @@ class Strut(GeomBase):
                                                    self.height*sin(radians(self.cant_angle)),
                                                    self.height))
 
-    @Part(in_tree=False)
-    def upper_curve_rectangle(self):
-        return Rectangle(width=self.chord, length=self.thickness,
-                         position=translate(self.position, "y", self.strut_lat_location*self.spoiler_span/2))
-
-    @Part(in_tree=False)
-    def lower_curve_rectangle(self):
-        return Rectangle(width=self.chord, length=self.thickness,
-                         position=translate(self.position, "x", self.height * sin(radians(self.sweepback_angle)),
-                                            "y", self.strut_lat_location*self.spoiler_span/2+self.height * sin(radians(self.cant_angle)),
-                                            "z", self.height))
-
-    @Attribute
-    def strut_curves(self): # to either get the curves for the symmetric airfoil or thin plate below
-        if self.strut_type == 1:
-            upper_curve = self.upper_curve_airfoil
-            lower_curve = self.lower_curve_airfoil
-        elif self.strut_type == 2:
-            upper_curve = self.upper_curve_rectangle
-            lower_curve = self.lower_curve_rectangle
-        return [upper_curve, lower_curve]
-
     @Part
-    def surface(self):
-        return RuledSolid(profile1=self.strut_curves[0], profile2=self.strut_curves[1])
+    def solid(self):
+        return RuledSolid(profile1=self.upper_curve_airfoil, profile2=self.lower_curve_airfoil)
 
     @Part
     def mirrored(self):
-        return MirroredShape(shape_in=self.surface,
+        return MirroredShape(shape_in=self.solid,
                              reference_point=Point(0, 0, 0),
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
@@ -91,5 +68,5 @@ class Strut(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = Strut(label="strut")
+    obj = StrutAirfoil(label="strut")
     display(obj)

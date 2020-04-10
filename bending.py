@@ -1,10 +1,16 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 10 15:55:16 2020
+
+@author: Stijn
+"""
+
 from math import pi, sin, cos, tan, radians
 import numpy as np
+from matplotlib import pyplot as plt
 
-from spoiler_files.strut import Strut
 
-
-def sumz_moment(list1, yi, elementset):
+def sumz_moment(list1, yi, elementset):         # this function calculates the moment induced by a force ditribution
     list2 = []
     for i in range(len(list1)):
         if yi[i] < elementset:
@@ -16,16 +22,17 @@ def sumz_moment(list1, yi, elementset):
 
 
 spoiler_weight = 20 * 9.80665
-spoiler_span = 3
+spoiler_span = 2
 spoiler_chord = 0.8
 spoiler_area = 2.4
 strut_lat_location = 0.5
 strut_location_1 = spoiler_span/2*(1-strut_lat_location)
 strut_location_2 = spoiler_span/2*(1+strut_lat_location)
 
-lift = [-10, -60, -80, -90, -100, -90, -80, -60, -10]
+lift = -100*np.ones(30)
 
 yi = np.zeros(len(lift)+1)
+yii = np.zeros(len(lift))
 Si = np.zeros(len(lift))
 Wi = np.zeros(len(lift))
 di = spoiler_span/len(lift)
@@ -34,6 +41,7 @@ for i in range(len(lift)+1):
     yi[i] = i*di
 
 for i in range(len(lift)):
+    yii[i] = yi[i] + (yi[i+1]-yi[i])/2
     Si[i] = spoiler_chord*di
     Wi[i] = -spoiler_weight/spoiler_area*Si[i]  # force downward
 
@@ -43,8 +51,8 @@ momentLi = []
 momentWi = []
 for i in range(len(lift)+1):
     yset = yi[i]
-    momentL = sumz_moment(lift, yi, yset)
-    momentW = sumz_moment(Wi, yi, yset)
+    momentL = sumz_moment(lift, yii, yset)
+    momentW = sumz_moment(Wi, yii, yset)
     momentLi.append(momentL)
     momentWi.append(momentW)
 
@@ -53,15 +61,13 @@ momentxi = []
 for i in range(len(lift)+1):
     yset = yi[i]
     if yset >= strut_location_2 and yset >= strut_location_1:
-        momi = f_strut_z/2*(strut_location_2-yset) + f_strut_z/2*(strut_location_1-yset) - momentLi[i] - momentWi[i]
+        momi = f_strut_z*(yset-strut_location_2) + f_strut_z*(yset-strut_location_1) + momentLi[i] + momentWi[i]
         momentxi.append(momi)
-    elif strut_location_2 > yset >= strut_location_1:
-        momi = f_strut_z/2*(strut_location_1-yset) - momentLi[i] - momentWi[i]
+    elif yset < strut_location_2  and yset >= strut_location_1:
+        momi = f_strut_z*(yset-strut_location_1) + momentLi[i] + momentWi[i]
         momentxi.append(momi)
     elif yset < strut_location_2 and yset < strut_location_1:
-        momi = -momentLi[i] - momentWi[i]
+        momi = momentLi[i] + momentWi[i]
         momentxi.append(momi)
 
-print(momentxi)
-print(momentLi)
-print(momentWi)
+plt.plot(yi, momentxi)
