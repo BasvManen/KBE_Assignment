@@ -11,11 +11,11 @@ class Spoiler(GeomBase):
 
     @Part
     def main_plate(self):
-        return MainPlate(airfoil_mid='0012',
-                         airfoil_tip='0008',
+        return MainPlate(airfoil_mid='9412',
+                         airfoil_tip='9408',
                          span=3000.,
                          chord=800.,
-                         angle=-20)
+                         angle=20)
 
     @Attribute
     def strut_position(self):

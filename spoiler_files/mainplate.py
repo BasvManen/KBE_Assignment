@@ -46,9 +46,9 @@ class MainPlate(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = MainPlate(airfoil_mid='0012',
-                    airfoil_tip='0008',
-                    span=3,
-                    chord=0.8,
-                    angle=-20)
+    obj = MainPlate(airfoil_mid='9412',
+                    airfoil_tip='7408',
+                    span=3000,
+                    chord=800,
+                    angle=0)
     display(obj)

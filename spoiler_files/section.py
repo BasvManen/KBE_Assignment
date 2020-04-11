@@ -17,18 +17,25 @@ class Section(GeomBase):
                                  else Naca4AirfoilCurve),
                            designation=self.airfoil_name)
 
-    @Part
+    @Part(in_tree=False)
     def curve_flat(self):
         return ScaledCurve(curve_in=self.airfoil,
                            reference_point=self.position.point,
                            factor=self.chord)
 
-    @Part
-    def curve(self):
+    @Part(in_tree=False)
+    def curve_up(self):
         return RotatedCurve(curve_in=self.curve_flat,
                             rotation_point=self.position,
                             vector=self.position.Vy,
                             angle=radians(self.angle))
+
+    @Part
+    def curve(self):
+        return RotatedCurve(curve_in=self.curve_up,
+                            rotation_point=self.position,
+                            vector=self.position.Vx,
+                            angle=radians(180))
 
 
 if __name__ == '__main__':
