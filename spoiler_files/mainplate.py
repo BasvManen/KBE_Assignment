@@ -23,7 +23,7 @@ class MainPlate(GeomBase):
         tip_position = self.position.translate('y', self.span/2)
         return mid_position, tip_position
 
-    @Part
+    @Part(in_tree=False)
     def sections(self):
         return Section(quantify=2,
                        airfoil_name=self.airfoil_names[child.index],
@@ -44,7 +44,7 @@ class MainPlate(GeomBase):
                                vector1=self.position.Vx,
                                vector2=self.position.Vz)
 
-    @Part
+    @Part(in_tree=False)
     def avl_surface(self):
         return avl.Surface(name="Main Plate",
                            n_chordwise=12,

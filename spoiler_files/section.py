@@ -38,7 +38,7 @@ class Section(GeomBase):
                             vector=self.position.Vx,
                             angle=radians(180))
 
-    @Part
+    @Part(in_tree=False)
     def avl_section(self):
         return avl.SectionFromCurve(curve_in=self.curve)
 
