@@ -54,9 +54,19 @@ class Spoiler(GeomBase):
                            position=self.endplate_position,
                            hidden=False if self.endplate_input else True)
 
+    @Attribute
+    def avl_surfaces(self):
+        return self.find_children(lambda o: isinstance(o, avl.Surface))
+
     @Part
     def avl_configuration(self):
-        return avl.Configuration(name='Spoiler')
+        return avl.Configuration(name='Spoiler',
+                                 reference_area=12,
+                                 reference_span=12,
+                                 reference_chord=12,
+                                 reference_point=self.position.point,
+                                 surfaces=self.avl_surfaces)
+
 
 if __name__ == '__main__':
     from parapy.gui import display

@@ -45,7 +45,15 @@ class MainPlate(GeomBase):
                                vector2=self.position.Vz)
 
     @Part
-
+    def avl_surface(self):
+        return avl.Surface(name="Main Plate",
+                           n_chordwise=12,
+                           chord_spacing=avl.Spacing.cosine,
+                           n_spanwise=20,
+                           span_spacing=avl.Spacing.cosine,
+                           y_duplicate=self.position.point[1],
+                           sections=[section.avl_section
+                                     for section in self.sections])
 
 
 if __name__ == '__main__':
