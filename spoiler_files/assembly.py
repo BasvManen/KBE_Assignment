@@ -1,6 +1,6 @@
 from parapy.core import Input, Attribute, Part, child, DynamicType
 from parapy.geom import *
-from math import radians
+from math import sin, cos, radians
 
 from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
 import kbeutils.avl as avl
@@ -38,7 +38,8 @@ class Spoiler(GeomBase):
                          airfoil_tip=self.tip_airfoil,
                          span=self.spoiler_span,
                          chord=self.spoiler_chord,
-                         angle=self.spoiler_angle)
+                         angle=self.spoiler_angle,
+                         tip_cant=self.endplate_cant)
 
     @Attribute
     def strut_position(self):
@@ -68,8 +69,8 @@ class Spoiler(GeomBase):
         return DynamicType(type=Endplates,
                            spoiler_span=self.spoiler_span,
                            endplate_position=self.endplate_pos,
-                           chord=self.main_plate.chord,
-                           height=self.endplate_height,
+                           chord=self.main_plate.chord*cos(radians(self.spoiler_angle)),
+                           height=self.main_plate.chord*sin(radians(self.spoiler_angle)),
                            thickness=self.endplate_thickness,
                            sweepback_angle=self.endplate_sweep,
                            cant_angle=self.endplate_cant,

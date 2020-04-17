@@ -1,8 +1,9 @@
 from parapy.core import *
 from parapy.geom import *
+from math import sin, cos, radians
 
-from spoiler_files.section import Section
 import kbeutils.avl as avl
+from spoiler_files.section import Section
 
 
 class MainPlate(GeomBase):
@@ -12,6 +13,7 @@ class MainPlate(GeomBase):
     span = Input()
     chord = Input()
     angle = Input()
+    tip_cant = Input()
     
     @Attribute
     def airfoil_names(self):
@@ -39,11 +41,14 @@ class MainPlate(GeomBase):
 
     @Part(in_tree=False)
     def cutting_plane(self):
-        return Plane(Point(400, 1300, 0), normal=rotate(VY, VX, -20, deg=True))
+        return Plane(translate(XOY, 'x', self.chord*cos(radians(self.angle)),
+                               'y', self.span/2,
+                               'z', self.chord*sin(radians(self.angle))),
+                     normal=rotate(VY, VX, -self.tip_cant, deg=True))
 
     @Part(in_tree=False)
     def half_space_solid(self):
-        return HalfSpaceSolid(self.cutting_plane, Point(400, 2000, 0))
+        return HalfSpaceSolid(self.cutting_plane, Point(0, self.span, 0))
 
     @Part
     def surface(self):
