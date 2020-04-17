@@ -70,5 +70,7 @@ class Spoiler(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = Spoiler(label='spoiler_assembly')
+    obj = Spoiler(label='spoiler_assembly',
+                  strut_airfoil=False,
+                  endplate_input=True)
     display(obj)
