@@ -2,6 +2,7 @@ from parapy.core import *
 from parapy.geom import *
 
 from spoiler_files.section import Section
+import kbeutils.avl as avl
 
 
 class MainPlate(GeomBase):
@@ -42,6 +43,9 @@ class MainPlate(GeomBase):
                                reference_point=self.position.point,
                                vector1=self.position.Vx,
                                vector2=self.position.Vz)
+
+    @Part
+
 
 
 if __name__ == '__main__':

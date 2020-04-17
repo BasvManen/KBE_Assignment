@@ -3,6 +3,7 @@ from parapy.geom import *
 from math import radians
 
 from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
+import kbeutils.avl as avl
 
 
 class Spoiler(GeomBase):
@@ -53,6 +54,9 @@ class Spoiler(GeomBase):
                            position=self.endplate_position,
                            hidden=False if self.endplate_input else True)
 
+    @Part
+    def avl_configuration(self):
+        return avl.Configuration(name='Spoiler')
 
 if __name__ == '__main__':
     from parapy.gui import display

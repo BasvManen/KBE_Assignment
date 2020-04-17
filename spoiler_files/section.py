@@ -1,6 +1,7 @@
 from parapy.core import *
 from parapy.geom import *
 from kbeutils.geom.curve import Naca5AirfoilCurve, Naca4AirfoilCurve
+import kbeutils.avl as avl
 
 from math import radians
 
@@ -37,9 +38,14 @@ class Section(GeomBase):
                             vector=self.position.Vx,
                             angle=radians(180))
 
+    @Part
+    def avl_section(self):
+        return avl.SectionFromCurve(curve_in=self.curve)
+
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = Section(airfoil_name='00112',
-                  chord=2)
+    obj = Section(airfoil_name='9412',
+                  chord=2,
+                  angle=20)
     display(obj)
