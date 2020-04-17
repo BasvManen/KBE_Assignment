@@ -31,18 +31,30 @@ class MainPlate(GeomBase):
                        angle=self.angle,
                        position=self.section_positions[child.index])
 
-    @Part
-    def surface(self):
-        return LoftedShell(profiles=[section.curve
+    @Part(in_tree=False)
+    def surface_whole(self):
+        return LoftedSolid(profiles=[section.curve
                                      for section in self.sections],
                            ruled=True)
 
+    @Part(in_tree=False)
+    def cutting_plane(self):
+        return Plane(Point(400, 1300, 0), normal=rotate(VY, VX, -20, deg=True))
+
+    @Part(in_tree=False)
+    def half_space_solid(self):
+        return HalfSpaceSolid(self.cutting_plane, Point(400, 2000, 0))
+
+    @Part
+    def surface(self):
+        return SubtractedSolid(shape_in=self.surface_whole, tool=self.half_space_solid)
+
     @Part
     def surface_mirrored(self):
-        return MirroredSurface(surface_in=self.surface.faces[0],
-                               reference_point=self.position.point,
-                               vector1=self.position.Vx,
-                               vector2=self.position.Vz)
+        return MirroredShape(shape_in=self.surface,
+                             reference_point=self.position.point,
+                             vector1=self.position.Vx,
+                             vector2=self.position.Vz)
 
     @Part(in_tree=False)
     def avl_surface(self):
