@@ -60,8 +60,7 @@ class Spoiler(GeomBase):
 
     @Attribute
     def endplate_position(self):
-        return self.position.translate("x", self.spoiler_chord*cos(radians(self.spoiler_angle)),
-                                       "z", self.spoiler_chord*sin(radians(self.spoiler_angle)))
+        return self.position.translate("z", self.spoiler_chord*sin(radians(self.spoiler_angle)))
 
     @Part
     def endplates(self):

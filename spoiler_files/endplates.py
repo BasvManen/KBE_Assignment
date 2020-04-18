@@ -25,7 +25,7 @@ class Endplates(GeomBase):
     def upper_curve(self):
         return Rectangle(width=self.endplate_chord, length=self.thickness,
                          position=translate(XOY,
-                                            "x", -self.endplate_chord/2,
+                                            "x", self.chord-self.endplate_chord/2,
                                             "y", self.spoiler_span/2,
                                             "z", self.height)
                          )
