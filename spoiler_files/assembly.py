@@ -26,8 +26,6 @@ class Spoiler(GeomBase):
 
     # Endplate Inputs
     endplate_present = Input(True)
-    endplate_pos = Input()
-    endplate_height = Input()
     endplate_thickness = Input()
     endplate_sweep = Input()
     endplate_cant = Input()
@@ -62,15 +60,15 @@ class Spoiler(GeomBase):
 
     @Attribute
     def endplate_position(self):
-        return self.position.translate("x", self.main_plate.position.x + self.main_plate.chord / 2)
+        return self.position.translate("x", self.spoiler_chord*cos(radians(self.spoiler_angle)),
+                                       "z", self.spoiler_chord*sin(radians(self.spoiler_angle)))
 
     @Part
     def endplates(self):
         return DynamicType(type=Endplates,
                            spoiler_span=self.spoiler_span,
-                           endplate_position=self.endplate_pos,
-                           chord=self.main_plate.chord*cos(radians(self.spoiler_angle)),
-                           height=self.main_plate.chord*sin(radians(self.spoiler_angle)),
+                           chord=self.spoiler_chord*cos(radians(self.spoiler_angle)),
+                           height=self.spoiler_chord*sin(radians(self.spoiler_angle)),
                            thickness=self.endplate_thickness,
                            sweepback_angle=self.endplate_sweep,
                            cant_angle=self.endplate_cant,
