@@ -17,9 +17,9 @@ class StrutAirfoil(GeomBase):
 
     @Attribute
     def thickness_to_chord(self): # this attribute is used to define a symmetric airfoil
-        if int(self.thickness/self.chord*100) < 2: # the airfoil cannot get too thin
+        if int(self.thickness/self.chord*100) < 2:  # the airfoil cannot get too thin
             ratio = 2
-        elif int(self.thickness/self.chord*100) > 50: # the airfoil cannot get too thick
+        elif int(self.thickness/self.chord*100) > 50:  # the airfoil cannot get too thick
             ratio = 40
         else:
             ratio = int(self.thickness / self.chord * 100)

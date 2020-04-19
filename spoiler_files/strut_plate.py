@@ -8,7 +8,7 @@ class StrutPlate(GeomBase):
     spoiler_span = Input()                  # Specify main spoiler span
     strut_lat_location = Input()     # as fraction of spoiler half-span
     chord = Input()
-    height = Input()
+    height = Input()                # as defined from spoiler leading edge to strut base
     thickness = Input()
     sweepback_angle = Input()
     cant_angle = Input()
