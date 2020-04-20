@@ -29,7 +29,6 @@ if __name__ == '__main__':
                       strut_sweep=15.,
                       strut_cant=0.,
                       endplate_present=True,
-                      endplate_height=400.,
                       endplate_thickness=10.,
                       endplate_sweep=15.,
                       endplate_cant=0.)
