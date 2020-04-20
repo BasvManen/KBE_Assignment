@@ -61,7 +61,7 @@ class MainPlate(GeomBase):
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
 
-    @Part(in_tree=False)
+    @Part
     def avl_surface(self):
         return avl.Surface(name="Main Plate",
                            n_chordwise=12,

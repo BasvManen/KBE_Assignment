@@ -3,6 +3,8 @@ from math import radians, sin, tan, cos
 from parapy.core import Input, Part, Attribute
 from parapy.geom import *
 
+import kbeutils.avl as avl
+
 
 class Endplates(GeomBase):
     spoiler_span = Input()                   # Specify main spoiler span
@@ -38,6 +40,14 @@ class Endplates(GeomBase):
                                             "y", -self.height*tan(radians(self.cant_angle)),
                                             "z", -self.height))
 
+    @Part
+    def avl_section_up(self):
+        return avl.SectionFromCurve(curve_in=self.upper_curve)
+
+    @Part
+    def avl_section_lo(self):
+        return avl.SectionFromCurve(curve_in=self.lower_curve)
+
     @Part(in_tree=False)
     def solid(self):
         return RuledSolid(profile1=self.upper_curve, profile2=self.lower_curve)
@@ -52,6 +62,16 @@ class Endplates(GeomBase):
                              reference_point=self.position,
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
+
+    @Part
+    def avl_surface(self):
+        return avl.Surface(name="Endplates",
+                           n_chordwise=12,
+                           chord_spacing=avl.Spacing.cosine,
+                           n_spanwise=20,
+                           span_spacing=avl.Spacing.cosine,
+                           y_duplicate=self.position.point[1],
+                           sections=[self.avl_section_up, self.avl_section_lo])
 
 
 if __name__ == '__main__':

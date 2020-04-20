@@ -30,6 +30,10 @@ class Spoiler(GeomBase):
     endplate_sweep = Input()
     endplate_cant = Input()
 
+    @Attribute
+    def reference_area(self):
+        return self.spoiler_chord*self.spoiler_span
+
     @Part
     def main_plate(self):
         return MainPlate(airfoil_mid=self.mid_airfoil,
@@ -81,9 +85,9 @@ class Spoiler(GeomBase):
     @Part(in_tree=False)
     def avl_configuration(self):
         return avl.Configuration(name='Spoiler',
-                                 reference_area=12,
-                                 reference_span=12,
-                                 reference_chord=12,
+                                 reference_area=self.reference_area,
+                                 reference_span=self.spoiler_span,
+                                 reference_chord=self.spoiler_chord,
                                  reference_point=self.position.point,
                                  surfaces=self.avl_surfaces)
 
