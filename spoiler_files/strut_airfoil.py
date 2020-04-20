@@ -1,4 +1,4 @@
-from math import radians, sin
+from math import radians, sin, cos
 
 from parapy.core import Input, Attribute, Part
 from parapy.geom import *
@@ -16,7 +16,7 @@ class StrutAirfoil(GeomBase):
     cant_angle = Input()
 
     @Attribute
-    def thickness_to_chord(self): # this attribute is used to define a symmetric airfoil
+    def thickness_to_chord(self):  # this attribute is used to define a symmetric airfoil
         if int(self.thickness/self.chord*100) < 2:  # the airfoil cannot get too thin
             ratio = 2
         elif int(self.thickness/self.chord*100) > 50:  # the airfoil cannot get too thick
@@ -26,7 +26,7 @@ class StrutAirfoil(GeomBase):
         return ratio
 
     @Attribute
-    def symmetric_airfoil_name(self): # create 4-digit naca airfoil name
+    def symmetric_airfoil_name(self):  # create 4-digit naca airfoil name
         name = '00'+str(self.thickness_to_chord)
         return name
 
@@ -50,9 +50,9 @@ class StrutAirfoil(GeomBase):
     @Part(in_tree=False)
     def lower_curve_airfoil(self):
         return TranslatedCurve(curve_in=self.upper_curve_airfoil,
-                               displacement=Vector(self.height*sin(radians(self.sweepback_angle)),
-                                                   self.height*sin(radians(self.cant_angle)),
-                                                   self.height))
+                               displacement=Vector(-self.height*sin(radians(self.sweepback_angle)),
+                                                   -self.height*sin(radians(self.cant_angle)),
+                                                   -self.height))
 
     @Part
     def solid(self):
@@ -68,5 +68,12 @@ class StrutAirfoil(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = StrutAirfoil(label="strut")
+    obj = StrutAirfoil(label="strut",
+                       spoiler_span=3000,
+                       strut_lat_location=0.1,
+                       chord=400,
+                       height=500,
+                       thickness=20,
+                       sweepback_angle=15,
+                       cant_angle=0)
     display(obj)
