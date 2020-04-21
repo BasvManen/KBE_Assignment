@@ -57,14 +57,7 @@ class Spoiler(GeomBase):
                            thickness=self.strut_thickness,
                            sweepback_angle=self.strut_sweep,
                            cant_angle=self.strut_cant,
-                           position=self.strut_position
-                           #position=XOY.translate("y", self.struts.height/self.struts.chord)
-                           #if self.strut_airfoil_shape else self.position.translate("z", -self.struts.height)
-                           )  # due to earlier used transformations and scaling this is used.
-
-    @Part
-    def strut_new(self):
-        return SubtractedSolid(shape_in=self.struts.solid, tool=self.main_plate.surface)
+                           position=self.strut_position)  # due to earlier used transformations and scaling this is used.
 
     @Attribute
     def endplate_position(self):

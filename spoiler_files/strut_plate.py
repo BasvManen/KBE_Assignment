@@ -22,9 +22,10 @@ class StrutPlate(GeomBase):
     @Part(in_tree=False)
     def lower_curve_rectangle(self):
         return Rectangle(width=self.chord, length=self.thickness,
-                         position=translate(self.position, "x", self.height * sin(radians(self.sweepback_angle)),
-                                            "y", self.strut_lat_location*self.spoiler_span/2+self.height * sin(radians(self.cant_angle)),
-                                            "z", self.height),
+                         position=translate(self.upper_curve_rectangle.position,
+                                            "x", -self.height * sin(radians(self.sweepback_angle)),
+                                            "y", -self.height * sin(radians(self.cant_angle)),
+                                            "z", -self.height),
                          centered=False)
 
     @Part(in_tree=False)
@@ -45,5 +46,12 @@ class StrutPlate(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = StrutPlate(label="strut")
+    obj = StrutPlate(label="strut",
+                     spoiler_span = 3000,
+                     strut_lat_location=0.8,
+                     chord=800,
+                     height=400,
+                     thickness=20,
+                     sweepback_angle=15,
+                     cant_angle=0)
     display(obj)
