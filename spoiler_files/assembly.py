@@ -57,6 +57,7 @@ class Spoiler(GeomBase):
                            thickness=self.strut_thickness,
                            sweepback_angle=self.strut_sweep,
                            cant_angle=self.strut_cant,
+                           main=self.main_plate,
                            position=self.strut_position)  # due to earlier used transformations and scaling this is used.
 
     @Attribute

@@ -4,6 +4,7 @@ from parapy.core import Input, Attribute, Part
 from parapy.geom import *
 
 from kbeutils.geom.curve import Naca4AirfoilCurve
+from spoiler_files.mainplate import MainPlate
 
 
 class StrutAirfoil(GeomBase):
@@ -14,6 +15,7 @@ class StrutAirfoil(GeomBase):
     thickness = Input()
     sweepback_angle = Input()
     cant_angle = Input()
+    main = Input()
 
     @Attribute
     def thickness_to_chord(self):  # this attribute is used to define a symmetric airfoil
@@ -54,17 +56,32 @@ class StrutAirfoil(GeomBase):
                                                    -self.height*sin(radians(self.cant_angle)),
                                                    -self.height))
 
-    @Part
+    @Part(in_tree=False)
+    def extended_airfoil(self):
+        return TranslatedCurve(curve_in=self.upper_curve_airfoil,
+                               displacement=Vector(self.height*sin(radians(self.sweepback_angle)),
+                                                   self.height*sin(radians(self.cant_angle)),
+                                                   self.height))
+
+    @Part(in_tree=False)
     def solid(self):
-        return RuledSolid(profile1=self.upper_curve_airfoil, profile2=self.lower_curve_airfoil)
+        return RuledSolid(profile1=self.extended_airfoil, profile2=self.lower_curve_airfoil)
+
+    @Part(in_tree=False)
+    def partitioned_solid(self):
+        return PartitionedSolid(solid_in=self.main.surface, tool=self.solid, keep_tool=True)
+
+    @Part
+    def strut(self):
+        return SubtractedSolid(shape_in=SubtractedSolid(shape_in=self.solid, tool=self.partitioned_solid.solids[2] if self.partitioned_solid.solids[2].area < self.partitioned_solid.solids[3].area else self.partitioned_solid.solids[3]),
+                               tool=self.partitioned_solid.solids[1])
 
     @Part
     def mirrored(self):
-        return MirroredShape(shape_in=self.solid,
+        return MirroredShape(shape_in=self.strut,
                              reference_point=Point(0, 0, 0),
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
-
 
 if __name__ == '__main__':
     from parapy.gui import display
