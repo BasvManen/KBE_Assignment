@@ -33,19 +33,19 @@ class StrutAirfoil(GeomBase):
     @Part(in_tree=False)
     def airfoil(self):
         return RotatedCurve(curve_in=Naca4AirfoilCurve(self.symmetric_airfoil_name, n_points=200),
-                            rotation_point=self.position.point,
+                            rotation_point=XOY,
                             vector=self.position.Vx, angle=radians(90))
 
     @Part(in_tree=False)
     def airfoil_scaled(self):
         return ScaledCurve(curve_in=self.airfoil,
-                           reference_point=self.position.point,
+                           reference_point=XOY,
                            factor=self.chord)
 
     @Part(in_tree=False)
     def upper_curve_airfoil(self):
         return TranslatedCurve(curve_in=self.airfoil_scaled,
-                               displacement=Vector(0, self.strut_lat_location*self.spoiler_span/2, 0))
+                               displacement=Vector(self.position.point[0], self.strut_lat_location*self.spoiler_span/2, self.position.point[2]))
 
     @Part(in_tree=False)
     def lower_curve_airfoil(self):
