@@ -161,12 +161,12 @@ class MomentOfInertia(GeomBase):
 if __name__ == '__main__':
     from parapy.gui import display
     obj = MomentOfInertia(label='Moment of Inertia',
-                          airfoil_mid='9412',
-                          airfoil_tip='9408',
-                          spoiler_span=3000.,
-                          spoiler_chord=800.,
+                          airfoil_mid='0012',
+                          airfoil_tip='0012',
+                          spoiler_span=3.,
+                          spoiler_chord=1.,
                           spoiler_angle=0.,
-                          spoiler_skin_thickness=4.,
+                          spoiler_skin_thickness=0.004,
                           n_discretise=300,
                           n_cuts=5)
     display(obj)

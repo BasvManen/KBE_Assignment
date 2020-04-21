@@ -109,16 +109,17 @@ class Bending(GeomBase):
     spoiler_skin_thickness = Input()
 
     # Additional inputs for bending calculations
-    spoiler_weight = Input()
-    endplate_weight = Input()
+    force_direction = Input('x' or 'z')
+    spoiler_weight = Input()        # in Newton
+    endplate_weight = Input()       # in Newton
     spoiler_area = Input()
     strut_lat_location = Input()
-    lift = Input()
-    E = Input()
+    force = Input()
+    youngs_modulus = Input()
 
     @Attribute
     def number_of_lateral_cuts(self):
-        return int(len(self.lift)/2) + 1
+        return int(len(self.force)/2) + 1
 
     @Attribute
     def full_moment_of_inertia(self):
@@ -131,22 +132,42 @@ class Bending(GeomBase):
                                n_cuts=self.number_of_lateral_cuts).full_moment_of_inertia
 
     @Attribute
-    def x_moment_of_inertia(self):
-        return [row[0] for row in self.full_moment_of_inertia]
+    def moment_of_inertia(self):
+        if self.force_direction == 'z':
+            direction = 0
+        elif self.force_direction == 'x':
+            direction = 1
+        return [row[direction] for row in self.full_moment_of_inertia]
 
     @Attribute
     def bending_output(self):
-        theta_i, w_i, y_i, moment_x_i = mainplate_bending(self.lift, self.E, self.x_moment_of_inertia,
-                                                          self.spoiler_weight, self.endplate_weight, self.spoiler_span,
-                                                          self.spoiler_chord, self.spoiler_area,
-                                                          self.strut_lat_location)
-        return theta_i, w_i, y_i, moment_x_i
+        theta_i, delta_i, y_i, moment_i = mainplate_bending(self.force, self.youngs_modulus, self.moment_of_inertia,
+                                                            self.spoiler_weight, self.endplate_weight,
+                                                            self.spoiler_span, self.spoiler_chord, self.spoiler_area,
+                                                            self.strut_lat_location)
+        return theta_i, delta_i, y_i, moment_i
 
     @Attribute
-    def plot_w_deflection(self):
+    def plot_force_deflection(self):
+        plt.plot(self.bending_output[2], self.bending_output[1])
+        plt.xlabel('Spanwise location [m]')
+        if self.force_direction == 'z':
+            plt.ylabel('Deflection in z [m]')
+        elif self.force_direction == 'x':
+            plt.ylabel('Deflection in x [m]')
+        plt.grid(b=True, which='both', color='0.65', linestyle='-')
+        plt.title("Close it to refresh the ParaPy GUI")
+        plt.show()
+        return "Plot generated and closed"
+
+    @Attribute
+    def plot_bending_moment(self):
         plt.plot(self.bending_output[2], self.bending_output[3])
         plt.xlabel('Spanwise location [m]')
-        plt.ylabel('Deflection in z [m]')
+        if self.force_direction == 'z':
+            plt.ylabel('Bending moment M_x [Nm]')
+        elif self.force_direction == 'x':
+            plt.ylabel('Bending moment M_z [Nm]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
         plt.title("Close it to refresh the ParaPy GUI")
         plt.show()
@@ -155,7 +176,8 @@ class Bending(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = Bending(label="Spoiler",
+    obj = Bending(label="Aerodynamic Bending",
+                  force_direction='z',
                   airfoil_mid='9412',
                   airfoil_tip='9408',
                   spoiler_span=3.,
@@ -166,6 +188,6 @@ if __name__ == '__main__':
                   endplate_weight=50,
                   spoiler_area=2.4,
                   strut_lat_location=0.7,
-                  lift=-100*np.ones(40),
-                  E=6.89*10**7)
+                  force=-100*np.ones(40),
+                  youngs_modulus=6.89*10**7)
     display(obj)
