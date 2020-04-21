@@ -11,7 +11,7 @@ if __name__ == '__main__':
                   spoiler_span=2500.,
                   spoiler_chord=800.,
                   spoiler_angle=20.,
-                  strut_airfoil_shape=False,
+                  strut_airfoil_shape=True,
                   strut_lat_location=0.8,
                   strut_height=250.,
                   strut_chord=400.,

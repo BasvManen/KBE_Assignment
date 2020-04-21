@@ -4,14 +4,8 @@ from parapy.core import *
 from parapy.geom import *
 from math import atan, cos, sin, tan, radians, pi
 
-# mid_airfoil_test = '9412'
-# tip_airfoil_test = '9408'
-# spoiler_spoiler_span_test = 3000.
-# spoiler_spoiler_chord_test = 800.
-# spoiler_spoiler_angle_test = 20.
 
-
-class MomentOfInertia(GeomBase):
+class SectionProperties(GeomBase):
     airfoil_mid = Input()
     airfoil_tip = Input()
     spoiler_span = Input()
@@ -49,7 +43,8 @@ class MomentOfInertia(GeomBase):
         cutout_list = []
         for i in range(self.n_cuts):
             cutout_list.append(self.surface_lofted.intersection_curves(
-                    other_surface=Plane(reference=translate(self.position, "y", i*equidistant_spacing), normal=self.position.Vy)))
+                    other_surface=Plane(reference=translate(self.position, "y", i*equidistant_spacing),
+                                        normal=self.position.Vy)))
         return cutout_list
 
     @Part(in_tree=False)
@@ -119,8 +114,8 @@ class MomentOfInertia(GeomBase):
         return moment_inertia_displaced_area_list
 
     @Attribute
-    def moment_inertia_area_rectspoiler_angle(self):
-        moment_inertia_area_rectspoiler_angle_list = []
+    def moment_inertia_area_rectangle(self):
+        moment_inertia_area_rectangle_list = []
         for i in range(self.n_cuts):
             ix = 0
             iz = 0
@@ -134,16 +129,16 @@ class MomentOfInertia(GeomBase):
                 ix = ix + ((iu + iw) / 2 + (iu - iw) / 2 * cos(2 * theta))
                 iz = iz + ((iu + iw) / 2 - (iu - iw) / 2 * cos(2 * theta))
                 ixz = ixz + ((iu - iw) / 2 * sin(2 * theta))
-            moment_inertia_area_rectspoiler_angle_list.append([ix, iz, ixz])
-        return moment_inertia_area_rectspoiler_angle_list
+            moment_inertia_area_rectangle_list.append([ix, iz, ixz])
+        return moment_inertia_area_rectangle_list
 
     @Attribute
     def moment_inertia_total(self):
         moment_inertia_list = []
         for i in range(self.n_cuts):
-            ix_total = self.moment_inertia_displaced_area[i][0] + self.moment_inertia_area_rectspoiler_angle[i][0]
-            iz_total = self.moment_inertia_displaced_area[i][1] + self.moment_inertia_area_rectspoiler_angle[i][1]
-            ixz_total = self.moment_inertia_displaced_area[i][2] + self.moment_inertia_area_rectspoiler_angle[i][2]
+            ix_total = self.moment_inertia_displaced_area[i][0] + self.moment_inertia_area_rectangle[i][0]
+            iz_total = self.moment_inertia_displaced_area[i][1] + self.moment_inertia_area_rectangle[i][1]
+            ixz_total = self.moment_inertia_displaced_area[i][2] + self.moment_inertia_area_rectangle[i][2]
             moment_inertia_list.append([ix_total, iz_total, ixz_total])
         return moment_inertia_list
 
@@ -160,14 +155,14 @@ class MomentOfInertia(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = MomentOfInertia(label='Moment of Inertia',
-                          airfoil_mid='0012',
-                          airfoil_tip='0012',
-                          spoiler_span=3.,
-                          spoiler_chord=1.,
-                          spoiler_angle=0.,
-                          spoiler_skin_thickness=0.004,
-                          n_discretise=300,
-                          n_cuts=5)
+    obj = SectionProperties(label='Moment of Inertia',
+                            airfoil_mid='0012',
+                            airfoil_tip='0012',
+                            spoiler_span=3.,
+                            spoiler_chord=1.,
+                            spoiler_angle=0.,
+                            spoiler_skin_thickness=0.004,
+                            n_discretise=300,
+                            n_cuts=5)
     display(obj)
 
