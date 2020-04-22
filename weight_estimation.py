@@ -1,4 +1,5 @@
 from spoiler_files.assembly import Spoiler
+from spoiler_files.section import Section
 from spoiler_files.mainplate import MainPlate
 from spoiler_files.endplates import Endplates
 from spoiler_files.strut_airfoil import StrutAirfoil
@@ -58,9 +59,35 @@ class WeightEstimation(GeomBase):
                        endplate_cant=self.endplate_cant)
 
     @Attribute
+    def airfoil_names(self):
+        return self.mid_airfoil, self.tip_airfoil
+
+    @Attribute
+    def section_positions(self):
+        mid_position = self.position
+        tip_position = self.position.translate('y', self.spoiler_span / 2)
+        return mid_position, tip_position
+
+    @Part(in_tree=False)
+    def sections(self):
+        return Section(quantify=2,
+                       airfoil_name=self.airfoil_names[child.index],
+                       chord=self.spoiler_chord,
+                       angle=self.spoiler_angle,
+                       position=self.section_positions[child.index])
+
+    @Part(in_tree=False)
+    def surface_lofted(self):
+        return LoftedShell(profiles=[section.curve for section in self.sections])
+
+    @Part(in_tree=False)
+    def thick_mainplate(self):
+        return ThickShell(built_from=self.surface_lofted, offset=-self.spoiler_skin_thickness)
+
+    @Attribute
     def volume_mainplate(self):
-        calculated_volume = 0
-        return calculated_volume
+        calculated_volume = -self.thick_mainplate.volume * 2
+        return calculated_volume / 10 ** 9
 
     @Attribute
     def volume_endplate(self):      # in m^3 while inputs are in mm
