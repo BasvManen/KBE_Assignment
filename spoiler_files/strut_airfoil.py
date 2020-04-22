@@ -4,7 +4,9 @@ from parapy.core import Input, Attribute, Part
 from parapy.geom import *
 
 from kbeutils.geom.curve import Naca4AirfoilCurve
+import kbeutils.avl as avl
 from spoiler_files.mainplate import MainPlate
+
 
 
 class StrutAirfoil(GeomBase):
@@ -49,6 +51,14 @@ class StrutAirfoil(GeomBase):
         return TranslatedCurve(curve_in=self.airfoil_scaled,
                                displacement=Vector(self.position.point[0], self.strut_lat_location*self.spoiler_span/2, self.position.point[2]))
 
+    @Part
+    def avl_section_up(self):
+        return avl.SectionFromCurve(curve_in=self.upper_curve_airfoil)
+
+    @Part
+    def avl_section_lo(self):
+        return avl.SectionFromCurve(curve_in=self.lower_curve_airfoil)
+
     @Part(in_tree=False)
     def lower_curve_airfoil(self):
         return TranslatedCurve(curve_in=self.upper_curve_airfoil,
@@ -82,6 +92,17 @@ class StrutAirfoil(GeomBase):
                              reference_point=Point(0, 0, 0),
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
+
+    @Part
+    def avl_surface(self):
+        return avl.Surface(name="Struts",
+                           n_chordwise=12,
+                           chord_spacing=avl.Spacing.cosine,
+                           n_spanwise=20,
+                           span_spacing=avl.Spacing.cosine,
+                           y_duplicate=self.position.point[1],
+                           sections=[self.avl_section_up, self.avl_section_lo])
+
 
 if __name__ == '__main__':
     from parapy.gui import display

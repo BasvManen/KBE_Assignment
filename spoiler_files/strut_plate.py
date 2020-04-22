@@ -3,6 +3,8 @@ from math import radians, sin
 from parapy.core import Input, Attribute, Part
 from parapy.geom import *
 
+import kbeutils.avl as avl
+
 
 class StrutPlate(GeomBase):
     spoiler_span = Input()                  # Specify main spoiler span
@@ -28,6 +30,14 @@ class StrutPlate(GeomBase):
                                             "y", -self.height * sin(radians(self.cant_angle)),
                                             "z", -self.height),
                          centered=False)
+
+    @Part
+    def avl_section_up(self):
+        return avl.SectionFromCurve(curve_in=self.upper_curve_rectangle)
+
+    @Part
+    def avl_section_lo(self):
+        return avl.SectionFromCurve(curve_in=self.lower_curve_rectangle)
 
     @Part(in_tree=False)
     def extended_curve_rectangle(self):
@@ -61,6 +71,16 @@ class StrutPlate(GeomBase):
                              reference_point=Point(0, 0, 0),
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
+
+    @Part
+    def avl_surface(self):
+        return avl.Surface(name="Struts",
+                           n_chordwise=12,
+                           chord_spacing=avl.Spacing.cosine,
+                           n_spanwise=20,
+                           span_spacing=avl.Spacing.cosine,
+                           y_duplicate=self.position.point[1],
+                           sections=[self.avl_section_up, self.avl_section_lo])
 
 
 if __name__ == '__main__':

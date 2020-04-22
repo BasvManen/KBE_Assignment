@@ -80,14 +80,15 @@ class Spoiler(GeomBase):
     def avl_surfaces(self):
         return self.find_children(lambda o: isinstance(o, avl.Surface))
 
-    @Part(in_tree=False)
+    @Part
     def avl_configuration(self):
         return avl.Configuration(name='Spoiler',
                                  reference_area=self.reference_area,
                                  reference_span=self.spoiler_span,
                                  reference_chord=self.spoiler_chord,
                                  reference_point=self.position.point,
-                                 surfaces=self.avl_surfaces)
+                                 surfaces=self.avl_surfaces,
+                                 mach=0.0)
 
 
 if __name__ == '__main__':

@@ -79,5 +79,6 @@ if __name__ == '__main__':
                     airfoil_tip='7408',
                     span=3000,
                     chord=800,
-                    angle=0)
+                    angle=0,
+                    tip_cant=0)
     display(obj)
