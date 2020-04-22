@@ -53,7 +53,7 @@ class Spoiler(GeomBase):
                            spoiler_span=self.spoiler_span,
                            chord=self.strut_chord,
                            strut_lat_location=self.strut_lat_location,
-                           height=self.strut_height+100,
+                           height=self.strut_height,
                            thickness=self.strut_thickness,
                            sweepback_angle=self.strut_sweep,
                            cant_angle=self.strut_cant,
