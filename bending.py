@@ -25,8 +25,8 @@ def sumz_moment(force_list, y_i, y_current):
 
 # function to calculate moments/displacement of the main spoiler plate using as inputs the aerodynamic force in z on the
 # spoiler, the material and sectional properties of the spoiler and the geometric properties of the spoiler design
-def mainplate_bending_x(lift, E, Ixx, spoiler_weight, endplate_weight, spoiler_span, spoiler_chord, spoiler_area,
-                        strut_lat_location):
+def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight, endplate_weight, spoiler_span, spoiler_chord,
+                         spoiler_area, strut_lat_location):
     # retrieve y-location of the struts
     strut_location_1 = spoiler_span / 2 * (1 - strut_lat_location)
     strut_location_2 = spoiler_span / 2 * (1 + strut_lat_location)
@@ -52,16 +52,21 @@ def mainplate_bending_x(lift, E, Ixx, spoiler_weight, endplate_weight, spoiler_s
 
     # calculate the z-force on the strut by sum of forces in z
     f_strut_z = -(sum(lift) + sum(weight_i)) / 2
+    # calculate the z-force on the strut by sum of forces in x
+    f_strut_x = -sum(drag) / 2
 
     # calculate the influence of the lift and weight on the bending moment for each increment i
     moment_lift_i = []
     moment_weight_i = []
+    moment_drag_i = []
     for i in range(len(lift) + 1):
         yset = y_i[i]
         momentL = sumz_moment(lift, y_ii, yset)
         momentW = sumz_moment(weight_i, y_ii, yset)
+        momentD = sumz_moment(drag, y_ii, yset)
         moment_lift_i.append(momentL)
         moment_weight_i.append(momentW)
+        moment_drag_i.append(momentD)
 
     # calculating the moment in x along the spoiler
     moment_x_i = []
@@ -78,59 +83,7 @@ def mainplate_bending_x(lift, E, Ixx, spoiler_weight, endplate_weight, spoiler_s
             mom_i = moment_lift_i[i] + moment_weight_i[i]
             moment_x_i.append(mom_i)
 
-    # calculate deflection angles and displacement using Euler-Bernoulli beam theory
-    # the deflection angle in the centerline of the spoiler is 0
-    # the deflection at the struts is considered equal to 0
-    theta_i = np.zeros(len(lift) + 1)
-    for i in range(int(len(lift) / 2) + 1, len(lift) + 1):
-        theta_i[i] = theta_i[i - 1] + 0.5 * (
-                moment_x_i[i] / (E * Ixx[i]) + moment_x_i[i - 1] / (E * Ixx[i - 1])) * (
-                             y_i[i] - y_i[i - 1])
-
-    index_strut = np.where(y_i == strut_location_2)[0][0]
-    v_i = np.zeros(len(lift) + 1)
-    for i in range(index_strut, len(lift) + 1):
-        v_i[i] = v_i[i - 1] + 0.5 * (theta_i[i] + theta_i[i - 1]) * (y_i[i] - y_i[i - 1])
-
-    for i in range(index_strut + 1, int(len(lift) / 2), -1):
-        v_i[i - 1] = v_i[i] - 0.5 * (theta_i[i] + theta_i[i - 1]) * (y_i[i] - y_i[i - 1])
-
-    for i in range(int(len(lift) / 2)):
-        theta_i[i] = theta_i[len(lift) - i]
-        v_i[i] = v_i[len(lift) - i]
-
-    return theta_i, v_i, y_i, moment_x_i
-
-
-# function to calculate moments/displacement of the main spoiler plate using as inputs the aerodynamic force in x on the
-# spoiler, the material and sectional properties of the spoiler and the geometric properties of the spoiler design
-def mainplate_bending_z(drag, E, Izz, spoiler_span, strut_lat_location):
-    # retrieve y-location of the struts
-    strut_location_1 = spoiler_span / 2 * (1 - strut_lat_location)
-    strut_location_2 = spoiler_span / 2 * (1 + strut_lat_location)
-
-    # calculating y-coordinate, area and weight at each increment i
-    y_i = np.zeros(len(drag) + 1)
-    y_ii = np.zeros(len(drag))
-    di = spoiler_span / len(drag)
-
-    for i in range(len(drag) + 1):
-        y_i[i] = round(i * di, 3)  # this was done to get rid of weird machine errors
-
-    for i in range(len(drag)):
-        y_ii[i] = y_i[i] + (y_i[i + 1] - y_i[i]) / 2
-
-    # calculate the z-force on the strut by sum of forces in z
-    f_strut_x = -sum(drag) / 2
-
-    # calculate the influence of the drag and weight on the bending moment for each increment i
-    moment_drag_i = []
-    for i in range(len(drag) + 1):
-        yset = y_i[i]
-        momentD = sumz_moment(drag, y_ii, yset)
-        moment_drag_i.append(momentD)
-
-    # calculating the moment in x along the spoiler
+    # calculating the moment in z along the spoiler
     moment_z_i = []
     for i in range(len(drag) + 1):
         yset = y_i[i]
@@ -145,28 +98,40 @@ def mainplate_bending_z(drag, E, Izz, spoiler_span, strut_lat_location):
             mom_i = moment_drag_i[i]
             moment_z_i.append(mom_i)
 
-    # calculate deflection angles and displacement using Euler-Bernoulli beam theory
+    # calculate deflection angles and displacement using Euler-Bernoulli beam theory in unsymmetrical bending
     # the deflection angle in the centerline of the spoiler is 0
     # the deflection at the struts is considered equal to 0
-    theta_i = np.zeros(len(drag) + 1)
-    for i in range(int(len(drag) / 2) + 1, len(drag) + 1):
-        theta_i[i] = theta_i[i - 1] + 0.5 * (
-                moment_z_i[i] / (E * Izz[i]) + moment_z_i[i - 1] / (E * Izz[i - 1])) * (
-                             y_i[i] - y_i[i - 1])
+    w_double_prime = np.zeros(len(lift) + 1)
+    u_double_prime = np.zeros(len(drag) + 1)
+    theta_x_i = np.zeros(len(lift) + 1)
+    theta_z_i = np.zeros(len(drag) + 1)
+    for i in range(len(lift) + 1):
+        w_double_prime[i] = (moment_z_i[i] * Ixz[i] / (E * Ixx[i] * Izz[i]) - moment_x_i[i] / (E * Ixx[i])) \
+                            / (1 - Ixz[i] ** 2 / (Ixx[i] * Izz[i]))
+        u_double_prime[i] = (moment_x_i[i] * Ixz[i] / (E * Ixx[i] * Izz[i]) - moment_z_i[i] / (E * Izz[i])) \
+                            / (1 - Ixz[i] ** 2 / (Ixx[i] * Izz[i]))
+    for i in range(int(len(lift) / 2) + 1, len(lift) + 1):
+        theta_x_i[i] = theta_x_i[i - 1] + 0.5 * (-w_double_prime[i] - w_double_prime[i - 1]) * (y_i[i] - y_i[i - 1])
+        theta_z_i[i] = theta_z_i[i - 1] + 0.5 * (-u_double_prime[i] - u_double_prime[i - 1]) * (y_i[i] - y_i[i - 1])
 
     index_strut = np.where(y_i == strut_location_2)[0][0]
-    v_i = np.zeros(len(drag) + 1)
-    for i in range(index_strut, len(drag) + 1):
-        v_i[i] = v_i[i - 1] + 0.5 * (theta_i[i] + theta_i[i - 1]) * (y_i[i] - y_i[i - 1])
+    w_i = np.zeros(len(lift) + 1)
+    u_i = np.zeros(len(lift) + 1)
+    for i in range(index_strut, len(lift) + 1):
+        w_i[i] = w_i[i - 1] + 0.5 * (theta_x_i[i] + theta_x_i[i - 1]) * (y_i[i] - y_i[i - 1])
+        u_i[i] = u_i[i - 1] + 0.5 * (theta_z_i[i] + theta_z_i[i - 1]) * (y_i[i] - y_i[i - 1])
 
-    for i in range(index_strut + 1, int(len(drag) / 2), -1):
-        v_i[i - 1] = v_i[i] - 0.5 * (theta_i[i] + theta_i[i - 1]) * (y_i[i] - y_i[i - 1])
+    for i in range(index_strut + 1, int(len(lift) / 2), -1):
+        w_i[i - 1] = w_i[i] - 0.5 * (theta_x_i[i] + theta_x_i[i - 1]) * (y_i[i] - y_i[i - 1])
+        u_i[i - 1] = u_i[i] - 0.5 * (theta_z_i[i] + theta_z_i[i - 1]) * (y_i[i] - y_i[i - 1])
 
-    for i in range(int(len(drag) / 2)):
-        theta_i[i] = theta_i[len(drag) - i]
-        v_i[i] = v_i[len(drag) - i]
+    for i in range(int(len(lift) / 2)):
+        theta_x_i[i] = theta_x_i[len(lift) - i]
+        theta_z_i[i] = theta_z_i[len(lift) - i]
+        w_i[i] = w_i[len(lift) - i]
+        u_i[i] = u_i[len(lift) - i]
 
-    return theta_i, v_i, y_i, moment_z_i
+    return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i
 
 
 class Bending(GeomBase):
@@ -245,25 +210,17 @@ class Bending(GeomBase):
         return moment_of_inertia_x, moment_of_inertia_z, moment_of_inertia_xz
 
     @Attribute
-    def bending_x(self):
-        theta_i, delta_i, y_i, moment_i = mainplate_bending_x(self.force_z, self.youngs_modulus,
-                                                              self.moment_of_inertia[0],
-                                                              self.weights[0], self.weights[1],
-                                                              self.spoiler_span, self.spoiler_chord, self.spoiler_area,
-                                                              self.strut_lat_location)
-        return theta_i, delta_i, y_i, moment_i
+    def bending_xz(self):
+        theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i = \
+            mainplate_bending_xz(self.force_z, self.force_x, self.youngs_modulus, self.moment_of_inertia[0],
+                                 self.moment_of_inertia[1], self.moment_of_inertia[2], self.weights[0], self.weights[1],
+                                 self.spoiler_span, self.spoiler_chord, self.spoiler_area, self.strut_lat_location)
+        return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i
 
     @Attribute
-    def bending_z(self):
-        theta_i, delta_i, y_i, moment_i = mainplate_bending_z(self.force_x, self.youngs_modulus,
-                                                              self.moment_of_inertia[1],
-                                                              self.spoiler_span, self.strut_lat_location)
-        return theta_i, delta_i, y_i, moment_i
-
-    @Attribute
-    def plot_force_deflection(self):
-        plt.plot(self.bending_x[2], self.bending_x[1])
-        plt.plot(self.bending_z[2], self.bending_z[1])
+    def plot_force_deflection2(self):
+        plt.plot(self.bending_xz[4], self.bending_xz[2])
+        plt.plot(self.bending_xz[4], self.bending_xz[3])
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Deflection [m]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
@@ -273,9 +230,9 @@ class Bending(GeomBase):
         return "Plot generated and closed"
 
     @Attribute
-    def plot_bending_moment(self):
-        plt.plot(self.bending_x[2], self.bending_x[3])
-        plt.plot(self.bending_z[2], self.bending_z[3])
+    def plot_bending_moment2(self):
+        plt.plot(self.bending_xz[4], self.bending_xz[5])
+        plt.plot(self.bending_xz[4], self.bending_xz[6])
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Bending moment [Nm]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
@@ -295,9 +252,9 @@ if __name__ == '__main__':
                   spoiler_span=2.5,
                   spoiler_chord=.8,
                   spoiler_skin_thickness=.002,
-                  spoiler_angle=20.,
+                  spoiler_angle=15.,
                   strut_airfoil_shape=True,
-                  strut_lat_location=0.8,
+                  strut_lat_location=0.6,
                   strut_height=.25,
                   strut_chord=.4,
                   strut_thickness=.04,
@@ -309,6 +266,6 @@ if __name__ == '__main__':
                   endplate_cant=10.,
                   spoiler_area=2000000.,
                   force_z=-100 * np.ones(40),
-                  force_x=-100 * np.ones(40),
+                  force_x=10 * np.ones(40),
                   youngs_modulus=6.89 * 10 ** 7)
     display(obj)

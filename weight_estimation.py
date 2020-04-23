@@ -80,13 +80,13 @@ class WeightEstimation(GeomBase):
     def surface_lofted(self):
         return LoftedShell(profiles=[section.curve for section in self.sections])
 
-    @Part(in_tree=False)
+    @Part(in_tree=True)
     def thick_mainplate(self):
         return ThickShell(built_from=self.surface_lofted, offset=-self.spoiler_skin_thickness)
 
     @Attribute
     def volume_mainplate(self):
-        calculated_volume = -self.thick_mainplate.volume * 2
+        calculated_volume = abs(self.thick_mainplate.volume) * 2
         return calculated_volume / 10 ** 9
 
     @Attribute
@@ -119,12 +119,12 @@ if __name__ == '__main__':
 
     obj = WeightEstimation(label="Weight Estimator",
                            material_density=1600.,
-                           mid_airfoil='9412',
-                           tip_airfoil='9408',
+                           mid_airfoil='0014',
+                           tip_airfoil='0012',
                            spoiler_span=2500.,
                            spoiler_chord=800.,
                            spoiler_skin_thickness=2.,
-                           spoiler_angle=20.,
+                           spoiler_angle=0.,
                            strut_airfoil_shape=True,
                            strut_lat_location=0.8,
                            strut_height=250.,
@@ -132,7 +132,7 @@ if __name__ == '__main__':
                            strut_thickness=40.,
                            strut_sweep=15.,
                            strut_cant=15.,
-                           endplate_present=True,
+                           endplate_present=False,
                            endplate_thickness=10.,
                            endplate_sweep=15.,
                            endplate_cant=10.)
