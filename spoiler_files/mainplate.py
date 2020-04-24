@@ -67,7 +67,7 @@ class MainPlate(GeomBase):
                            n_chordwise=12,
                            chord_spacing=avl.Spacing.cosine,
                            n_spanwise=20,
-                           span_spacing=avl.Spacing.cosine,
+                           span_spacing=avl.Spacing.equal,
                            y_duplicate=self.position.point[1],
                            sections=[section.avl_section
                                      for section in self.sections])

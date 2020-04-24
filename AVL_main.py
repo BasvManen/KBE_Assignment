@@ -2,6 +2,7 @@ from spoiler_files import Spoiler
 from parapy.core import *
 
 import kbeutils.avl as avl
+import matplotlib.pyplot as plt
 
 
 class AvlAnalysis(avl.Interface):
@@ -17,6 +18,11 @@ class AvlAnalysis(avl.Interface):
     def ld_ratio(self):
         return -self.results['default']['Totals']['CLtot'] / self.results['default']['Totals']['CDtot']
 
+    @Attribute
+    def force_distribution(self):
+        return [self.results['default']['StripForces']['Main Plate']['Yle'],
+                self.results['default']['StripForces']['Main Plate']['c cl']]
+
     @Part
     def case(self):
         return avl.Case(name=self.case_settings[0],
@@ -26,12 +32,12 @@ class AvlAnalysis(avl.Interface):
 if __name__ == '__main__':
     from parapy.gui import display
     spoiler = Spoiler(label="Spoiler",
-                      mid_airfoil='9412',
-                      tip_airfoil='9408',
+                      mid_airfoil='0012',
+                      tip_airfoil='0008',
                       spoiler_span=2.5,
                       spoiler_chord=0.8,
-                      spoiler_angle=20.,
-                      strut_airfoil_shape=False,
+                      spoiler_angle=5.,
+                      strut_airfoil_shape=True,
                       strut_lat_location=0.8,
                       strut_height=0.25,
                       strut_chord=0.4,
