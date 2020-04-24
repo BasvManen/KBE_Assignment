@@ -92,8 +92,19 @@ class SectionProperties(GeomBase):
     def centroid(self):
         centroid_list = []
         for i in range(self.n_cuts):
-            centroid_list.append(Point(self.centroid_calculation[i][0], self.centroid_calculation[i][1], self.centroid_calculation[i][2]))
+            centroid_list.append(Point(self.centroid_calculation[i][0], self.centroid_calculation[i][1],
+                                       self.centroid_calculation[i][2]))
         return centroid_list
+
+    @Attribute
+    def area_along_spoiler(self):
+        area_list = []
+        for i in range(self.n_cuts):
+            area_cut = []
+            for j in range(self.amount_of_lines):
+                area_cut.append(self.lines_on_airfoil[i][j].length * self.spoiler_skin_thickness)
+            area_list.append(sum(area_cut))
+        return area_list
 
     @Attribute
     def moment_inertia_displaced_area(self):

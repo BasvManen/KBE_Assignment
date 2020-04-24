@@ -131,7 +131,53 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight, endplate_
         w_i[i] = w_i[len(lift) - i]
         u_i[i] = u_i[len(lift) - i]
 
-    return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i
+    return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, f_strut_z, f_strut_x
+
+
+def normal_stress_due_to_strut(force_in_y, y_i, area_distribution, strut_lat_location, spoiler_span):
+    # retrieve y-location of the struts
+    strut_location_1 = spoiler_span / 2 * (1 - strut_lat_location)
+    strut_location_2 = spoiler_span / 2 * (1 + strut_lat_location)
+
+    # make normal force distribution
+    normal_force = np.zeros(len(y_i))
+    for i in range(len(y_i)):
+        if y_i[i] < strut_location_1 or y_i[i] > strut_location_2:
+            normal_force[i] = 0
+        elif strut_location_1 <= y_i[i] <= strut_location_2:
+            normal_force[i] = force_in_y
+
+    # make normal stress distribution
+    sigma_y = []
+    for i in range(len(y_i)):
+        sigma_y.append(normal_force[i] / area_distribution[i])
+
+    return sigma_y
+
+
+def bending_stress(moment_x, moment_z, Ixx, Izz, Ixz, line_coordinates):
+    # initialise the x and z coordinates along the span
+    x = []
+    z = []
+    for i in range(len(line_coordinates)):
+        x.append([])
+        z.append([])
+        for j in range(len(line_coordinates[0])):
+            x[i].append(line_coordinates[i][j][0])
+            z[i].append(line_coordinates[i][j][2])
+
+    # calculate the normal stress due to bending
+    sigma_y = []
+    sigma_y_max = []
+    for i in range(len(line_coordinates)):
+        sigma_y.append([])
+        for j in range(len(line_coordinates[i])):
+            calc_sigma = moment_x[i] * (Izz[i] * z[i][j] - Ixz[i] * x[i][j]) / (Ixx[i] * Izz[i] - Ixz[i] ** 2) \
+                         + moment_z[i] * (Ixx[i] * x[i][j] - Ixz[i] * z[i][j]) / (Ixx[i] * Izz[i] - Ixz[i] ** 2)
+            sigma_y[i].append(calc_sigma)
+        sigma_y_max.append(max(sigma_y[i]))
+
+    return sigma_y, sigma_y_max
 
 
 class Bending(GeomBase):
@@ -203,6 +249,16 @@ class Bending(GeomBase):
                                  n_cuts=self.number_of_lateral_cuts).full_moment_of_inertia
 
     @Attribute
+    def area_along_spoiler(self):
+        return SectionProperties(airfoil_mid=self.airfoil_mid,
+                                 airfoil_tip=self.airfoil_tip,
+                                 spoiler_span=self.spoiler_span,
+                                 spoiler_chord=self.spoiler_chord,
+                                 spoiler_angle=self.spoiler_angle,
+                                 spoiler_skin_thickness=self.spoiler_skin_thickness,
+                                 n_cuts=self.number_of_lateral_cuts).area_along_spoiler
+
+    @Attribute
     def moment_of_inertia(self):
         moment_of_inertia_x = [row[0] for row in self.full_moment_of_inertia]
         moment_of_inertia_z = [row[1] for row in self.full_moment_of_inertia]
@@ -211,14 +267,72 @@ class Bending(GeomBase):
 
     @Attribute
     def bending_xz(self):
-        theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i = \
+        theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, f_strut_z, f_strut_x = \
             mainplate_bending_xz(self.force_z, self.force_x, self.youngs_modulus, self.moment_of_inertia[0],
                                  self.moment_of_inertia[1], self.moment_of_inertia[2], self.weights[0], self.weights[1],
                                  self.spoiler_span, self.spoiler_chord, self.spoiler_area, self.strut_lat_location)
-        return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i
+        return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, f_strut_z, f_strut_x
 
     @Attribute
-    def plot_force_deflection2(self):
+    def normal_stress(self):
+        f_strut_y = self.bending_xz[7] * tan(radians(self.strut_cant))
+        y_i = self.bending_xz[4]
+        total_area_distribution = self.area_along_spoiler[::-1] + self.area_along_spoiler[1:]
+        sigma_y = normal_stress_due_to_strut(f_strut_y, y_i, total_area_distribution,
+                                             self.strut_lat_location, self.spoiler_span)
+        return sigma_y
+
+    # @Attribute
+    # def section_coordinates(self):
+    #     half_line_coordinates = SectionProperties(airfoil_mid=self.airfoil_mid,
+    #                                               airfoil_tip=self.airfoil_tip,
+    #                                               spoiler_span=self.spoiler_span,
+    #                                               spoiler_chord=self.spoiler_chord,
+    #                                               spoiler_angle=self.spoiler_angle,
+    #                                               spoiler_skin_thickness=self.spoiler_skin_thickness,
+    #                                               n_cuts=self.number_of_lateral_cuts).coordinates_sections_points
+    #     full_line_coordinates = half_line_coordinates[::-1] + half_line_coordinates[1:]
+    #     x = []
+    #     z = []
+    #     for i in range(len(full_line_coordinates)):
+    #         x.append([])
+    #         z.append([])
+    #         for j in range(len(full_line_coordinates[0])):
+    #             x[i].append(full_line_coordinates[i][j][0])
+    #             z[i].append(full_line_coordinates[i][j][2])
+    #     return full_line_coordinates, x, z
+
+    @Attribute
+    def normal_bending_stress(self):
+        moment_x = self.bending_xz[5]
+        moment_z = self.bending_xz[6]
+        Ixx = self.moment_of_inertia[0]
+        Izz = self.moment_of_inertia[1]
+        Ixz = self.moment_of_inertia[2]
+        half_line_coordinates = SectionProperties(airfoil_mid=self.airfoil_mid,
+                                                  airfoil_tip=self.airfoil_tip,
+                                                  spoiler_span=self.spoiler_span,
+                                                  spoiler_chord=self.spoiler_chord,
+                                                  spoiler_angle=self.spoiler_angle,
+                                                  spoiler_skin_thickness=self.spoiler_skin_thickness,
+                                                  n_cuts=self.number_of_lateral_cuts).coordinates_sections_points
+        full_line_coordinates = half_line_coordinates[::-1] + half_line_coordinates[1:]
+        sigma_y, sigma_y_max = bending_stress(moment_x, moment_z, Ixx, Izz, Ixz, full_line_coordinates)
+        return sigma_y, sigma_y_max
+
+    @Attribute
+    def plot_stress(self):
+        plt.plot(self.bending_xz[4], self.normal_stress)
+        plt.plot(self.bending_xz[4], self.normal_bending_stress[1])
+        plt.xlabel('Spanwise location [m]')
+        plt.ylabel('Stress [N/m^2]')
+        plt.grid(b=True, which='both', color='0.65', linestyle='-')
+        plt.title("Close it to refresh the ParaPy GUI")
+        plt.show()
+        return "Plot generated and closed"
+
+    @Attribute
+    def plot_force_deflection(self):
         plt.plot(self.bending_xz[4], self.bending_xz[2])
         plt.plot(self.bending_xz[4], self.bending_xz[3])
         plt.xlabel('Spanwise location [m]')
@@ -230,7 +344,7 @@ class Bending(GeomBase):
         return "Plot generated and closed"
 
     @Attribute
-    def plot_bending_moment2(self):
+    def plot_bending_moment(self):
         plt.plot(self.bending_xz[4], self.bending_xz[5])
         plt.plot(self.bending_xz[4], self.bending_xz[6])
         plt.xlabel('Spanwise location [m]')
@@ -259,7 +373,7 @@ if __name__ == '__main__':
                   strut_chord=.4,
                   strut_thickness=.04,
                   strut_sweep=15.,
-                  strut_cant=15.,
+                  strut_cant=20.,
                   endplate_present=True,
                   endplate_thickness=.005,
                   endplate_sweep=15.,
