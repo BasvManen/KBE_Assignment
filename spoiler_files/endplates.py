@@ -29,7 +29,7 @@ class Endplates(GeomBase):
                          position=translate(XOY,
                                             "x", self.chord-self.endplate_chord/2,
                                             "y", self.spoiler_span/2,
-                                            "z", self.height)
+                                            "z", 0.9*self.height)
                          )
 
     @Part

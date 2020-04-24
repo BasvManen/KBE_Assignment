@@ -62,7 +62,7 @@ class StrutPlate(GeomBase):
 
     @Part
     def strut(self):
-        return SubtractedSolid(shape_in=SubtractedSolid(shape_in=self.fillet, tool=self.partitioned_solid.solids[2] if self.partitioned_solid.solids[2].area < self.partitioned_solid.solids[3].area else self.partitioned_solid.solids[3]),
+        return SubtractedSolid(shape_in=SubtractedSolid(shape_in=self.fillet, tool=self.partitioned_solid.solids[2]),
                                tool=self.partitioned_solid.solids[1])
 
     @Part
