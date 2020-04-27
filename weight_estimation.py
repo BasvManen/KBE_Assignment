@@ -1,12 +1,6 @@
 from spoiler_files.assembly import Spoiler
 from spoiler_files.section import Section
-from spoiler_files.mainplate import MainPlate
-from spoiler_files.endplates import Endplates
-from spoiler_files.strut_airfoil import StrutAirfoil
-from spoiler_files.strut_plate import StrutPlate
-from section_properties import SectionProperties
 
-from math import pi, sin, cos, tan, radians
 from parapy.geom import *
 from parapy.core import *
 
@@ -78,11 +72,13 @@ class WeightEstimation(GeomBase):
 
     @Part(in_tree=False)
     def surface_lofted(self):
-        return LoftedShell(profiles=[section.curve for section in self.sections])
+        return LoftedShell(profiles=
+                           [section.curve for section in self.sections])
 
     @Part(in_tree=True)
     def thick_mainplate(self):
-        return ThickShell(built_from=self.surface_lofted, offset=-self.spoiler_skin_thickness)
+        return ThickShell(built_from=self.surface_lofted,
+                          offset=-self.spoiler_skin_thickness)
 
     @Attribute
     def volume_mainplate(self):
@@ -91,7 +87,8 @@ class WeightEstimation(GeomBase):
 
     @Attribute
     def volume_endplate(self):      # in m^3 while inputs are in mm
-        return self.whole_spoiler.endplates.fillet.volume / 10**9 if self.endplate_present else 0.
+        return self.whole_spoiler.endplates.fillet.volume / 10**9 \
+            if self.endplate_present else 0.
 
     @Attribute
     def volume_strut(self):         # in m^3 while inputs are in mm
@@ -111,7 +108,8 @@ class WeightEstimation(GeomBase):
 
     @Attribute
     def total_weight(self):
-        return self.weight_mainplate + self.weight_endplate * 2 + self.weight_strut * 2
+        return self.weight_mainplate + self.weight_endplate * 2 \
+               + self.weight_strut * 2
 
 
 if __name__ == '__main__':
