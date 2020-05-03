@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 g = 9.80665
 
 
-def sumz_moment(force_list, y_i, y_current):
+def distributed_force_moment(force_list, y_i, y_current):
     """
     This function is used in the calculation of the moment due to the
     distributed lift/weight/drag force of the spoiler as used in
@@ -30,7 +30,7 @@ def sumz_moment(force_list, y_i, y_current):
 
 def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
                          endplate_weight, spoiler_span, spoiler_chord,
-                         spoiler_area, strut_lat_location):
+                         strut_lat_location):
     """
     This function calculates the bending moment along the spoiler in x and
     z, as well as the bending displacement in x and z. It uses as inputs the
@@ -57,7 +57,8 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
     for i in range(len(lift)):
         y_ii[i] = y_i[i] + (y_i[i + 1] - y_i[i]) / 2
         area_i[i] = spoiler_chord * di
-        weight_i[i] = -spoiler_weight * g / spoiler_area * area_i[i]
+        weight_i[i] = -spoiler_weight * g / (spoiler_chord * spoiler_span) \
+                      * area_i[i]
 
     # adding the weight of the endplate to the first and last weight_i
     weight_i[0] += endplate_weight * g
@@ -74,43 +75,43 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
     moment_weight_i = []
     moment_drag_i = []
     for i in range(len(lift) + 1):
-        yset = y_i[i]
-        momentL = sumz_moment(lift, y_ii, yset)
-        momentW = sumz_moment(weight_i, y_ii, yset)
-        momentD = sumz_moment(drag, y_ii, yset)
-        moment_lift_i.append(momentL)
-        moment_weight_i.append(momentW)
-        moment_drag_i.append(momentD)
+        y_set = y_i[i]
+        moment_lift = distributed_force_moment(lift, y_ii, y_set)
+        moment_weight = distributed_force_moment(weight_i, y_ii, y_set)
+        moment_drag = distributed_force_moment(drag, y_ii, y_set)
+        moment_lift_i.append(moment_lift)
+        moment_weight_i.append(moment_weight)
+        moment_drag_i.append(moment_drag)
 
     # calculating the moment in x along the spoiler
     moment_x_i = []
     for i in range(len(lift) + 1):
-        yset = y_i[i]
-        if yset >= strut_location_2 and yset >= strut_location_1:
-            mom_i = f_strut_z * (yset - strut_location_2) + f_strut_z \
-                    * (yset - strut_location_1) \
+        y_set = y_i[i]
+        if y_set >= strut_location_2 and y_set >= strut_location_1:
+            mom_i = f_strut_z * (y_set - strut_location_2) + f_strut_z \
+                    * (y_set - strut_location_1) \
                     + moment_lift_i[i] + moment_weight_i[i]
             moment_x_i.append(mom_i)
-        elif strut_location_2 > yset >= strut_location_1:
-            mom_i = f_strut_z * (yset - strut_location_1) + moment_lift_i[i] \
+        elif strut_location_2 > y_set >= strut_location_1:
+            mom_i = f_strut_z * (y_set - strut_location_1) + moment_lift_i[i] \
                     + moment_weight_i[i]
             moment_x_i.append(mom_i)
-        elif yset < strut_location_2 and yset < strut_location_1:
+        elif y_set < strut_location_2 and y_set < strut_location_1:
             mom_i = moment_lift_i[i] + moment_weight_i[i]
             moment_x_i.append(mom_i)
 
     # calculating the moment in z along the spoiler
     moment_z_i = []
     for i in range(len(drag) + 1):
-        yset = y_i[i]
-        if yset >= strut_location_2 and yset >= strut_location_1:
-            mom_i = f_strut_x * (yset - strut_location_2) + f_strut_x \
-                    * (yset - strut_location_1) + moment_drag_i[i]
+        y_set = y_i[i]
+        if y_set >= strut_location_2 and y_set >= strut_location_1:
+            mom_i = f_strut_x * (y_set - strut_location_2) + f_strut_x \
+                    * (y_set - strut_location_1) + moment_drag_i[i]
             moment_z_i.append(mom_i)
-        elif strut_location_2 > yset >= strut_location_1:
-            mom_i = f_strut_x * (yset - strut_location_1) + moment_drag_i[i]
+        elif strut_location_2 > y_set >= strut_location_1:
+            mom_i = f_strut_x * (y_set - strut_location_1) + moment_drag_i[i]
             moment_z_i.append(mom_i)
-        elif yset < strut_location_2 and yset < strut_location_1:
+        elif y_set < strut_location_2 and y_set < strut_location_1:
             mom_i = moment_drag_i[i]
             moment_z_i.append(mom_i)
 
@@ -139,7 +140,7 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
                 -u_double_prime[i] - u_double_prime[i - 1]) * (
                                y_i[i] - y_i[i - 1])
 
-    index_strut = np.where(y_i == strut_location_2)[0][0]
+    index_strut = np.where(y_i >= strut_location_2)[0][0]
     w_i = np.zeros(len(lift) + 1)
     u_i = np.zeros(len(lift) + 1)
     for i in range(index_strut, len(lift) + 1):
@@ -246,7 +247,7 @@ class Bending(GeomBase):
     spoiler_span = Input()
     spoiler_chord = Input()
     spoiler_angle = Input()
-    spoiler_skin_thickness = Input()
+    spoiler_skin_thickness = Input(0.002) # this acts as an initial value
 
     # Strut Inputs
     strut_airfoil_shape = Input(False)
@@ -264,7 +265,6 @@ class Bending(GeomBase):
     endplate_cant = Input()
 
     # Additional inputs for bending calculations
-    spoiler_area = Input()
     force_z = Input()
     force_x = Input()
     youngs_modulus = Input()
@@ -338,10 +338,11 @@ class Bending(GeomBase):
             self.youngs_modulus,
             self.moment_of_inertia[0],
             self.moment_of_inertia[1],
-            self.moment_of_inertia[2], self.weights[0],
+            self.moment_of_inertia[2],
+            self.weights[0],
             self.weights[1],
             self.spoiler_span, self.spoiler_chord,
-            self.spoiler_area, self.strut_lat_location)
+            self.strut_lat_location)
         return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, \
                f_strut_z, f_strut_x
 
@@ -410,6 +411,8 @@ class Bending(GeomBase):
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Stress [N/m^2]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
+        plt.legend(['Normal stress', 'Maximum bending stress',
+                    'Total maximum stress'])
         plt.title("Close it to refresh the ParaPy GUI")
         plt.show()
         return "Plot generated and closed"
@@ -441,28 +444,27 @@ class Bending(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
+    from inputs.read_inputs import *
 
     obj = Bending(label="Aerodynamic Bending",
-                  material_density=1600.,
-                  airfoil_mid='9412',
-                  airfoil_tip='9408',
-                  spoiler_span=2.5,
-                  spoiler_chord=.8,
-                  spoiler_skin_thickness=.002,
-                  spoiler_angle=15.,
-                  strut_airfoil_shape=True,
-                  strut_lat_location=0.2,
-                  strut_height=.25,
-                  strut_chord=.4,
-                  strut_thickness=.04,
-                  strut_sweep=15.,
-                  strut_cant=20.,
-                  endplate_present=True,
-                  endplate_thickness=.005,
-                  endplate_sweep=15.,
-                  endplate_cant=10.,
-                  spoiler_area=2000000.,
+                  material_density=material_density,
+                  airfoil_mid=airfoil_mid,
+                  airfoil_tip=airfoil_tip,
+                  spoiler_span=spoiler_span / 1000,
+                  spoiler_chord=spoiler_chord / 1000,
+                  spoiler_angle=spoiler_angle,
+                  strut_airfoil_shape=strut_airfoil_shape,
+                  strut_lat_location=strut_lat_location,
+                  strut_height=strut_height / 1000,
+                  strut_chord=strut_chord / 1000,
+                  strut_thickness=strut_thickness / 1000,
+                  strut_sweep=strut_sweep,
+                  strut_cant=strut_cant,
+                  endplate_present=endplate_present,
+                  endplate_thickness=endplate_thickness / 1000,
+                  endplate_sweep=endplate_sweep,
+                  endplate_cant=endplate_cant,
                   force_z=-100 * np.ones(40),
                   force_x=10 * np.ones(40),
-                  youngs_modulus=6.89 * 10 ** 7)
+                  youngs_modulus=youngs_modulus * 10 ** 6)
     display(obj)

@@ -3,10 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="a881c3e6-8d82-497a-b447-4f50a7b9f41a" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spoiler_files/assembly.py" beforeDir="false" afterPath="$PROJECT_DIR$/spoiler_files/assembly.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spoiler_files/endplates.py" beforeDir="false" afterPath="$PROJECT_DIR$/spoiler_files/endplates.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spoiler_files/strut_airfoil.py" beforeDir="false" afterPath="$PROJECT_DIR$/spoiler_files/strut_airfoil.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/spoiler_files/strut_plate.py" beforeDir="false" afterPath="$PROJECT_DIR$/spoiler_files/strut_plate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bending_calculations.py" beforeDir="false" afterPath="$PROJECT_DIR$/bending_calculations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/weight_estimation.py" beforeDir="false" afterPath="$PROJECT_DIR$/weight_estimation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,7 +41,7 @@
       <recent name="C:\Users\Stijn\OneDrive\Documenten\KBE\Assignment\Git\KBE_Assignment\strut_files" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.my_spoiler">
+  <component name="RunManager" selected="Python.bending_calculations (1)">
     <configuration name="aircraft" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="KBE_Assignment" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -86,7 +84,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="bending_calculations" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="bending_calculations (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="KBE_Assignment" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -98,7 +96,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="C:\Users\Stijn\OneDrive\Documenten\KBE\Assignment\Git\KBE_Assignment\bending_calculations.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bending_calculations.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -128,7 +126,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="section_properties" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="read_inputs" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="KBE_Assignment" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -136,11 +134,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/inputs" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/section_properties.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inputs/read_inputs.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -150,19 +148,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.bending_calculations" />
       <item itemvalue="Python.my_spoiler" />
-      <item itemvalue="Python.section_properties" />
       <item itemvalue="Python.assembly" />
       <item itemvalue="Python.aircraft" />
+      <item itemvalue="Python.bending_calculations (1)" />
+      <item itemvalue="Python.read_inputs" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.bending_calculations (1)" />
+        <item itemvalue="Python.read_inputs" />
         <item itemvalue="Python.my_spoiler" />
         <item itemvalue="Python.assembly" />
         <item itemvalue="Python.aircraft" />
-        <item itemvalue="Python.bending_calculations" />
-        <item itemvalue="Python.section_properties" />
       </list>
     </recent_temporary>
   </component>
@@ -194,25 +192,25 @@
     </state>
     <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1588519380767" />
     <state x="686" y="211" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1587719618636" />
-    <state width="1515" height="246" key="GridCell.Tab.0.bottom" timestamp="1588522590157">
+    <state width="1515" height="153" key="GridCell.Tab.0.bottom" timestamp="1588536793311">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1515" height="246" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1588522590157" />
+    <state width="1515" height="153" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1588536793311" />
     <state width="1899" height="186" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1587720942462" />
-    <state width="1515" height="246" key="GridCell.Tab.0.center" timestamp="1588522590157">
+    <state width="1515" height="153" key="GridCell.Tab.0.center" timestamp="1588536793311">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1515" height="246" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1588522590157" />
+    <state width="1515" height="153" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1588536793311" />
     <state width="1899" height="186" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1587720942462" />
-    <state width="1515" height="246" key="GridCell.Tab.0.left" timestamp="1588522590157">
+    <state width="1515" height="153" key="GridCell.Tab.0.left" timestamp="1588536793311">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1515" height="246" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1588522590157" />
+    <state width="1515" height="153" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1588536793311" />
     <state width="1899" height="186" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1587720942462" />
-    <state width="1515" height="246" key="GridCell.Tab.0.right" timestamp="1588522590157">
+    <state width="1515" height="153" key="GridCell.Tab.0.right" timestamp="1588536793311">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state width="1515" height="246" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1588522590157" />
+    <state width="1515" height="153" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1588536793311" />
     <state width="1899" height="186" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1587720942462" />
     <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1587119721234">
       <screen x="0" y="0" width="1920" height="1040" />

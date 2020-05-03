@@ -87,12 +87,12 @@ class WeightEstimation(GeomBase):
 
     @Attribute
     def volume_endplate(self):      # in m^3 while inputs are in mm
-        return self.whole_spoiler.endplates.fillet.volume / 10**9 \
+        return self.whole_spoiler.endplates.endplate_right.volume / 10**9 \
             if self.endplate_present else 0.
 
     @Attribute
     def volume_strut(self):         # in m^3 while inputs are in mm
-        return self.whole_spoiler.struts.strut.volume / 10**9
+        return self.whole_spoiler.struts.strut_right.volume / 10**9
 
     @Attribute
     def weight_mainplate(self):     # in kg
