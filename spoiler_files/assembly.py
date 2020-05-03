@@ -1,9 +1,13 @@
+from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
 from parapy.core import Input, Attribute, Part, child, DynamicType
 from parapy.geom import *
-from math import sin, cos, radians
-
-from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
+from parapy.exchange import STEPWriter
 import kbeutils.avl as avl
+from math import sin, cos, radians
+import os
+
+
+DIR = os.path.dirname(__file__)
 
 
 class Spoiler(GeomBase):
@@ -90,10 +94,45 @@ class Spoiler(GeomBase):
                                  surfaces=self.avl_surfaces,
                                  mach=0.0)
 
+    @Attribute
+    def nodes_for_stepfile(self):
+        if self.endplate_present:
+            nodes = [self.main_plate.surface,
+                     self.main_plate.surface_mirrored,
+                     self.struts.strut_right,
+                     self.struts.strut_left,
+                     self.endplates.endplate_right,
+                     self.endplates.endplate_left]
+        else:
+            nodes = [self.main_plate.surface,
+                     self.main_plate.surface_mirrored,
+                     self.struts.strut_right,
+                     self.struts.strut_left]
+        return nodes
+
+    @Part
+    def step_writer_components(self):
+        return STEPWriter(default_directory=DIR,
+                          nodes=self.nodes_for_stepfile)
+
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = Spoiler(label='spoiler_assembly',
-                  strut_airfoil_shape=False,
-                  endplate_present=True)
+    obj = Spoiler(label="SpoilerAssembly",
+                  mid_airfoil='9412',
+                  tip_airfoil='9408',
+                  spoiler_span=2500.,
+                  spoiler_chord=800.,
+                  spoiler_angle=5.,
+                  strut_airfoil_shape=True,
+                  strut_lat_location=0.8,
+                  strut_height=250.,
+                  strut_chord=400.,
+                  strut_thickness=40.,
+                  strut_sweep=15.,
+                  strut_cant=15.,
+                  endplate_present=True,
+                  endplate_thickness=10.,
+                  endplate_sweep=15.,
+                  endplate_cant=10.)
     display(obj)

@@ -53,12 +53,12 @@ class Endplates(GeomBase):
         return RuledSolid(profile1=self.upper_curve, profile2=self.lower_curve)
 
     @Part
-    def fillet(self):
+    def endplate_right(self):
         return FilletedSolid(built_from=self.solid, radius=self.thickness/3)
 
     @Part
-    def mirrored(self):
-        return MirroredShape(shape_in=self.fillet,
+    def endplate_left(self):
+        return MirroredShape(shape_in=self.endplate_right,
                              reference_point=self.position,
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
