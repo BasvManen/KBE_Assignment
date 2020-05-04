@@ -10,7 +10,7 @@ if __name__ == '__main__':
                   tip_airfoil='9408',
                   spoiler_span=2500.,
                   spoiler_chord=800.,
-                  spoiler_angle=-5.,
+                  spoiler_angle=0.,
                   strut_airfoil_shape=True,
                   strut_lat_location=0.8,
                   strut_height=250.,
@@ -18,8 +18,8 @@ if __name__ == '__main__':
                   strut_thickness=40.,
                   strut_sweep=15.,
                   strut_cant=15.,
-                  endplate_present=False,
+                  endplate_present=True,
                   endplate_thickness=10.,
                   endplate_sweep=15.,
-                  endplate_cant=10.)
+                  endplate_cant=0.)
     display(obj)

@@ -32,8 +32,7 @@ class Spoiler(GeomBase):
 
     # Endplate Inputs
     endplate_present = Input(True, validator=OneOf([True, False]))
-    endplate_thickness = Input(validator=And(Positive,
-                                             GreaterThanOrEqualTo(1.)))
+    endplate_thickness = Input(validator=And(Positive))
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
 
@@ -71,12 +70,19 @@ class Spoiler(GeomBase):
     def endplate_position(self):
         return self.position.translate("z", self.spoiler_chord*sin(radians(self.spoiler_angle)))
 
+    @Attribute
+    def endplate_height(self):
+        camber = float(self.tip_airfoil[0]) if len(self.tip_airfoil) == 4 else 9.
+        thickness = float(self.tip_airfoil[2:4]) if len(self.tip_airfoil) == 4 else float(self.tip_airfoil[3:5])
+        return (sin(radians(self.spoiler_angle)) + camber/100. + .5*thickness/100.) * self.spoiler_chord
+
     @Part
     def endplates(self):
         return DynamicType(type=Endplates,
                            spoiler_span=self.spoiler_span,
+                           spoiler_height=self.spoiler_chord * sin(radians(self.spoiler_angle)),
                            chord=self.spoiler_chord * cos(radians(self.spoiler_angle)),
-                           height=max(75., abs(1.1*self.spoiler_chord * sin(radians(self.spoiler_angle)))),
+                           height=self.endplate_height,
                            thickness=self.endplate_thickness,
                            sweepback_angle=self.endplate_sweep,
                            cant_angle=self.endplate_cant,
@@ -136,6 +142,6 @@ if __name__ == '__main__':
                   strut_cant=15.,
                   endplate_present=True,
                   endplate_thickness=10.,
-                  endplate_sweep=15.,
-                  endplate_cant=10.)
+                  endplate_sweep=0.,
+                  endplate_cant=0.)
     display(obj)

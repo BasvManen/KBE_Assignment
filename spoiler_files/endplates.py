@@ -8,6 +8,7 @@ import kbeutils.avl as avl
 
 class Endplates(GeomBase):
     spoiler_span = Input()                   # Specify main spoiler span
+    spoiler_height = Input()
     chord = Input()                          # Should be the same as tip-chord of spoiler
     height = Input()
     thickness = Input()
@@ -29,7 +30,7 @@ class Endplates(GeomBase):
                          position=translate(XOY,
                                             "x", self.chord-self.endplate_chord/2,
                                             "y", self.spoiler_span/2,
-                                            "z", 0.9*self.height)
+                                            "z", self.spoiler_height)
                          )
 
     @Part
@@ -40,11 +41,11 @@ class Endplates(GeomBase):
                                             "y", -self.height*tan(radians(self.cant_angle)),
                                             "z", -self.height))
 
-    @Part
+    @Part(in_tree=False)
     def avl_section_up(self):
         return avl.SectionFromCurve(curve_in=self.upper_curve)
 
-    @Part
+    @Part(in_tree=False)
     def avl_section_lo(self):
         return avl.SectionFromCurve(curve_in=self.lower_curve)
 
@@ -63,7 +64,7 @@ class Endplates(GeomBase):
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
 
-    @Part
+    @Part(in_tree=False)
     def avl_surface(self):
         return avl.Surface(name="Endplates",
                            n_chordwise=12,

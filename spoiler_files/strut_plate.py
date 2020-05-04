@@ -35,11 +35,11 @@ class StrutPlate(GeomBase):
                              "z", -self.height),
                          centered=False)
 
-    @Part
+    @Part(in_tree=False)
     def avl_section_up(self):
         return avl.SectionFromCurve(curve_in=self.upper_curve_rectangle)
 
-    @Part
+    @Part(in_tree=False)
     def avl_section_lo(self):
         return avl.SectionFromCurve(curve_in=self.lower_curve_rectangle)
 

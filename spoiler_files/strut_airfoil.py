@@ -58,11 +58,11 @@ class StrutAirfoil(GeomBase):
                                                    * self.spoiler_span / 2,
                                                    self.position.point[2]))
 
-    @Part
+    @Part(in_tree=False)
     def avl_section_up(self):
         return avl.SectionFromCurve(curve_in=self.upper_curve_airfoil)
 
-    @Part
+    @Part(in_tree=False)
     def avl_section_lo(self):
         return avl.SectionFromCurve(curve_in=self.lower_curve_airfoil)
 
