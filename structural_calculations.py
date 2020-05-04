@@ -1,253 +1,24 @@
 from math import tan, radians
+from structural_methods import mainplate_bending_xz, bending_stress, \
+    normal_stress_due_to_strut
+from spoiler_files.assembly import Spoiler
 from section_properties import SectionProperties
 from weight_estimation import WeightEstimation
+from AVL_main import AvlAnalysis
 from parapy.geom import *
 from parapy.core import *
 import numpy as np
 from matplotlib import pyplot as plt
 
-g = 9.80665
-
-
-def distributed_force_moment(force_list, y_i, y_current):
-    """
-    This function is used in the calculation of the moment due to the
-    distributed lift/weight/drag force of the spoiler as used in
-    mainplate_bending_xz below. It uses a distributed
-    force (force_list), the y-positions of that distributed force (y_i) and
-    a current y location (y_current)
-    """
-
-    moment_list = []
-    for i in range(len(force_list)):
-        if y_i[i] < y_current:
-            outcome = force_list[i] * (y_current - y_i[i])
-        else:
-            outcome = 0
-        moment_list.append(outcome)
-    return sum(moment_list)
-
-
-def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
-                         endplate_weight, spoiler_span, spoiler_chord,
-                         strut_lat_location):
-    """
-    This function calculates the bending moment along the spoiler in x and
-    z, as well as the bending displacement in x and z. It uses as inputs the
-    aerodynamic forces on the spoiler, the material and sectional properties
-    of the spoiler and the geometric properties of the spoiler.
-    """
-
-    # retrieve y-location of the struts
-    strut_location_1 = spoiler_span / 2 * (1 - strut_lat_location)
-    strut_location_2 = spoiler_span / 2 * (1 + strut_lat_location)
-
-    # calculating y-coordinate, area and weight at each increment i. the
-    # weight distribution is approximated by separate weight forces along
-    # the spoiler, which are appropriate to the area of the spoiler at each i.
-    y_i = np.zeros(len(lift) + 1)
-    y_ii = np.zeros(len(lift))
-    area_i = np.zeros(len(lift))
-    weight_i = np.zeros(len(lift))
-    di = spoiler_span / len(lift)
-
-    for i in range(len(lift) + 1):
-        y_i[i] = round(i * di, 3)
-
-    for i in range(len(lift)):
-        y_ii[i] = y_i[i] + (y_i[i + 1] - y_i[i]) / 2
-        area_i[i] = spoiler_chord * di
-        weight_i[i] = -spoiler_weight * g / (spoiler_chord * spoiler_span) \
-                      * area_i[i]
-
-    # adding the weight of the endplate to the first and last weight_i
-    weight_i[0] += endplate_weight * g
-    weight_i[-1] += endplate_weight * g
-
-    # calculate the z-force on the strut by sum of forces in z
-    f_strut_z = -(sum(lift) + sum(weight_i)) / 2
-    # calculate the z-force on the strut by sum of forces in x
-    f_strut_x = -sum(drag) / 2
-
-    # calculate the influence of the lift and weight on the bending moment
-    # for each increment i
-    moment_lift_i = []
-    moment_weight_i = []
-    moment_drag_i = []
-    for i in range(len(lift) + 1):
-        y_set = y_i[i]
-        moment_lift = distributed_force_moment(lift, y_ii, y_set)
-        moment_weight = distributed_force_moment(weight_i, y_ii, y_set)
-        moment_drag = distributed_force_moment(drag, y_ii, y_set)
-        moment_lift_i.append(moment_lift)
-        moment_weight_i.append(moment_weight)
-        moment_drag_i.append(moment_drag)
-
-    # calculating the moment in x along the spoiler
-    moment_x_i = []
-    for i in range(len(lift) + 1):
-        y_set = y_i[i]
-        if y_set >= strut_location_2 and y_set >= strut_location_1:
-            mom_i = f_strut_z * (y_set - strut_location_2) + f_strut_z \
-                    * (y_set - strut_location_1) \
-                    + moment_lift_i[i] + moment_weight_i[i]
-            moment_x_i.append(mom_i)
-        elif strut_location_2 > y_set >= strut_location_1:
-            mom_i = f_strut_z * (y_set - strut_location_1) + moment_lift_i[i] \
-                    + moment_weight_i[i]
-            moment_x_i.append(mom_i)
-        elif y_set < strut_location_2 and y_set < strut_location_1:
-            mom_i = moment_lift_i[i] + moment_weight_i[i]
-            moment_x_i.append(mom_i)
-
-    # calculating the moment in z along the spoiler
-    moment_z_i = []
-    for i in range(len(drag) + 1):
-        y_set = y_i[i]
-        if y_set >= strut_location_2 and y_set >= strut_location_1:
-            mom_i = f_strut_x * (y_set - strut_location_2) + f_strut_x \
-                    * (y_set - strut_location_1) + moment_drag_i[i]
-            moment_z_i.append(mom_i)
-        elif strut_location_2 > y_set >= strut_location_1:
-            mom_i = f_strut_x * (y_set - strut_location_1) + moment_drag_i[i]
-            moment_z_i.append(mom_i)
-        elif y_set < strut_location_2 and y_set < strut_location_1:
-            mom_i = moment_drag_i[i]
-            moment_z_i.append(mom_i)
-
-    # Calculate deflection angles and displacement using Euler-Bernoulli
-    # beam theory in unsymmetrical bending. The deflection angle (theta) in the
-    # centerline of the spoiler is 0. The deflections at the struts are
-    # considered equal to 0. Deflections in z are described by w,
-    # and deflections in x are described by u.
-    w_double_prime = np.zeros(len(lift) + 1)
-    u_double_prime = np.zeros(len(drag) + 1)
-    theta_x_i = np.zeros(len(lift) + 1)
-    theta_z_i = np.zeros(len(drag) + 1)
-    for i in range(len(lift) + 1):
-        w_double_prime[i] = (moment_z_i[i] * Ixz[i] / (E * Ixx[i] * Izz[i])
-                             - moment_x_i[i] / (E * Ixx[i])) \
-                            / (1 - Ixz[i] ** 2 / (Ixx[i] * Izz[i]))
-        u_double_prime[i] = (moment_x_i[i] * Ixz[i] / (E * Ixx[i] * Izz[i])
-                             - moment_z_i[i] / (E * Izz[i])) \
-                            / (1 - Ixz[i] ** 2 / (Ixx[i] * Izz[i]))
-
-    for i in range(int(len(lift) / 2) + 1, len(lift) + 1):
-        theta_x_i[i] = theta_x_i[i - 1] + 0.5 * (
-                -w_double_prime[i] - w_double_prime[i - 1]) * (
-                               y_i[i] - y_i[i - 1])
-        theta_z_i[i] = theta_z_i[i - 1] + 0.5 * (
-                -u_double_prime[i] - u_double_prime[i - 1]) * (
-                               y_i[i] - y_i[i - 1])
-
-    index_strut = np.where(y_i >= strut_location_2)[0][0]
-    w_i = np.zeros(len(lift) + 1)
-    u_i = np.zeros(len(lift) + 1)
-    for i in range(index_strut, len(lift) + 1):
-        w_i[i] = w_i[i - 1] + 0.5 * (theta_x_i[i] + theta_x_i[i - 1]) * (
-                y_i[i] - y_i[i - 1])
-        u_i[i] = u_i[i - 1] + 0.5 * (theta_z_i[i] + theta_z_i[i - 1]) * (
-                y_i[i] - y_i[i - 1])
-
-    for i in range(index_strut + 1, int(len(lift) / 2), -1):
-        w_i[i - 1] = w_i[i] - 0.5 * (theta_x_i[i] + theta_x_i[i - 1]) * (
-                y_i[i] - y_i[i - 1])
-        u_i[i - 1] = u_i[i] - 0.5 * (theta_z_i[i] + theta_z_i[i - 1]) * (
-                y_i[i] - y_i[i - 1])
-
-    for i in range(int(len(lift) / 2)):
-        theta_x_i[i] = theta_x_i[len(lift) - i]
-        theta_z_i[i] = theta_z_i[len(lift) - i]
-        w_i[i] = w_i[len(lift) - i]
-        u_i[i] = u_i[len(lift) - i]
-
-    return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, \
-           f_strut_z, f_strut_x
-
-
-def normal_stress_due_to_strut(force_in_y, y_i, area_distribution,
-                               strut_lat_location, spoiler_span):
-    """
-    Function which calculates the normal stress along the spoiler, due to
-    the normal force which is present due to the cant angle of the struts.
-    """
-
-    # retrieve y-location of the struts
-    strut_location_1 = spoiler_span / 2 * (1 - strut_lat_location)
-    strut_location_2 = spoiler_span / 2 * (1 + strut_lat_location)
-
-    # make normal force distribution
-    normal_force = np.zeros(len(y_i))
-    for i in range(len(y_i)):
-        if y_i[i] < strut_location_1 or y_i[i] > strut_location_2:
-            normal_force[i] = 0
-        elif strut_location_1 <= y_i[i] <= strut_location_2:
-            normal_force[i] = force_in_y
-
-    # make normal stress distribution
-    sigma_y = []
-    for i in range(len(y_i)):
-        sigma_y.append(normal_force[i] / area_distribution[i])
-
-    return sigma_y
-
-
-def bending_stress(moment_x, moment_z, Ixx, Izz, Ixz, line_coordinates,
-                   centroid_list):
-    """
-    Function which calculates the normal stress along the spoiler due to the
-    bending moment along the spoiler. It returns an array of the normal
-    bending stress along the spoiler, as well as the maximum stress along
-    the spoiler.
-    """
-
-    # initialise the x and z coordinates along the span
-    x = []
-    z = []
-    for i in range(len(line_coordinates)):
-        x.append([])
-        z.append([])
-        for j in range(len(line_coordinates[0])):
-            x[i].append(line_coordinates[i][j][0])
-            z[i].append(line_coordinates[i][j][2])
-
-    # x and z coordinates of the centroid
-    x_centroid = []
-    z_centroid = []
-    for i in range(len(centroid_list)):
-        x_centroid.append(centroid_list[i][0])
-        z_centroid.append(centroid_list[i][2])
-
-    # calculate the normal stress due to bending
-    sigma_y = []
-    sigma_y_max = []
-    for i in range(len(line_coordinates)):
-        sigma_y.append([])
-        for j in range(len(line_coordinates[i])):
-            calc_sigma = moment_x[i] \
-                         * (Izz[i] * (z[i][j] - z_centroid[i])
-                            - Ixz[i] * (x[i][j] - x_centroid[i])) \
-                         / (Ixx[i] * Izz[i] - Ixz[i] ** 2) \
-                         + moment_z[i] \
-                         * (Ixx[i] * (x[i][j] - x_centroid[i])
-                            - Ixz[i] * (z[i][j] - z_centroid[i])) \
-                         / (Ixx[i] * Izz[i] - Ixz[i] ** 2)
-            sigma_y[i].append(calc_sigma)
-        sigma_y_max.append(max(sigma_y[i])
-                           if abs(max(sigma_y[i])) > abs(min(sigma_y[i]))
-                           else min(sigma_y[i]))
-
-    return sigma_y, sigma_y_max
-
 
 class StructuralAnalysis(GeomBase):
     # MainPlate Inputs
-    airfoil_mid = Input()
-    airfoil_tip = Input()
+    mid_airfoil = Input()
+    tip_airfoil = Input()
     spoiler_span = Input()
     spoiler_chord = Input()
     spoiler_angle = Input()
-    spoiler_skin_thickness = Input(0.002) # this acts as an initial value
+    spoiler_skin_thickness = Input(0.001)  # this acts as an initial value
 
     # Strut Inputs
     strut_airfoil_shape = Input(False)
@@ -265,10 +36,51 @@ class StructuralAnalysis(GeomBase):
     endplate_cant = Input()
 
     # Additional inputs for bending calculations
-    force_z = Input()
-    force_x = Input()
+    maximum_velocity = Input()
     youngs_modulus = Input()
     material_density = Input()
+
+    # Add the spoiler geometry for several calculations in millimeter
+    @Part(in_tree=False)
+    def spoiler_in_mm(self):
+        return Spoiler(label="Spoiler",
+                       mid_airfoil=self.mid_airfoil,
+                       tip_airfoil=self.tip_airfoil,
+                       spoiler_span=self.spoiler_span * 1000,
+                       spoiler_chord=self.spoiler_chord * 1000,
+                       spoiler_angle=self.spoiler_angle,
+                       strut_airfoil_shape=self.strut_airfoil_shape,
+                       strut_lat_location=self.strut_lat_location,
+                       strut_height=self.strut_height * 1000,
+                       strut_chord=self.strut_chord * 1000,
+                       strut_thickness=self.strut_thickness * 1000,
+                       strut_sweep=self.strut_sweep,
+                       strut_cant=self.strut_cant,
+                       endplate_present=self.endplate_present,
+                       endplate_thickness=self.endplate_thickness * 1000,
+                       endplate_sweep=self.endplate_sweep,
+                       endplate_cant=self.endplate_cant)
+
+    # Add the spoiler geometry for several calculations in meter
+    @Part(in_tree=False)
+    def spoiler_in_m(self):
+        return Spoiler(label="Spoiler",
+                       mid_airfoil=self.mid_airfoil,
+                       tip_airfoil=self.tip_airfoil,
+                       spoiler_span=self.spoiler_span,
+                       spoiler_chord=self.spoiler_chord,
+                       spoiler_angle=self.spoiler_angle,
+                       strut_airfoil_shape=self.strut_airfoil_shape,
+                       strut_lat_location=self.strut_lat_location,
+                       strut_height=self.strut_height,
+                       strut_chord=self.strut_chord,
+                       strut_thickness=self.strut_thickness,
+                       strut_sweep=self.strut_sweep,
+                       strut_cant=self.strut_cant,
+                       endplate_present=False,
+                       endplate_thickness=self.endplate_thickness,
+                       endplate_sweep=self.endplate_sweep,
+                       endplate_cant=self.endplate_cant)
 
     @Attribute
     def weights(self):
@@ -277,24 +89,39 @@ class StructuralAnalysis(GeomBase):
         # while Bending asks for inputs in meters.
         model = WeightEstimation(
             material_density=self.material_density,
-            mid_airfoil=self.airfoil_mid,
-            tip_airfoil=self.airfoil_tip,
-            spoiler_span=self.spoiler_span * 1000,
-            spoiler_chord=self.spoiler_chord * 1000,
             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
-            spoiler_angle=self.spoiler_angle,
-            strut_airfoil_shape=self.strut_airfoil_shape,
-            strut_lat_location=self.strut_lat_location,
-            strut_height=self.strut_height * 1000,
-            strut_chord=self.strut_chord * 1000,
-            strut_thickness=self.strut_thickness * 1000,
-            strut_sweep=self.strut_sweep,
-            strut_cant=self.strut_cant,
-            endplate_present=self.endplate_present,
-            endplate_thickness=self.endplate_thickness * 1000,
-            endplate_sweep=self.endplate_sweep,
-            endplate_cant=self.endplate_cant)
+            spoiler_geometry=self.spoiler_in_mm)
         return model.weight_mainplate, model.weight_endplate
+
+    # Next the maximum lift and drag distributions are implemented. Note that
+    # for this the cars maximum speed is used, together with a safety factor
+    # of 1.5. For naming purposes, force_z and force_x are defined.
+    @Attribute
+    def get_distributed_forces(self):
+        case = ['fixed aoa', {'alpha': 0}]
+        analysis = AvlAnalysis(spoiler=self.spoiler_in_m,
+                               case_settings=case,
+                               velocity=self.maximum_velocity * 1.5)
+        lift_distribution = []
+        drag_distribution = []
+        for i in range(int(len(analysis.lift_distribution[0]) / 2)):
+            lift_distribution.append(-analysis.lift_distribution[1][i]
+                                     * analysis.dyn_pressure
+                                     * self.spoiler_in_m.reference_area)
+            drag_distribution.append(analysis.drag_distribution[1][i]
+                                     * analysis.dyn_pressure
+                                     * self.spoiler_in_m.reference_area)
+        lift_distribution = lift_distribution[::-1] + lift_distribution
+        drag_distribution = drag_distribution[::-1] + drag_distribution
+        return lift_distribution, drag_distribution
+
+    @Attribute
+    def force_z(self):
+        return self.get_distributed_forces[0]
+
+    @Attribute
+    def force_x(self):
+        return self.get_distributed_forces[1]
 
     # Discretise the spoiler along the span
     @Attribute
@@ -305,8 +132,8 @@ class StructuralAnalysis(GeomBase):
     @Attribute
     def moment_of_inertia(self):
         full_moment_of_inertia = SectionProperties(
-            airfoil_mid=self.airfoil_mid,
-            airfoil_tip=self.airfoil_tip,
+            airfoil_mid=self.mid_airfoil,
+            airfoil_tip=self.tip_airfoil,
             spoiler_span=self.spoiler_span,
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
@@ -321,8 +148,8 @@ class StructuralAnalysis(GeomBase):
     @Attribute
     def area_along_spoiler(self):
         return SectionProperties(
-            airfoil_mid=self.airfoil_mid,
-            airfoil_tip=self.airfoil_tip,
+            airfoil_mid=self.mid_airfoil,
+            airfoil_tip=self.tip_airfoil,
             spoiler_span=self.spoiler_span,
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
@@ -369,8 +196,8 @@ class StructuralAnalysis(GeomBase):
         moi_zz = self.moment_of_inertia[1]
         moi_xz = self.moment_of_inertia[2]
         half_spoiler_coordinates = SectionProperties(
-            airfoil_mid=self.airfoil_mid,
-            airfoil_tip=self.airfoil_tip,
+            airfoil_mid=self.mid_airfoil,
+            airfoil_tip=self.tip_airfoil,
             spoiler_span=self.spoiler_span,
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
@@ -379,8 +206,8 @@ class StructuralAnalysis(GeomBase):
         full_spoiler_coordinates = half_spoiler_coordinates[
                                    ::-1] + half_spoiler_coordinates[1:]
         half_centroid_list = SectionProperties(
-            airfoil_mid=self.airfoil_mid,
-            airfoil_tip=self.airfoil_tip,
+            airfoil_mid=self.mid_airfoil,
+            airfoil_tip=self.tip_airfoil,
             spoiler_span=self.spoiler_span,
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
@@ -397,22 +224,37 @@ class StructuralAnalysis(GeomBase):
 
     @Attribute
     def maximum_normal_stress(self):
-        max_normal_stress = []
+        max_normal_stress_tensile = []
+        max_normal_stress_compressive = []
         for i in range(len(self.normal_bending_stress[1])):
-            max_normal_stress.append(self.normal_stress[i]
-                                     + self.normal_bending_stress[1][i])
-        return max_normal_stress
+            max_normal_stress_tensile.append(self.normal_stress[i]
+                                             + max(
+                self.normal_bending_stress[0][i]))
+            max_normal_stress_compressive.append(
+                min(self.normal_bending_stress[0][i]))
+        return max_normal_stress_tensile, max_normal_stress_compressive
+
+    # @Attribute
+    # def column_buckling(self):
+    #     r_list = []
+    #     for i in range(self.number_of_lateral_cuts - 1):
+    #         r_list.append(self.moment_of_inertia[0][i + self.number_of_lateral_cuts]
+    #                       / self.area_along_spoiler[i])
+    #     r = min(r_list)
+    #     le = self.spoiler_span
+    #     sigma_cr = (np.pi ** 2 * self.youngs_modulus) / (le / r) ** 2
+    #     return sigma_cr
 
     @Attribute
     def plot_stress(self):
         plt.plot(self.bending_xz[4], self.normal_stress)
-        plt.plot(self.bending_xz[4], self.normal_bending_stress[1])
-        plt.plot(self.bending_xz[4], self.maximum_normal_stress)
+        plt.plot(self.bending_xz[4], self.maximum_normal_stress[0])
+        plt.plot(self.bending_xz[4], self.maximum_normal_stress[1])
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Stress [N/m^2]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
-        plt.legend(['Normal stress', 'Maximum bending stress',
-                    'Total maximum stress'])
+        plt.legend(['Normal stress', 'Maximum tensile stress',
+                    'Maximum compressive stress'])
         plt.title("Close it to refresh the ParaPy GUI")
         plt.show()
         return "Plot generated and closed"
@@ -448,11 +290,11 @@ if __name__ == '__main__':
 
     obj = StructuralAnalysis(label="Aerodynamic Bending",
                              material_density=material_density,
-                             airfoil_mid='0012',
-                             airfoil_tip='0012',
+                             mid_airfoil='9404',
+                             tip_airfoil='9402',
                              spoiler_span=spoiler_span / 1000,
                              spoiler_chord=spoiler_chord / 1000,
-                             spoiler_angle=-10,
+                             spoiler_angle=20,
                              strut_airfoil_shape=strut_airfoil_shape,
                              strut_lat_location=strut_lat_location,
                              strut_height=strut_height / 1000,
@@ -464,7 +306,7 @@ if __name__ == '__main__':
                              endplate_thickness=endplate_thickness / 1000,
                              endplate_sweep=endplate_sweep,
                              endplate_cant=endplate_cant,
-                             force_z=-100 * np.ones(40),
-                             force_x=10 * np.ones(40),
-                             youngs_modulus=youngs_modulus * 10 ** 6)
+                             maximum_velocity=100.,
+                             youngs_modulus=1.19 * 10 ** 9,
+                             spoiler_skin_thickness=0.002)
     display(obj)
