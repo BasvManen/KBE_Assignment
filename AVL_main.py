@@ -16,24 +16,31 @@ class AvlAnalysis(avl.Interface):
     def configuration(self):
         return self.spoiler.avl_configuration
 
+    @Part
+    def cases(self):
+        return avl.Case(quantify=len(self.case_settings),
+                        name=self.case_settings[child.index][0],
+                        settings=self.case_settings[child.index][1])
+
     @Attribute
     def dyn_pressure(self):
         return 0.5*1.225*self.velocity**2
 
     @Attribute
     def total_force(self):
-        cl = self.results['default']['Totals']['CLtot']
+        cl = self.results[self.case_settings[0][0]]['Totals']['CLtot']
         force = cl*self.dyn_pressure*self.spoiler.reference_area
         return force
 
     @Attribute
     def ld_ratio(self):
-        return -self.results['default']['Totals']['CLtot'] / self.results['default']['Totals']['CDtot']
+        return -self.results[self.case_settings[0][0]]['Totals']['CLtot'] \
+               / self.results[self.case_settings[0][0]]['Totals']['CDtot']
 
     @Attribute
     def lift_distribution(self):
-        return [self.results['default']['StripForces']['Main Plate']['Yle'],
-                self.results['default']['StripForces']['Main Plate']['c cl']]
+        return [self.results[self.case_settings[0][0]]['StripForces']['Main Plate']['Yle'],
+                self.results[self.case_settings[0][0]]['StripForces']['Main Plate']['c cl']]
 
     @Attribute
     def lift_plot(self):
@@ -61,29 +68,24 @@ class AvlAnalysis(avl.Interface):
 
     @Attribute
     def drag_distribution(self):
-        return [self.results['default']['StripForces']['Main Plate']['Yle'],
-                np.multiply(self.results['default']['StripForces']['Main Plate']['cd'],
-                self.results['default']['StripForces']['Main Plate']['Chord'])]
-
-    @Part
-    def case(self):
-        return avl.Case(name=self.case_settings[0],
-                        settings=self.case_settings[1])
+        return [self.results[self.case_settings[0][0]]['StripForces']['Main Plate']['Yle'],
+                np.multiply(self.results[self.case_settings[0][0]]['StripForces']['Main Plate']['cd'],
+                self.results[self.case_settings[0][0]]['StripForces']['Main Plate']['Chord'])]
 
 
 if __name__ == '__main__':
     from parapy.gui import display
 
     spoiler = Spoiler(label="Spoiler",
-                      mid_airfoil='6412',
-                      tip_airfoil='6408',
+                      mid_airfoil='0012',
+                      tip_airfoil='0012',
                       spoiler_span=2.5,
                       spoiler_chord=0.8,
-                      spoiler_angle=5,
+                      spoiler_angle=0,
                       strut_airfoil_shape=True,
                       strut_lat_location=0.8,
                       strut_height=0.25,
-                      strut_chord=0.4,
+                      strut_chord_fraction=0.7,
                       strut_thickness=0.04,
                       strut_sweep=15.,
                       strut_cant=0.,
@@ -92,7 +94,7 @@ if __name__ == '__main__':
                       endplate_sweep=15.,
                       endplate_cant=0.)
 
-    case = ['fixed aoa', {'alpha': 0}]
+    case = [('AoA input', {'alpha': 3})]
 
     analysis = AvlAnalysis(spoiler=spoiler,
                            case_settings=case,

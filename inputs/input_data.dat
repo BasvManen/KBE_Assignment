@@ -12,7 +12,7 @@
 False		# Bool to specify struts shape. True for airfoil shape, False for a simple filleted plate.
 0.5		# placement of the struts on the main plate in terms of fraction of the semi span of the main plate.
 300.		# height of the struts [mm]
-100.		# chord of the struts [mm]
+0.7		# chord of the struts as a fraction of the main plate chord
 5. 		# thickness of the struts [mm]
 15.		# sweepback angle of the struts [deg]
 15.		# cant angle of the struts [deg]
