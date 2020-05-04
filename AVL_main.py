@@ -87,7 +87,7 @@ if __name__ == '__main__':
                       strut_thickness=0.04,
                       strut_sweep=15.,
                       strut_cant=0.,
-                      endplate_present=True,
+                      endplate_present=False,
                       endplate_thickness=0.01,
                       endplate_sweep=15.,
                       endplate_cant=0.)
