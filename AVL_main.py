@@ -75,11 +75,11 @@ if __name__ == '__main__':
     from parapy.gui import display
 
     spoiler = Spoiler(label="Spoiler",
-                      mid_airfoil='0012',
-                      tip_airfoil='0008',
+                      mid_airfoil='6412',
+                      tip_airfoil='6408',
                       spoiler_span=2.5,
                       spoiler_chord=0.8,
-                      spoiler_angle=8.0,
+                      spoiler_angle=5,
                       strut_airfoil_shape=True,
                       strut_lat_location=0.8,
                       strut_height=0.25,
@@ -87,7 +87,7 @@ if __name__ == '__main__':
                       strut_thickness=0.04,
                       strut_sweep=15.,
                       strut_cant=0.,
-                      endplate_present=False,
+                      endplate_present=True,
                       endplate_thickness=0.01,
                       endplate_sweep=15.,
                       endplate_cant=0.)

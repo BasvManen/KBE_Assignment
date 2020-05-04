@@ -73,7 +73,7 @@ class Spoiler(GeomBase):
         return DynamicType(type=Endplates,
                            spoiler_span=self.spoiler_span,
                            chord=self.spoiler_chord*cos(radians(self.spoiler_angle)),
-                           height=max(100, 1.1*self.spoiler_chord*sin(radians(self.spoiler_angle))),
+                           height=max(0.1, 1.1*self.spoiler_chord*sin(radians(self.spoiler_angle))),
                            thickness=self.endplate_thickness,
                            sweepback_angle=self.endplate_sweep,
                            cant_angle=self.endplate_cant,

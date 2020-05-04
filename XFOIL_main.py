@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 class XFoilAnalysis(GeomBase):
 
     spoiler = Input(in_tree=True)
-    fraction = Input(0)
+    fraction = Input(0.3)
     velocity = Input(25)
 
     @Part
@@ -48,8 +48,8 @@ class XFoilAnalysis(GeomBase):
 if __name__ == '__main__':
     from parapy.gui import display
     spoiler = Spoiler(label="Spoiler",
-                      mid_airfoil='0012',
-                      tip_airfoil='0008',
+                      mid_airfoil='6412',
+                      tip_airfoil='6408',
                       spoiler_span=2.5,
                       spoiler_chord=0.8,
                       spoiler_angle=8.0,

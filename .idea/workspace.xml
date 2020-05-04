@@ -41,7 +41,7 @@
       <recent name="C:\Users\Stijn\OneDrive\Documenten\KBE\Assignment\Git\KBE_Assignment\strut_files" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.XFOIL_main">
+  <component name="RunManager" selected="Python.AVL_main">
     <configuration name="AVL_main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="KBE_Assignment" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -156,8 +156,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.XFOIL_main" />
         <item itemvalue="Python.AVL_main" />
+        <item itemvalue="Python.XFOIL_main" />
         <item itemvalue="Python.my_spoiler" />
         <item itemvalue="Python.assembly" />
         <item itemvalue="Python.aircraft" />
@@ -192,26 +192,26 @@
     </state>
     <state x="549" y="167" key="FileChooserDialogImpl/0.0.1536.824@0.0.1536.824" timestamp="1588519380767" />
     <state x="686" y="211" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1588584064001" />
-    <state width="1899" height="295" key="GridCell.Tab.0.bottom" timestamp="1588584274007">
+    <state width="1899" height="295" key="GridCell.Tab.0.bottom" timestamp="1588586279323">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1515" height="153" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1588536793311" />
-    <state width="1899" height="295" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1588584274007" />
-    <state width="1899" height="295" key="GridCell.Tab.0.center" timestamp="1588584274007">
+    <state width="1899" height="295" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1588586279323" />
+    <state width="1899" height="295" key="GridCell.Tab.0.center" timestamp="1588586279323">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1515" height="153" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1588536793311" />
-    <state width="1899" height="295" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1588584274007" />
-    <state width="1899" height="295" key="GridCell.Tab.0.left" timestamp="1588584274007">
+    <state width="1899" height="295" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1588586279323" />
+    <state width="1899" height="295" key="GridCell.Tab.0.left" timestamp="1588586279323">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1515" height="153" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1588536793311" />
-    <state width="1899" height="295" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1588584274007" />
-    <state width="1899" height="295" key="GridCell.Tab.0.right" timestamp="1588584274007">
+    <state width="1899" height="295" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1588586279323" />
+    <state width="1899" height="295" key="GridCell.Tab.0.right" timestamp="1588586279323">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="1515" height="153" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1588536793311" />
-    <state width="1899" height="295" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1588584274007" />
+    <state width="1899" height="295" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1588586279323" />
     <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1587119721234">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

@@ -40,7 +40,7 @@ class Section(GeomBase):
 
     @Part(in_tree=False)
     def avl_section(self):
-        return avl.SectionFromCurve(curve_in=self.curve_up, angle=-self.angle)
+        return avl.SectionFromCurve(curve_in=self.curve_up, angle=self.angle)
 
 
 if __name__ == '__main__':
