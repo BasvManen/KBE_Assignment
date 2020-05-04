@@ -23,7 +23,7 @@ class MainPlate(GeomBase):
     def section_positions(self):
         mid_position = self.position
         tip_position = self.position.translate('y', self.span/2)
-        return mid_position, tip_position
+        return tip_position, mid_position
 
     @Part(in_tree=False)
     def sections(self):

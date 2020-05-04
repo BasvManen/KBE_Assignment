@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 class XFoilAnalysis(GeomBase):
 
     spoiler = Input(in_tree=True)
-    fraction = Input(0)
+    fraction = Input(0.3)
     velocity = Input(25)
 
     @Part
@@ -48,22 +48,23 @@ class XFoilAnalysis(GeomBase):
 if __name__ == '__main__':
     from parapy.gui import display
     spoiler = Spoiler(label="Spoiler",
-                      mid_airfoil='9408',
-                      tip_airfoil='9404',
-                      spoiler_span=2500.,
-                      spoiler_chord=800.,
-                      spoiler_angle=10.,
-                      strut_airfoil_shape=False,
+                      mid_airfoil='6412',
+                      tip_airfoil='6408',
+                      spoiler_span=2.5,
+                      spoiler_chord=0.8,
+                      spoiler_angle=8.0,
+                      strut_airfoil_shape=True,
                       strut_lat_location=0.8,
-                      strut_height=250.,
-                      strut_chord=400.,
-                      strut_thickness=40.,
+                      strut_height=0.25,
+                      strut_chord=0.4,
+                      strut_thickness=0.04,
                       strut_sweep=15.,
                       strut_cant=0.,
-                      endplate_present=True,
-                      endplate_thickness=10.,
+                      endplate_present=False,
+                      endplate_thickness=0.01,
                       endplate_sweep=15.,
                       endplate_cant=0.)
 
     analysis = XFoilAnalysis(spoiler=spoiler)
+    print("local lift coefficient:", analysis.downforce_coefficient)
     display(analysis)
