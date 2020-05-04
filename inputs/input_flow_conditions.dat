@@ -1,0 +1,10 @@
+##############################
+# This file acts as the input file for the external flow conditions.
+# Please only input data in lines that do not begin with '#', do not alter the format.
+##############################
+
+# External Flow Conditions
+60. 		# car design 'cruise' speed [m/s]
+100.		# car design top speed [m/s]
+1.225		# free flow air density [kg/m3]
+

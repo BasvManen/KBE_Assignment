@@ -2,6 +2,7 @@
 # This file acts as the main input file for the Spoiler generator.
 # Please only input data in lines that do not begin with '#', do not alter the format.
 ##############################
+
 # Main Plate Inputs
 9402 9402 	# sequence of main plate shapes from mid plane to tip. Either 4 of 5 digit NACA airfoils.
 800.		# span of the main plate [mm]
@@ -22,10 +23,3 @@ True		# Bool to specify whether endplates are present on the configuration
 1. 		# thickness of the endplates [mm]
 0. 		# sweepback angle of the endplates [deg]
 0. 		# cant angle of the endplates [deg]
-
-# Material Properties
-1600.		# density of the used material [kg/m3]
-68.9		# Youngs modulus of the used material [GPa]
-276.		# Tensile yield strength of the used material [MPa]
-26.		# Shear modulus of the used material [GPa]
-207.		# Shear strength of the used material [MPa]

@@ -1,0 +1,11 @@
+##############################
+# This file acts as the input file for the used material properties.
+# Please only input data in lines that do not begin with '#', do not alter the format.
+##############################
+
+# Material Properties
+1600.		# density of the used material [kg/m3]
+68.9		# Youngs modulus of the used material [GPa]
+276.		# Tensile yield strength of the used material [MPa]
+26.		# Shear modulus of the used material [GPa]
+207.		# Shear strength of the used material [MPa]
