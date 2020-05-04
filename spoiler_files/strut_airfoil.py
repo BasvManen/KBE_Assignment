@@ -15,9 +15,11 @@ class StrutAirfoil(GeomBase):
     strut_cant_angle = Input()
     main = Input()
 
+    # Calculating the strut chord from the spoiler chord and angle
     @Attribute
     def strut_chord(self):
-        return self.main.chord * self.chord_fraction
+        return self.main.chord * self.chord_fraction \
+               * cos(radians(self.main.angle))
 
     @Attribute
     def thickness_to_chord(
@@ -84,7 +86,7 @@ class StrutAirfoil(GeomBase):
                                       * sin(radians(self.strut_sweepback_angle)),
                                       self.strut_height
                                       * sin(radians(self.strut_cant_angle)),
-                                      self.strut_height))
+                                      self.strut_height + self.main.chord))
 
     @Part(in_tree=False)
     def solid(self):

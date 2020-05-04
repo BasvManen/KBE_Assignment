@@ -1,4 +1,4 @@
-from math import radians, sin
+from math import radians, sin, cos
 
 from parapy.core import Input, Attribute, Part
 from parapy.geom import *
@@ -16,9 +16,11 @@ class StrutPlate(GeomBase):
     strut_cant_angle = Input()
     main = Input()
 
+    # Calculating the strut chord from the spoiler chord and angle
     @Attribute
     def strut_chord(self):
-        return self.main.chord * self.chord_fraction
+        return self.main.chord * self.chord_fraction \
+               * cos(radians(self.main.angle))
 
     @Part(in_tree=False)
     def upper_curve_rectangle(self):
@@ -55,7 +57,7 @@ class StrutPlate(GeomBase):
                              "x",
                              self.strut_height * sin(radians(self.strut_sweepback_angle)),
                              "y", self.strut_height * sin(radians(self.strut_cant_angle)),
-                             "z", self.strut_height),
+                             "z", self.strut_height + self.main.chord),
                          centered=False)
 
     @Part(in_tree=False)
@@ -65,7 +67,8 @@ class StrutPlate(GeomBase):
 
     @Part(in_tree=False)
     def fillet(self):
-        return FilletedSolid(built_from=self.solid, radius=self.strut_thickness / 3)
+        return FilletedSolid(built_from=self.solid,
+                             radius=self.strut_thickness / 3)
 
     @Part(in_tree=False)
     def partitioned_solid(self):
