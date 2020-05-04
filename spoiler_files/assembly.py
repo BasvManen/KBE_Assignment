@@ -1,5 +1,6 @@
 from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
 from parapy.core import Input, Attribute, Part, child, DynamicType
+from parapy.core.validate import *
 from parapy.geom import *
 from parapy.exchange import STEPWriter
 import kbeutils.avl as avl
@@ -13,26 +14,28 @@ DIR = os.path.dirname(__file__)
 class Spoiler(GeomBase):
 
     # Main Plate Inputs
-    mid_airfoil = Input()
-    tip_airfoil = Input()
-    spoiler_span = Input()
-    spoiler_chord = Input()
-    spoiler_angle = Input()
+    mid_airfoil = Input(validator=is_string)
+    tip_airfoil = Input(validator=is_string)
+    spoiler_span = Input(validator=Positive)
+    spoiler_chord = Input(validator=Positive)
+    spoiler_angle = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
 
     # Strut Inputs
-    strut_airfoil_shape = Input(False)
-    strut_lat_location = Input()
-    strut_height = Input()
-    strut_chord = Input()
-    strut_thickness = Input()
-    strut_sweep = Input()
-    strut_cant = Input()
+    strut_airfoil_shape = Input(False, validator=OneOf([True, False]))
+    strut_lat_location = Input(validator=And(Positive, Range(limit1=0.1,
+                                                             limit2=1.0)))
+    strut_height = Input(validator=Positive)
+    strut_chord = Input(validator=Positive)
+    strut_thickness = Input(validator=Positive)
+    strut_sweep = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
+    strut_cant = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
 
     # Endplate Inputs
-    endplate_present = Input(True)
-    endplate_thickness = Input()
-    endplate_sweep = Input()
-    endplate_cant = Input()
+    endplate_present = Input(True, validator=OneOf([True, False]))
+    endplate_thickness = Input(validator=And(Positive,
+                                             GreaterThanOrEqualTo(1.)))
+    endplate_sweep = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
+    endplate_cant = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
 
     @Attribute
     def reference_area(self):
