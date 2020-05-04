@@ -18,7 +18,7 @@ class Spoiler(GeomBase):
     tip_airfoil = Input(validator=is_string)
     spoiler_span = Input(validator=Positive)
     spoiler_chord = Input(validator=Positive)
-    spoiler_angle = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
+    spoiler_angle = Input(validator=Range(-60., 60.))
 
     # Strut Inputs
     strut_airfoil_shape = Input(False, validator=OneOf([True, False]))
@@ -27,15 +27,15 @@ class Spoiler(GeomBase):
     strut_height = Input(validator=Positive)
     strut_chord = Input(validator=Positive)
     strut_thickness = Input(validator=Positive)
-    strut_sweep = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
-    strut_cant = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
+    strut_sweep = Input(validator=Range(-60., 60.))
+    strut_cant = Input(validator=Range(-30., 30.))
 
     # Endplate Inputs
     endplate_present = Input(True, validator=OneOf([True, False]))
     endplate_thickness = Input(validator=And(Positive,
                                              GreaterThanOrEqualTo(1.)))
-    endplate_sweep = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
-    endplate_cant = Input(validator=And(Positive, LessThanOrEqualTo(60.)))
+    endplate_sweep = Input(validator=Range(-60., 60.))
+    endplate_cant = Input(validator=Range(-60., 60.))
 
     @Attribute
     def reference_area(self):
@@ -75,8 +75,8 @@ class Spoiler(GeomBase):
     def endplates(self):
         return DynamicType(type=Endplates,
                            spoiler_span=self.spoiler_span,
-                           chord=self.spoiler_chord*cos(radians(self.spoiler_angle)),
-                           height=max(0.1, 1.1*self.spoiler_chord*sin(radians(self.spoiler_angle))),
+                           chord=self.spoiler_chord * cos(radians(self.spoiler_angle)),
+                           height=max(75., abs(1.1*self.spoiler_chord * sin(radians(self.spoiler_angle)))),
                            thickness=self.endplate_thickness,
                            sweepback_angle=self.endplate_sweep,
                            cant_angle=self.endplate_cant,

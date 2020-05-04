@@ -10,7 +10,7 @@ if __name__ == '__main__':
                   tip_airfoil='9408',
                   spoiler_span=2500.,
                   spoiler_chord=800.,
-                  spoiler_angle=5.,
+                  spoiler_angle=-5.,
                   strut_airfoil_shape=True,
                   strut_lat_location=0.8,
                   strut_height=250.,
