@@ -42,3 +42,6 @@ endplate_cant = float(elements[23][0])
 # Material Inputs
 material_density = float(elements[26][0])
 youngs_modulus = float(elements[27][0])
+yield_strength = float(elements[28][0])
+shear_modulus = float(elements[29][0])
+shear_strength = float(elements[30][0])

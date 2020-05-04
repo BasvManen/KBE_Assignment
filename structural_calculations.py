@@ -240,7 +240,7 @@ def bending_stress(moment_x, moment_z, Ixx, Izz, Ixz, line_coordinates,
     return sigma_y, sigma_y_max
 
 
-class Bending(GeomBase):
+class StructuralAnalysis(GeomBase):
     # MainPlate Inputs
     airfoil_mid = Input()
     airfoil_tip = Input()
@@ -446,25 +446,25 @@ if __name__ == '__main__':
     from parapy.gui import display
     from inputs.read_inputs import *
 
-    obj = Bending(label="Aerodynamic Bending",
-                  material_density=material_density,
-                  airfoil_mid=airfoil_mid,
-                  airfoil_tip=airfoil_tip,
-                  spoiler_span=spoiler_span / 1000,
-                  spoiler_chord=spoiler_chord / 1000,
-                  spoiler_angle=spoiler_angle,
-                  strut_airfoil_shape=strut_airfoil_shape,
-                  strut_lat_location=strut_lat_location,
-                  strut_height=strut_height / 1000,
-                  strut_chord=strut_chord / 1000,
-                  strut_thickness=strut_thickness / 1000,
-                  strut_sweep=strut_sweep,
-                  strut_cant=strut_cant,
-                  endplate_present=endplate_present,
-                  endplate_thickness=endplate_thickness / 1000,
-                  endplate_sweep=endplate_sweep,
-                  endplate_cant=endplate_cant,
-                  force_z=-100 * np.ones(40),
-                  force_x=10 * np.ones(40),
-                  youngs_modulus=youngs_modulus * 10 ** 6)
+    obj = StructuralAnalysis(label="Aerodynamic Bending",
+                             material_density=material_density,
+                             airfoil_mid=airfoil_mid,
+                             airfoil_tip=airfoil_tip,
+                             spoiler_span=spoiler_span / 1000,
+                             spoiler_chord=spoiler_chord / 1000,
+                             spoiler_angle=spoiler_angle,
+                             strut_airfoil_shape=strut_airfoil_shape,
+                             strut_lat_location=strut_lat_location,
+                             strut_height=strut_height / 1000,
+                             strut_chord=strut_chord / 1000,
+                             strut_thickness=strut_thickness / 1000,
+                             strut_sweep=strut_sweep,
+                             strut_cant=strut_cant,
+                             endplate_present=endplate_present,
+                             endplate_thickness=endplate_thickness / 1000,
+                             endplate_sweep=endplate_sweep,
+                             endplate_cant=endplate_cant,
+                             force_z=-100 * np.ones(40),
+                             force_x=10 * np.ones(40),
+                             youngs_modulus=youngs_modulus * 10 ** 6)
     display(obj)
