@@ -24,7 +24,7 @@ class StructuralAnalysis(GeomBase):
     strut_airfoil_shape = Input(False)
     strut_lat_location = Input()
     strut_height = Input()
-    strut_chord = Input()
+    strut_chord_fraction = Input()
     strut_thickness = Input()
     strut_sweep = Input()
     strut_cant = Input()
@@ -52,7 +52,7 @@ class StructuralAnalysis(GeomBase):
                        strut_airfoil_shape=self.strut_airfoil_shape,
                        strut_lat_location=self.strut_lat_location,
                        strut_height=self.strut_height * 1000,
-                       strut_chord=self.strut_chord * 1000,
+                       strut_chord_fraction=self.strut_chord_fraction,
                        strut_thickness=self.strut_thickness * 1000,
                        strut_sweep=self.strut_sweep,
                        strut_cant=self.strut_cant,
@@ -73,7 +73,7 @@ class StructuralAnalysis(GeomBase):
                        strut_airfoil_shape=self.strut_airfoil_shape,
                        strut_lat_location=self.strut_lat_location,
                        strut_height=self.strut_height,
-                       strut_chord=self.strut_chord,
+                       strut_chord_fraction=self.strut_chord_fraction,
                        strut_thickness=self.strut_thickness,
                        strut_sweep=self.strut_sweep,
                        strut_cant=self.strut_cant,
@@ -98,7 +98,7 @@ class StructuralAnalysis(GeomBase):
     # of 1.5. For naming purposes, force_z and force_x are defined.
     @Attribute
     def get_distributed_forces(self):
-        case = ['fixed aoa', {'alpha': 0}]
+        case = [('fixed aoa', {'alpha': 0})]
         analysis = AvlAnalysis(spoiler=self.spoiler_in_m,
                                case_settings=case,
                                velocity=self.maximum_velocity * 1.5)
@@ -245,7 +245,7 @@ class StructuralAnalysis(GeomBase):
     #     sigma_cr = (np.pi ** 2 * self.youngs_modulus) / (le / r) ** 2
     #     return sigma_cr
 
-    @Attribute
+    @action(label="Plot the stress along the spoiler")
     def plot_stress(self):
         plt.plot(self.bending_xz[4], self.normal_stress)
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[0])
@@ -257,9 +257,8 @@ class StructuralAnalysis(GeomBase):
                     'Maximum compressive stress'])
         plt.title("Close it to refresh the ParaPy GUI")
         plt.show()
-        return "Plot generated and closed"
 
-    @Attribute
+    @action(label="Plot the deflection of the spoiler")
     def plot_force_deflection(self):
         plt.plot(self.bending_xz[4], self.bending_xz[2])
         plt.plot(self.bending_xz[4], self.bending_xz[3])
@@ -269,9 +268,8 @@ class StructuralAnalysis(GeomBase):
         plt.title("Close it to refresh the ParaPy GUI")
         plt.legend(['Deflection in z', 'Deflection in x'])
         plt.show()
-        return "Plot generated and closed"
 
-    @Attribute
+    @action(label="Plot the bending moment along the spoiler")
     def plot_bending_moment(self):
         plt.plot(self.bending_xz[4], self.bending_xz[5])
         plt.plot(self.bending_xz[4], self.bending_xz[6])
@@ -281,31 +279,30 @@ class StructuralAnalysis(GeomBase):
         plt.title("Close it to refresh the ParaPy GUI")
         plt.legend(['Moment about x', 'Moment about z'])
         plt.show()
-        return "Plot generated and closed"
 
 
 if __name__ == '__main__':
     from parapy.gui import display
-    from inputs.read_inputs import *
+    # from inputs.read_inputs import *
 
     obj = StructuralAnalysis(label="Aerodynamic Bending",
-                             material_density=material_density,
+                             material_density=1600.,
                              mid_airfoil='9404',
                              tip_airfoil='9402',
-                             spoiler_span=spoiler_span / 1000,
-                             spoiler_chord=spoiler_chord / 1000,
-                             spoiler_angle=20,
-                             strut_airfoil_shape=strut_airfoil_shape,
-                             strut_lat_location=strut_lat_location,
-                             strut_height=strut_height / 1000,
-                             strut_chord=strut_chord / 1000,
-                             strut_thickness=strut_thickness / 1000,
-                             strut_sweep=strut_sweep,
-                             strut_cant=strut_cant,
-                             endplate_present=endplate_present,
-                             endplate_thickness=endplate_thickness / 1000,
-                             endplate_sweep=endplate_sweep,
-                             endplate_cant=endplate_cant,
+                             spoiler_span=2.5,
+                             spoiler_chord=0.8,
+                             spoiler_angle=15.,
+                             strut_airfoil_shape=False,
+                             strut_lat_location=0.6,
+                             strut_height=0.2,
+                             strut_chord_fraction=0.6,
+                             strut_thickness=0.01,
+                             strut_sweep=10.,
+                             strut_cant=10.,
+                             endplate_present=False,
+                             endplate_thickness=0.01,
+                             endplate_sweep=15.,
+                             endplate_cant=10.,
                              maximum_velocity=100.,
                              youngs_modulus=1.19 * 10 ** 9,
                              spoiler_skin_thickness=0.002)
