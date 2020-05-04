@@ -1,34 +1,35 @@
 from math import radians, sin, cos
-
 from parapy.core import Input, Attribute, Part
 from parapy.geom import *
-
 from kbeutils.geom.curve import Naca4AirfoilCurve
 import kbeutils.avl as avl
-from spoiler_files.mainplate import MainPlate
 
 
 class StrutAirfoil(GeomBase):
-    spoiler_span = Input()  # Specify main spoiler span
-    strut_lat_location = Input()  # as fraction of spoiler half-span
-    chord = Input()
-    height = Input()
-    thickness = Input()
-    sweepback_angle = Input()
-    cant_angle = Input()
+    main_plate_span = Input()
+    strut_lat_location = Input()
+    chord_fraction = Input()
+    strut_height = Input()
+    strut_thickness = Input()
+    strut_sweepback_angle = Input()
+    strut_cant_angle = Input()
     main = Input()
+
+    @Attribute
+    def strut_chord(self):
+        return self.main.chord * self.chord_fraction
 
     @Attribute
     def thickness_to_chord(
             self):  # this attribute is used to define a symmetric airfoil
         if int(
-                self.thickness / self.chord * 100) < 2:  # the airfoil cannot get too thin
+                self.strut_thickness / self.strut_chord * 100) < 2:  # the airfoil cannot get too thin
             ratio = 2
         elif int(
-                self.thickness / self.chord * 100) > 50:  # the airfoil cannot get too thick
+                self.strut_thickness / self.strut_chord * 100) > 50:  # the airfoil cannot get too thick
             ratio = 40
         else:
-            ratio = int(self.thickness / self.chord * 100)
+            ratio = int(self.strut_thickness / self.strut_chord * 100)
         return ratio
 
     @Attribute
@@ -48,14 +49,14 @@ class StrutAirfoil(GeomBase):
     def airfoil_scaled(self):
         return ScaledCurve(curve_in=self.airfoil,
                            reference_point=XOY,
-                           factor=self.chord)
+                           factor=self.strut_chord)
 
     @Part(in_tree=False)
     def upper_curve_airfoil(self):
         return TranslatedCurve(curve_in=self.airfoil_scaled,
                                displacement=Vector(self.position.point[0],
                                                    self.strut_lat_location
-                                                   * self.spoiler_span / 2,
+                                                   * self.main_plate_span / 2,
                                                    self.position.point[2]))
 
     @Part(in_tree=False)
@@ -69,21 +70,21 @@ class StrutAirfoil(GeomBase):
     @Part(in_tree=False)
     def lower_curve_airfoil(self):
         return TranslatedCurve(curve_in=self.upper_curve_airfoil,
-                               displacement=Vector(-self.height * sin(
-                                   radians(self.sweepback_angle)),
-                                                   -self.height * sin(radians(
-                                                       self.cant_angle)),
-                                                   -self.height))
+                               displacement=Vector(-self.strut_height * sin(
+                                   radians(self.strut_sweepback_angle)),
+                                                   -self.strut_height * sin(radians(
+                                                       self.strut_cant_angle)),
+                                                   -self.strut_height))
 
     @Part(in_tree=False)
     def extended_airfoil(self):
         return TranslatedCurve(curve_in=self.upper_curve_airfoil,
                                displacement=
-                               Vector(self.height
-                                      * sin(radians(self.sweepback_angle)),
-                                      self.height
-                                      * sin(radians(self.cant_angle)),
-                                      self.height))
+                               Vector(self.strut_height
+                                      * sin(radians(self.strut_sweepback_angle)),
+                                      self.strut_height
+                                      * sin(radians(self.strut_cant_angle)),
+                                      self.strut_height))
 
     @Part(in_tree=False)
     def solid(self):
@@ -124,11 +125,11 @@ if __name__ == '__main__':
     from parapy.gui import display
 
     obj = StrutAirfoil(label="strut",
-                       spoiler_span=3000,
+                       main_plate_span=3000,
                        strut_lat_location=0.1,
-                       chord=400,
-                       height=500,
-                       thickness=20,
-                       sweepback_angle=15,
-                       cant_angle=0)
+                       strut_chord=400,
+                       strut_height=500,
+                       strut_thickness=20,
+                       strut_sweepback_angle=15,
+                       strut_cant_angle=0)
     display(obj)

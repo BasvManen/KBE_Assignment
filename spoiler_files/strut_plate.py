@@ -7,32 +7,36 @@ import kbeutils.avl as avl
 
 
 class StrutPlate(GeomBase):
-    spoiler_span = Input()  # Specify main spoiler span
+    main_plate_span = Input()  # Specify main spoiler span
     strut_lat_location = Input()  # as fraction of spoiler half-span
-    chord = Input()
-    height = Input()  # as defined from spoiler leading edge to strut base
-    thickness = Input()
-    sweepback_angle = Input()
-    cant_angle = Input()
+    chord_fraction = Input()
+    strut_height = Input() # as defined from spoiler leading edge to strut base
+    strut_thickness = Input()
+    strut_sweepback_angle = Input()
+    strut_cant_angle = Input()
     main = Input()
+
+    @Attribute
+    def strut_chord(self):
+        return self.main.chord * self.chord_fraction
 
     @Part(in_tree=False)
     def upper_curve_rectangle(self):
-        return Rectangle(width=self.chord, length=self.thickness,
+        return Rectangle(width=self.strut_chord, length=self.strut_thickness,
                          position=translate(self.position, "y",
                                             self.strut_lat_location
-                                            * self.spoiler_span / 2),
+                                            * self.main_plate_span / 2),
                          centered=False)
 
     @Part(in_tree=False)
     def lower_curve_rectangle(self):
-        return Rectangle(width=self.chord, length=self.thickness,
+        return Rectangle(width=self.strut_chord, length=self.strut_thickness,
                          position=translate(
                              self.upper_curve_rectangle.position,
                              "x",
-                             -self.height * sin(radians(self.sweepback_angle)),
-                             "y", -self.height * sin(radians(self.cant_angle)),
-                             "z", -self.height),
+                             -self.strut_height * sin(radians(self.strut_sweepback_angle)),
+                             "y", -self.strut_height * sin(radians(self.strut_cant_angle)),
+                             "z", -self.strut_height),
                          centered=False)
 
     @Part(in_tree=False)
@@ -45,13 +49,13 @@ class StrutPlate(GeomBase):
 
     @Part(in_tree=False)
     def extended_curve_rectangle(self):
-        return Rectangle(width=self.chord, length=self.thickness,
+        return Rectangle(width=self.strut_chord, length=self.strut_thickness,
                          position=translate(
                              self.upper_curve_rectangle.position,
                              "x",
-                             self.height * sin(radians(self.sweepback_angle)),
-                             "y", self.height * sin(radians(self.cant_angle)),
-                             "z", self.height),
+                             self.strut_height * sin(radians(self.strut_sweepback_angle)),
+                             "y", self.strut_height * sin(radians(self.strut_cant_angle)),
+                             "z", self.strut_height),
                          centered=False)
 
     @Part(in_tree=False)
@@ -61,7 +65,7 @@ class StrutPlate(GeomBase):
 
     @Part(in_tree=False)
     def fillet(self):
-        return FilletedSolid(built_from=self.solid, radius=self.thickness / 3)
+        return FilletedSolid(built_from=self.solid, radius=self.strut_thickness / 3)
 
     @Part(in_tree=False)
     def partitioned_solid(self):

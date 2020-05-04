@@ -25,7 +25,7 @@ class Spoiler(GeomBase):
     strut_lat_location = Input(validator=And(Positive,
                                              Range(limit1=0.1, limit2=1.0)))
     strut_height = Input(validator=Positive)
-    strut_chord = Input(validator=Positive)
+    strut_chord_fraction = Input(validator=Range(0.3, 1.0))
     strut_thickness = Input(validator=Positive)
     strut_sweep = Input(validator=Range(-60., 60.))
     strut_cant = Input(validator=Range(-30., 30.))
@@ -51,18 +51,21 @@ class Spoiler(GeomBase):
 
     @Attribute
     def strut_position(self):
-        return self.position.translate("x", (self.spoiler_chord*cos(radians(self.spoiler_angle))-self.strut_chord)/2)
+        return self.position.translate("x", (self.spoiler_chord
+                                             * cos(radians(self.spoiler_angle))
+                                             - self.strut_chord_fraction
+                                             * self.spoiler_chord) / 2)
 
     @Part
     def struts(self):
         return DynamicType(type=StrutAirfoil if self.strut_airfoil_shape else StrutPlate,
-                           spoiler_span=self.spoiler_span,
-                           chord=self.strut_chord,
+                           main_plate_span=self.spoiler_span,
+                           chord_fraction=self.strut_chord_fraction,
                            strut_lat_location=self.strut_lat_location,
-                           height=self.strut_height,
-                           thickness=self.strut_thickness,
-                           sweepback_angle=self.strut_sweep,
-                           cant_angle=self.strut_cant,
+                           strut_height=self.strut_height,
+                           strut_thickness=self.strut_thickness,
+                           strut_sweepback_angle=self.strut_sweep,
+                           strut_cant_angle=self.strut_cant,
                            main=self.main_plate,
                            position=self.strut_position)  # due to earlier used transformations and scaling this is used.
 
@@ -140,7 +143,7 @@ if __name__ == '__main__':
                   strut_airfoil_shape=True,
                   strut_lat_location=0.8,
                   strut_height=250.,
-                  strut_chord=400.,
+                  strut_chord_fraction=.7,
                   strut_thickness=40.,
                   strut_sweep=15.,
                   strut_cant=15.,
