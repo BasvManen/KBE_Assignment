@@ -73,8 +73,12 @@ class Spoiler(GeomBase):
     @Attribute
     def endplate_height(self):
         camber = float(self.tip_airfoil[0]) if len(self.tip_airfoil) == 4 else 9.
+        pos = float(self.tip_airfoil[1])/10
         thickness = float(self.tip_airfoil[2:4]) if len(self.tip_airfoil) == 4 else float(self.tip_airfoil[3:5])
-        return (sin(radians(self.spoiler_angle)) + camber/100. + .5*thickness/100.) * self.spoiler_chord
+        height_frac_1 = sin(radians(self.spoiler_angle))
+        height_frac_2 = (camber/100. + 0.5*thickness/100.) * cos(radians(self.spoiler_angle)) - 0.9*(pos*sin(radians(self.spoiler_angle)))
+
+        return (height_frac_1 + height_frac_2) * self.spoiler_chord
 
     @Part
     def endplates(self):

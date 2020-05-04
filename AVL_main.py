@@ -23,7 +23,7 @@ class AvlAnalysis(avl.Interface):
     @Attribute
     def total_force(self):
         cl = self.results['default']['Totals']['CLtot']
-        force = cl*self.dyn_pressure*spoiler.reference_area
+        force = cl*self.dyn_pressure*self.spoiler.reference_area
         return force
 
     @Attribute
