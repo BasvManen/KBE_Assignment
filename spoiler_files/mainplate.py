@@ -73,7 +73,8 @@ class MainPlate(GeomBase):
         return MirroredShape(shape_in=self.surface,
                              reference_point=self.position.point,
                              vector1=self.position.Vx,
-                             vector2=self.position.Vz)
+                             vector2=self.position.Vz,
+                             mesh_deflection=1e-5)
 
     # Create aerodynamic surface for AVL analysis
     @Part
