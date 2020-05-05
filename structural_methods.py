@@ -195,22 +195,15 @@ def bending_stress(moment_x, moment_z, Ixx, Izz, Ixz, line_coordinates,
     the spoiler.
     """
 
-    # initialise the x and z coordinates along the span
+    # initialise the x and z coordinates along the span w.r.t. the centroid
     x = []
     z = []
     for i in range(len(line_coordinates)):
         x.append([])
         z.append([])
         for j in range(len(line_coordinates[0])):
-            x[i].append(line_coordinates[i][j][0])
-            z[i].append(line_coordinates[i][j][2])
-
-    # x and z coordinates of the centroid
-    x_centroid = []
-    z_centroid = []
-    for i in range(len(centroid_list)):
-        x_centroid.append(centroid_list[i][0])
-        z_centroid.append(centroid_list[i][2])
+            x[i].append(line_coordinates[i][j][0] - centroid_list[i][0])
+            z[i].append(line_coordinates[i][j][2] - centroid_list[i][2])
 
     # calculate the normal stress due to bending
     sigma_y = []
@@ -218,13 +211,9 @@ def bending_stress(moment_x, moment_z, Ixx, Izz, Ixz, line_coordinates,
     for i in range(len(line_coordinates)):
         sigma_y.append([])
         for j in range(len(line_coordinates[i])):
-            calc_sigma = moment_x[i] \
-                         * (Izz[i] * (z[i][j] - z_centroid[i])
-                            - Ixz[i] * (x[i][j] - x_centroid[i])) \
+            calc_sigma = moment_x[i] * (Izz[i] * z[i][j] - Ixz[i] * x[i][j]) \
                          / (Ixx[i] * Izz[i] - Ixz[i] ** 2) \
-                         + moment_z[i] \
-                         * (Ixx[i] * (x[i][j] - x_centroid[i])
-                            - Ixz[i] * (z[i][j] - z_centroid[i])) \
+                         + moment_z[i] * (Ixx[i] * x[i][j] - Ixz[i] * z[i][j]) \
                          / (Ixx[i] * Izz[i] - Ixz[i] ** 2)
             sigma_y[i].append(calc_sigma)
         sigma_y_max.append(max(sigma_y[i])
@@ -232,3 +221,64 @@ def bending_stress(moment_x, moment_z, Ixx, Izz, Ixz, line_coordinates,
                            else min(sigma_y[i]))
 
     return sigma_y, sigma_y_max
+
+
+def shear_stress(force_x, force_z, skin_thickness, Ixx, Izz, Ixz,
+                 line_coordinates, centroid_list):
+    """
+    Function which calculates the shear stress along the spoiler due to the
+    lift and drag forces along the spoiler. It returns an array of the
+    maximum shear stress along the spoiler.
+    """
+
+    # initialise the x and z coordinates along the span w.r.t. the centroid
+    x = []
+    z = []
+    for i in range(len(line_coordinates)):
+        x.append([])
+        z.append([])
+        for j in range(len(line_coordinates[0])):
+            x[i].append(line_coordinates[i][j][0] - centroid_list[i][0])
+            z[i].append(line_coordinates[i][j][2] - centroid_list[i][2])
+
+    # basic shear flow along the cutout along the spoiler span
+    q_b = []  # basic shear flow
+    q_b_i = []  # integration of q_b for calculating the q_s,0
+    q_s_0 = []  # closed section shear flow
+    q_total = []  # q_total = q_b + q_s_0
+    tau_total = [] # actual shear stress
+    line_length = []
+    for i in range(len(line_coordinates) - 1):
+        q_b.append([0])
+        q_b_i.append([0])
+        line_length.append(np.sqrt((line_coordinates[i][0][0]
+                                    - line_coordinates[i][1][0]) ** 2
+                                   + (line_coordinates[i][0][2]
+                                      - line_coordinates[i][1][2]) ** 2))
+        for j in range(1, len(line_coordinates[0])):
+            q_b[i].append(q_b[i][j - 1]
+                          - (force_x[i] * Ixx[i] - force_z[i] * Ixz[i])
+                          / (Ixx[i] * Izz[i] - Ixz[i] ** 2) * skin_thickness
+                          * ((x[i][j] - x[i][j - 1]) / 2 * line_length[i]
+                             + x[i][j] * line_length[i]))
+            q_b_i[i].append(q_b_i[i][j - 1]
+                            - (force_x[i] * Ixx[i] - force_z[i] * Ixz[i])
+                            / (Ixx[i] * Izz[i] - Ixz[i] ** 2) * skin_thickness
+                            * ((x[i][j] - x[i][j - 1]) / 6 * line_length[i] ** 2
+                               + x[i][j] / 2 * line_length[i] ** 2))
+
+    # Calculate total shear flow along the cutout along the spoiler span
+    for i in range(len(line_coordinates) - 1):
+        q_total.append([])
+        q_s_0.append(sum(q_b_i[i]) / (line_length[i] * len(line_coordinates[0])))
+        for j in range(len(line_coordinates[0])):
+            q_total[i].append(q_b[i][j] + q_s_0[i])
+
+    # Calculate the maximum shear stress
+    for i in range(len(line_coordinates) - 1):
+        if max(q_total[i]) > abs(min(q_total[i])):
+            tau_total.append(max(q_total[i]) / skin_thickness)
+        else:
+            tau_total.append(min(q_total[i]) / skin_thickness)
+
+    return tau_total

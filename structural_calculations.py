@@ -1,6 +1,6 @@
 from math import tan, radians
 from structural_methods import mainplate_bending_xz, bending_stress, \
-    normal_stress_due_to_strut
+    normal_stress_due_to_strut, shear_stress
 from spoiler_files.assembly import Spoiler
 from section_properties import SectionProperties
 from weight_estimation import WeightEstimation
@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 
 # STRUCTURAL ANALYSIS CLASS
 # In this file, the structural analysis for the spoiler is performed
+
 
 class StructuralAnalysis(GeomBase):
 
@@ -116,7 +117,12 @@ class StructuralAnalysis(GeomBase):
                                      * self.spoiler_in_m.reference_area)
         lift_distribution = lift_distribution[::-1] + lift_distribution
         drag_distribution = drag_distribution[::-1] + drag_distribution
-        return lift_distribution, drag_distribution
+        y_distribution = sorted(analysis.lift_distribution[0])
+        return lift_distribution, drag_distribution, y_distribution
+
+    @Attribute
+    def force_y_location(self):
+        return self.get_distributed_forces[2]
 
     @Attribute
     def force_z(self):
@@ -131,7 +137,7 @@ class StructuralAnalysis(GeomBase):
     def number_of_lateral_cuts(self):
         return int(len(self.force_z) / 2) + 1
 
-    # Retrieve the sectional properties for this discretisation
+    # Retrieve the moment of inertia for this discretisation
     @Attribute
     def moment_of_inertia(self):
         full_moment_of_inertia = SectionProperties(
@@ -148,6 +154,7 @@ class StructuralAnalysis(GeomBase):
         moment_of_inertia_xz = [row[2] for row in full_moment_of_inertia]
         return moment_of_inertia_x, moment_of_inertia_z, moment_of_inertia_xz
 
+    # Retrieve the area along the spoiler for this discretisation
     @Attribute
     def area_along_spoiler(self):
         return SectionProperties(
@@ -158,6 +165,37 @@ class StructuralAnalysis(GeomBase):
             spoiler_angle=self.spoiler_angle,
             spoiler_skin_thickness=self.spoiler_skin_thickness,
             n_cuts=self.number_of_lateral_cuts).area_along_spoiler
+
+    # Retrieve the coordinates of the centroid for this discretisation
+    @Attribute
+    def centroid_coordinates(self):
+        half_centroid_list = SectionProperties(
+            airfoil_mid=self.mid_airfoil,
+            airfoil_tip=self.tip_airfoil,
+            spoiler_span=self.spoiler_span,
+            spoiler_chord=self.spoiler_chord,
+            spoiler_angle=self.spoiler_angle,
+            spoiler_skin_thickness=self.spoiler_skin_thickness,
+            n_cuts=self.number_of_lateral_cuts).centroid
+        full_centroid_list = half_centroid_list[
+                             ::-1] + half_centroid_list[1:]
+        return full_centroid_list
+
+    # Retrieve the coordinates along each of the discretised cutouts along
+    # the spoiler span
+    @Attribute
+    def cutout_coordinates(self):
+        half_spoiler_coordinates = SectionProperties(
+            airfoil_mid=self.mid_airfoil,
+            airfoil_tip=self.tip_airfoil,
+            spoiler_span=self.spoiler_span,
+            spoiler_chord=self.spoiler_chord,
+            spoiler_angle=self.spoiler_angle,
+            spoiler_skin_thickness=self.spoiler_skin_thickness,
+            n_cuts=self.number_of_lateral_cuts).coordinates_sections_points
+        full_spoiler_coordinates = half_spoiler_coordinates[
+                                   ::-1] + half_spoiler_coordinates[1:]
+        return full_spoiler_coordinates
 
     # Calculate the bending moments and deflections in x and z.
     @Attribute
@@ -198,44 +236,43 @@ class StructuralAnalysis(GeomBase):
         moi_xx = self.moment_of_inertia[0]
         moi_zz = self.moment_of_inertia[1]
         moi_xz = self.moment_of_inertia[2]
-        half_spoiler_coordinates = SectionProperties(
-            airfoil_mid=self.mid_airfoil,
-            airfoil_tip=self.tip_airfoil,
-            spoiler_span=self.spoiler_span,
-            spoiler_chord=self.spoiler_chord,
-            spoiler_angle=self.spoiler_angle,
-            spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts).coordinates_sections_points
-        full_spoiler_coordinates = half_spoiler_coordinates[
-                                   ::-1] + half_spoiler_coordinates[1:]
-        half_centroid_list = SectionProperties(
-            airfoil_mid=self.mid_airfoil,
-            airfoil_tip=self.tip_airfoil,
-            spoiler_span=self.spoiler_span,
-            spoiler_chord=self.spoiler_chord,
-            spoiler_angle=self.spoiler_angle,
-            spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts).centroid
-        full_centroid_list = half_centroid_list[
-                             ::-1] + half_centroid_list[1:]
+        cutout_coordinates = self.cutout_coordinates
+        centroid_coordinates = self.centroid_coordinates
 
         sigma_y, sigma_y_max = bending_stress(moment_x, moment_z, moi_xx,
                                               moi_zz, moi_xz,
-                                              full_spoiler_coordinates,
-                                              full_centroid_list)
+                                              cutout_coordinates,
+                                              centroid_coordinates)
         return sigma_y, sigma_y_max
 
-    # Calculating the maximum tensile and compressive stress along the spoiler
+    # Calculate the maximum tensile and compressive stress along the spoiler
     @Attribute
     def maximum_normal_stress(self):
         max_normal_stress_tensile = []
         max_normal_stress_compressive = []
-        for i in range(len(self.normal_bending_stress[1])):
+        for i in range(len(self.normal_bending_stress[0])):
             max_normal_stress_tensile.append(self.normal_stress[i]
                 + max(self.normal_bending_stress[0][i]))
             max_normal_stress_compressive.append(self.normal_stress[i]
                 + min(self.normal_bending_stress[0][i]))
         return max_normal_stress_tensile, max_normal_stress_compressive
+
+    # Calculate the shear stress along the spoiler
+    @Attribute
+    def shear_stress(self):
+        force_x = self.get_distributed_forces[0]
+        force_z = self.get_distributed_forces[1]
+        moi_xx = self.moment_of_inertia[0]
+        moi_zz = self.moment_of_inertia[1]
+        moi_xz = self.moment_of_inertia[2]
+        cutout_coordinates = self.cutout_coordinates
+        centroid_coordinates = self.centroid_coordinates
+
+        tau = shear_stress(force_x, force_z, self.spoiler_skin_thickness,
+                           moi_xx, moi_zz, moi_xz, cutout_coordinates,
+                           centroid_coordinates)
+
+        return tau
 
     # @Attribute
     # def column_buckling(self):
@@ -249,16 +286,24 @@ class StructuralAnalysis(GeomBase):
     #     return sigma_cr
 
     # Creating several actions to plot parameters along the spoiler
-    @action(label="Plot the stress along the spoiler")
-    def plot_stress(self):
-        plt.plot(self.bending_xz[4], self.normal_stress)
+    @action(label="Plot the normal stress along the spoiler")
+    def plot_normal_stress(self):
+        # plt.plot(self.bending_xz[4], self.normal_stress)
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[0])
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[1])
         plt.xlabel('Spanwise location [m]')
-        plt.ylabel('Stress [N/m^2]')
+        plt.ylabel('Normal stress [N/m^2]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
-        plt.legend(['Normal stress', 'Maximum tensile stress',
-                    'Maximum compressive stress'])
+        plt.legend(['Maximum tensile stress', 'Maximum compressive stress'])
+        plt.title("Close it to refresh the ParaPy GUI")
+        plt.show()
+
+    @action(label="Plot the shear stress along the spoiler")
+    def plot_shear_stress(self):
+        plt.plot(self.get_distributed_forces[2], self.shear_stress)
+        plt.xlabel('Spanwise location [m]')
+        plt.ylabel('Shear stress [N/m^2]')
+        plt.grid(b=True, which='both', color='0.65', linestyle='-')
         plt.title("Close it to refresh the ParaPy GUI")
         plt.show()
 
@@ -310,4 +355,6 @@ if __name__ == '__main__':
                              maximum_velocity=100.,
                              youngs_modulus=1.19 * 10 ** 9,
                              spoiler_skin_thickness=0.002)
+    # plt.plot(obj.shear_stress[0])
+    # plt.show()
     display(obj)

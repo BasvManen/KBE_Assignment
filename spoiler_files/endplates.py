@@ -23,7 +23,7 @@ class Endplates(GeomBase):
     # Calculate endplate chord based on sweep angle and spoiler chord
     @Attribute
     def endplate_chord(self):
-        return self.chord #- self.height*tan(radians(self.sweepback_angle))
+        return self.chord
 
     # Define the upper (rectangular) curve of the endplate
     @Part

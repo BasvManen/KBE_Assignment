@@ -14,7 +14,7 @@ class SectionProperties(GeomBase):
     spoiler_skin_thickness = Input()
 
     # Inputs for the discretisation of the spoiler sections
-    n_discretise = Input(200)
+    n_discretise = Input(120)
     n_cuts = Input()
 
     # Define the two section similarly as in the mainplate file to get the
