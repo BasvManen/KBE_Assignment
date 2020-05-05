@@ -52,7 +52,8 @@ class MainPlate(GeomBase):
 
     @Part
     def surface(self):
-        return SubtractedSolid(shape_in=self.surface_whole, tool=self.half_space_solid)
+        return SubtractedSolid(shape_in=self.surface_whole, tool=self.half_space_solid,
+                               mesh_deflection=1e-5)
 
     @Part
     def surface_mirrored(self):
@@ -77,8 +78,8 @@ if __name__ == '__main__':
     from parapy.gui import display
     obj = MainPlate(airfoil_mid='9412',
                     airfoil_tip='7408',
-                    span=3000,
-                    chord=800,
+                    span=3,
+                    chord=0.8,
                     angle=0,
-                    tip_cant=0)
+                    tip_cant=15)
     display(obj)

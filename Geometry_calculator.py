@@ -21,7 +21,7 @@ while current < target:
                       strut_airfoil_shape=True,
                       strut_lat_location=0.8,
                       strut_height=0.25,
-                      strut_chord=0.4,
+                      strut_chord_fraction=0.5,
                       strut_thickness=0.04,
                       strut_sweep=15.,
                       strut_cant=0.,
@@ -30,7 +30,7 @@ while current < target:
                       endplate_sweep=15.,
                       endplate_cant=0.)
 
-    case = ['fixed aoa', {'alpha': 0}]
+    case = [('AoA input', {'alpha': 0})]
 
     analysis = AvlAnalysis(spoiler=spoiler,
                            case_settings=case,

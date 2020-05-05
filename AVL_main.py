@@ -34,7 +34,7 @@ class AvlAnalysis(avl.Interface):
 
     @Attribute
     def ld_ratio(self):
-        return -self.results[self.case_settings[0][0]]['Totals']['CLtot'] \
+        return self.results[self.case_settings[0][0]]['Totals']['CLtot'] \
                / self.results[self.case_settings[0][0]]['Totals']['CDtot']
 
     @Attribute
@@ -48,10 +48,12 @@ class AvlAnalysis(avl.Interface):
         y_axis_1 = self.lift_distribution[1][:len(self.lift_distribution[0])//2]
         x_axis_2 = self.lift_distribution[0][len(self.lift_distribution[0])//2:]
         y_axis_2 = self.lift_distribution[1][len(self.lift_distribution[0])//2:]
+
         plt.plot(x_axis_1, y_axis_1, c="black")
         plt.plot(x_axis_2, y_axis_2, c="black")
+        plt.title("Total Downforce Coefficient: " + str(self.results[self.case_settings[0][0]]['Totals']['CLtot']))
         plt.xlabel("Spanwise location [m]")
-        plt.ylabel("Local lift force")
+        plt.ylabel("Local downforce coefficient")
         plt.show()
         return "Plot is generated in a separate window"
 
@@ -61,8 +63,12 @@ class AvlAnalysis(avl.Interface):
         y_axis_1 = self.drag_distribution[1][:len(self.drag_distribution[0])//2]
         x_axis_2 = self.drag_distribution[0][len(self.drag_distribution[0])//2:]
         y_axis_2 = self.drag_distribution[1][len(self.drag_distribution[0])//2:]
+
         plt.plot(x_axis_1, y_axis_1, c="black")
         plt.plot(x_axis_2, y_axis_2, c="black")
+        plt.title("Total Drag Coefficient: " + str(self.results[self.case_settings[0][0]]['Totals']['CDtot']))
+        plt.xlabel("Spanwise location [m]")
+        plt.ylabel("Local drag coefficient")
         plt.show()
         return "Plot is generated in a separate window"
 
