@@ -5,26 +5,33 @@ from math import sin, cos, radians
 import kbeutils.avl as avl
 from spoiler_files.section import Section
 
+# MAIN PLATE CLASS
+# In this file, the spoiler main plate is defined
+
 
 class MainPlate(GeomBase):
 
+    # INPUTS
     airfoil_mid = Input()
     airfoil_tip = Input()
     span = Input()
     chord = Input()
     angle = Input()
     tip_cant = Input()
-    
+
+    # Define sections in one array
     @Attribute
     def airfoil_names(self):
         return self.airfoil_mid, self.airfoil_tip
 
+    # Define positions of sections in one array
     @Attribute
     def section_positions(self):
         mid_position = self.position
         tip_position = self.position.translate('y', self.span/2)
         return mid_position, tip_position
 
+    # Create the sections from name and position
     @Part(in_tree=False)
     def sections(self):
         return Section(quantify=2,
@@ -33,12 +40,14 @@ class MainPlate(GeomBase):
                        angle=self.angle,
                        position=self.section_positions[child.index])
 
+    # Create a solid between the created sections
     @Part(in_tree=False)
     def surface_whole(self):
         return LoftedSolid(profiles=[section.curve
                                      for section in self.sections],
                            ruled=True)
 
+    # Create a cutting plane parallel to the end plate
     @Part(in_tree=False)
     def cutting_plane(self):
         return Plane(translate(XOY, 'x', self.chord*cos(radians(self.angle)),
@@ -46,15 +55,19 @@ class MainPlate(GeomBase):
                                'z', self.chord*sin(radians(self.angle))),
                      normal=rotate(VY, VX, -self.tip_cant, deg=True))
 
+    # Define the part of the main plate that needs to be cut off
     @Part(in_tree=False)
     def half_space_solid(self):
         return HalfSpaceSolid(self.cutting_plane, Point(0, self.span, 0))
 
+    # Create the canted solid from the whole plate and the cutting plane
     @Part
     def surface(self):
-        return SubtractedSolid(shape_in=self.surface_whole, tool=self.half_space_solid,
+        return SubtractedSolid(shape_in=self.surface_whole,
+                               tool=self.half_space_solid,
                                mesh_deflection=1e-5)
 
+    # Mirror the canted solid the obtain the whole main plate
     @Part
     def surface_mirrored(self):
         return MirroredShape(shape_in=self.surface,
@@ -62,6 +75,7 @@ class MainPlate(GeomBase):
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
 
+    # Create aerodynamic surface for AVL analysis
     @Part
     def avl_surface(self):
         return avl.Surface(name="Main Plate",
