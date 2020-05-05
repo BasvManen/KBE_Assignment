@@ -12,16 +12,15 @@ import kbeutils.avl as avl
 class StrutPlate(GeomBase):
 
     # INPUTS
-    main_plate_span = Input()  # Specify main spoiler span
-    strut_lat_location = Input()  # as fraction of spoiler half-span
+    strut_lat_location = Input()
     chord_fraction = Input()
-    strut_height = Input() # as defined from spoiler leading edge to strut base
+    strut_height = Input()
     strut_thickness = Input()
     strut_sweepback_angle = Input()
     strut_cant_angle = Input()
     main = Input()
 
-    # Calculating the strut chord from the spoiler chord and angle
+    # Calculatie the strut chord from the spoiler chord and angle
     @Attribute
     def strut_chord(self):
         return self.main.chord * self.chord_fraction \
@@ -33,7 +32,7 @@ class StrutPlate(GeomBase):
         return Rectangle(width=self.strut_chord, length=self.strut_thickness,
                          position=translate(self.position, "y",
                                             self.strut_lat_location
-                                            * self.main_plate_span / 2),
+                                            * self.main.span / 2),
                          centered=False)
 
     # Define the lower curve of the strut

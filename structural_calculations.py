@@ -222,16 +222,16 @@ class StructuralAnalysis(GeomBase):
                                               full_centroid_list)
         return sigma_y, sigma_y_max
 
+    # Calculating the maximum tensile and compressive stress along the spoiler
     @Attribute
     def maximum_normal_stress(self):
         max_normal_stress_tensile = []
         max_normal_stress_compressive = []
         for i in range(len(self.normal_bending_stress[1])):
             max_normal_stress_tensile.append(self.normal_stress[i]
-                                             + max(
-                self.normal_bending_stress[0][i]))
-            max_normal_stress_compressive.append(
-                min(self.normal_bending_stress[0][i]))
+                + max(self.normal_bending_stress[0][i]))
+            max_normal_stress_compressive.append(self.normal_stress[i]
+                + min(self.normal_bending_stress[0][i]))
         return max_normal_stress_tensile, max_normal_stress_compressive
 
     # @Attribute
@@ -245,6 +245,7 @@ class StructuralAnalysis(GeomBase):
     #     sigma_cr = (np.pi ** 2 * self.youngs_modulus) / (le / r) ** 2
     #     return sigma_cr
 
+    # Creating several actions to plot parameters along the spoiler
     @action(label="Plot the stress along the spoiler")
     def plot_stress(self):
         plt.plot(self.bending_xz[4], self.normal_stress)

@@ -15,7 +15,7 @@ if __name__ == '__main__':
                   strut_lat_location=0.8,
                   strut_height=250.,
                   strut_chord_fraction=.7,
-                  strut_thickness=40.,
+                  strut_thickness=20.,
                   strut_sweep=0.,
                   strut_cant=15.,
                   endplate_present=True,
