@@ -68,7 +68,6 @@ class Spoiler(GeomBase):
     def struts(self):
         return DynamicType(type=StrutAirfoil if self.strut_airfoil_shape
                            else StrutPlate,
-                           main_plate_span=self.spoiler_span,
                            chord_fraction=self.strut_chord_fraction,
                            strut_lat_location=self.strut_lat_location,
                            strut_height=self.strut_height,
