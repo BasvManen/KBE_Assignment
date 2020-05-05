@@ -10,6 +10,7 @@ from parapy.core import *
 import numpy as np
 from matplotlib import pyplot as plt
 
+
 # STRUCTURAL ANALYSIS CLASS
 # In this file, the structural analysis for the spoiler is performed
 
@@ -39,7 +40,7 @@ class StructuralAnalysis(GeomBase):
     endplate_sweep = Input()
     endplate_cant = Input()
 
-    # Additional inputs for bending calculations
+    # Additional inputs for calculations
     maximum_velocity = Input()
     youngs_modulus = Input()
     material_density = Input()
@@ -95,26 +96,30 @@ class StructuralAnalysis(GeomBase):
             material_density=self.material_density,
             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
             spoiler_geometry=self.spoiler_in_mm)
-        return model.weight_mainplate, model.weight_endplate
+        return model.weight_mainplate, model.weight_endplate, \
+               model.weight_strut, model.total_weight
 
     # Next the maximum lift and drag distributions are implemented. Note that
     # for this the cars maximum speed is used, together with a safety factor
     # of 1.5. For naming purposes, force_z and force_x are defined.
     @Attribute
     def get_distributed_forces(self):
+        safety_factor = 1.5
         case = [('fixed aoa', {'alpha': 0})]
         analysis = AvlAnalysis(spoiler=self.spoiler_in_m,
                                case_settings=case,
-                               velocity=self.maximum_velocity * 1.5)
+                               velocity=self.maximum_velocity * safety_factor)
         lift_distribution = []
         drag_distribution = []
+        spacing = self.spoiler_in_m.spoiler_span / len(analysis.
+                                                       lift_distribution[0])
         for i in range(int(len(analysis.lift_distribution[0]) / 2)):
             lift_distribution.append(-analysis.lift_distribution[1][i]
                                      * analysis.dyn_pressure
-                                     * self.spoiler_in_m.reference_area)
+                                     * spacing)
             drag_distribution.append(analysis.drag_distribution[1][i]
                                      * analysis.dyn_pressure
-                                     * self.spoiler_in_m.reference_area)
+                                     * spacing)
         lift_distribution = lift_distribution[::-1] + lift_distribution
         drag_distribution = drag_distribution[::-1] + drag_distribution
         y_distribution = sorted(analysis.lift_distribution[0])
@@ -246,18 +251,21 @@ class StructuralAnalysis(GeomBase):
         return sigma_y, sigma_y_max
 
     # Calculate the maximum tensile and compressive stress along the spoiler
+    # and convert it to MPa
     @Attribute
     def maximum_normal_stress(self):
         max_normal_stress_tensile = []
         max_normal_stress_compressive = []
         for i in range(len(self.normal_bending_stress[0])):
-            max_normal_stress_tensile.append(self.normal_stress[i]
-                + max(self.normal_bending_stress[0][i]))
-            max_normal_stress_compressive.append(self.normal_stress[i]
-                + min(self.normal_bending_stress[0][i]))
+            max_normal_stress_tensile.append((self.normal_stress[i]
+                                              + max(
+                        self.normal_bending_stress[0][i])) / 10 ** 6)
+            max_normal_stress_compressive.append((self.normal_stress[i]
+                                                  + min(
+                        self.normal_bending_stress[0][i])) / 10 ** 6)
         return max_normal_stress_tensile, max_normal_stress_compressive
 
-    # Calculate the shear stress along the spoiler
+    # Calculate the shear stress along the spoiler and convert to MPa
     @Attribute
     def shear_stress(self):
         force_x = self.get_distributed_forces[0]
@@ -271,6 +279,10 @@ class StructuralAnalysis(GeomBase):
         tau = shear_stress(force_x, force_z, self.spoiler_skin_thickness,
                            moi_xx, moi_zz, moi_xz, cutout_coordinates,
                            centroid_coordinates)
+
+        # convert to MPa
+        for i in range(len(tau)):
+            tau[i] = tau[i] / 10 ** 6
 
         return tau
 
@@ -292,7 +304,7 @@ class StructuralAnalysis(GeomBase):
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[0])
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[1])
         plt.xlabel('Spanwise location [m]')
-        plt.ylabel('Normal stress [N/m^2]')
+        plt.ylabel('Normal stress [MPa]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
         plt.legend(['Maximum tensile stress', 'Maximum compressive stress'])
         plt.title("Close it to refresh the ParaPy GUI")
@@ -302,7 +314,7 @@ class StructuralAnalysis(GeomBase):
     def plot_shear_stress(self):
         plt.plot(self.get_distributed_forces[2], self.shear_stress)
         plt.xlabel('Spanwise location [m]')
-        plt.ylabel('Shear stress [N/m^2]')
+        plt.ylabel('Shear stress [MPa]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
         plt.title("Close it to refresh the ParaPy GUI")
         plt.show()
@@ -332,29 +344,71 @@ class StructuralAnalysis(GeomBase):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    # from inputs.read_inputs import *
 
-    obj = StructuralAnalysis(label="Aerodynamic Bending",
-                             material_density=1600.,
-                             mid_airfoil='9404',
-                             tip_airfoil='9402',
-                             spoiler_span=2.5,
-                             spoiler_chord=0.8,
-                             spoiler_angle=15.,
-                             strut_airfoil_shape=False,
-                             strut_lat_location=0.6,
-                             strut_height=0.2,
-                             strut_chord_fraction=0.6,
-                             strut_thickness=0.01,
-                             strut_sweep=10.,
-                             strut_cant=10.,
-                             endplate_present=False,
-                             endplate_thickness=0.01,
-                             endplate_sweep=15.,
-                             endplate_cant=10.,
-                             maximum_velocity=100.,
-                             youngs_modulus=1.19 * 10 ** 9,
-                             spoiler_skin_thickness=0.002)
-    # plt.plot(obj.shear_stress[0])
-    # plt.show()
+    thickness = 0.001
+    calc_normal_stress = 300.
+    calc_shear_stress = 0.
+    deflection = 0.
+    yield_strength = 276.
+    shear_strength = 207.
+    span = 2.5
+    density = 2700.
+    youngs_modulus = 68.9 * 10 ** 9
+
+    while calc_normal_stress > yield_strength or calc_shear_stress > \
+            shear_strength or deflection > 0.1 * span:
+
+        print(thickness)
+        obj = StructuralAnalysis(label="Aerodynamic Bending",
+                                 material_density=density,
+                                 mid_airfoil='9404',
+                                 tip_airfoil='9402',
+                                 spoiler_span=span,
+                                 spoiler_chord=0.3,
+                                 spoiler_angle=10.,
+                                 strut_airfoil_shape=False,
+                                 strut_lat_location=0.4,
+                                 strut_height=0.2,
+                                 strut_chord_fraction=0.6,
+                                 strut_thickness=0.01,
+                                 strut_sweep=10.,
+                                 strut_cant=10.,
+                                 endplate_present=False,
+                                 endplate_thickness=0.01,
+                                 endplate_sweep=15.,
+                                 endplate_cant=10.,
+                                 maximum_velocity=60.,
+                                 youngs_modulus=youngs_modulus,
+                                 spoiler_skin_thickness=thickness)
+
+        calc_normal_stress = max(obj.maximum_normal_stress[0])
+        calc_shear_stress = max(obj.shear_stress)
+        deflection = max([max(obj.bending_xz[2]), abs(min(obj.bending_xz[2])),
+                          max(obj.bending_xz[3]), abs(min(obj.bending_xz[3]))])
+
+        thickness += 0.0005
+
+    print(obj.weights)
+
+    # obj = StructuralAnalysis(label="Aerodynamic Bending",
+    #                          material_density=1600.,
+    #                          mid_airfoil='9404',
+    #                          tip_airfoil='9402',
+    #                          spoiler_span=2.5,
+    #                          spoiler_chord=0.3,
+    #                          spoiler_angle=10.,
+    #                          strut_airfoil_shape=False,
+    #                          strut_lat_location=0.4,
+    #                          strut_height=0.2,
+    #                          strut_chord_fraction=0.6,
+    #                          strut_thickness=0.01,
+    #                          strut_sweep=10.,
+    #                          strut_cant=10.,
+    #                          endplate_present=False,
+    #                          endplate_thickness=0.01,
+    #                          endplate_sweep=15.,
+    #                          endplate_cant=10.,
+    #                          maximum_velocity=60.,
+    #                          youngs_modulus=1.19 * 10 ** 9,
+    #                          spoiler_skin_thickness=0.01)
     display(obj)
