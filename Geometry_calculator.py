@@ -1,6 +1,7 @@
 from spoiler_files import Spoiler
 from AVL_main import AvlAnalysis
 from parapy.gui import display
+import matplotlib.pyplot as plt
 
 # GEOMETRY CALCULATOR CLASS
 # In this file, a geometry is calculated based on the desired downforce.
@@ -28,10 +29,13 @@ target = input_target
 if var_input == 1:  # Starting value for spoiler angle
     var = 0
 elif var_input == 2:  # Starting value for spoiler span
-    var = 0.5
+    var = 1
 elif var_input == 3:  # Starting value for spoiler chord
     var = 0.2
 
+# Define history arrays to show progress
+history_x = []
+history_y = []
 
 # Start the iteration loop, it will stop when the desired downforce is reached
 while current < target:
@@ -40,7 +44,7 @@ while current < target:
     if var_input == 1:  # Step increase for spoiler angle
         var += 1
     elif var_input == 2:  # Step increase for spoiler span
-        var += 0.05
+        var += 0.1
     elif var_input == 3:  # Step increase for spoiler chord
         var += 0.05
 
@@ -74,10 +78,21 @@ while current < target:
     # Extract total downforce from AVL and set as the current downforce
     current = analysis.total_force
 
+    # Store iteration values in history array
+    history_x.append(var)
+    history_y.append(current)
+
     # Print the progress in the Python console
     print("Current parameter value:", var)
     print("Current downforce:", round(current, 0), "Newtons")
     print("")
+
+# Once the iteration is finished, show convergence history
+plt.plot(history_x, history_y)
+plt.title("Downforce convergence history")
+plt.xlabel("Variable parameter value")
+plt.ylabel("Downforce level [N]")
+plt.show()
 
 # Once the iteration is finished, display the final geometry and
 # AVL analysis of the final geometry
