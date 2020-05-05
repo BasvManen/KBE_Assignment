@@ -10,8 +10,11 @@ from parapy.core import *
 import numpy as np
 from matplotlib import pyplot as plt
 
+# STRUCTURAL ANALYSIS CLASS
+# In this file, the structural analysis for the spoiler is performed
 
 class StructuralAnalysis(GeomBase):
+
     # MainPlate Inputs
     mid_airfoil = Input()
     tip_airfoil = Input()

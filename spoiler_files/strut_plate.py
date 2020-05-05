@@ -20,7 +20,7 @@ class StrutPlate(GeomBase):
     strut_cant_angle = Input()
     main = Input()
 
-    # Calculatie the strut chord from the spoiler chord and angle
+    # Calculate the strut chord from the spoiler chord and angle
     @Attribute
     def strut_chord(self):
         return self.main.chord * self.chord_fraction \

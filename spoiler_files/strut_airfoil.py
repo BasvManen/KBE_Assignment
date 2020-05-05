@@ -4,7 +4,7 @@ from parapy.geom import *
 from kbeutils.geom.curve import Naca4AirfoilCurve
 import kbeutils.avl as avl
 
-# STRUT CLASS WITH AIRFOIL SHAPE
+# AIRFOIL-SHAPED STRUT CLASS
 # In this file, the spoiler struts with airfoil shapes are defined
 
 
