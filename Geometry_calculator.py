@@ -6,34 +6,51 @@ from parapy.gui import display
 # In this file, a geometry is calculated based on the desired downforce.
 # The geometry can be optimized for spoiler angle, span and chord
 
+# Firstly, the variable parameter is chosen
+print("PLEASE SELECT THE VARIABLE PARAMETER")
+print("1: Spoiler Angle")
+print("2: Spoiler Span")
+print("3: Spoiler Chord")
+var_input = int(input("Input: "))
+
 # User can input a desired downforce in Newtons
-input_target = float(input("Target Downforce: "))
+input_target = float(input("Target Downforce [N]: "))
 print("-----------------------------------------------")
 
 # Starting value for the downforce, current will represent the downforce
-# of the current iteration
+# of the current iteration, target represents the target downforce as
+# inputted by the user
 current = 0
-
-# Target represents the target downforce as inputted by the user
 target = input_target
 
 # Starting value of the iteration variable, this depends on which variable
 # is iterated
-var = 0
+if var_input == 1:  # Starting value for spoiler angle
+    var = 0
+elif var_input == 2:  # Starting value for spoiler span
+    var = 0.5
+elif var_input == 3:  # Starting value for spoiler chord
+    var = 0.2
+
 
 # Start the iteration loop, it will stop when the desired downforce is reached
 while current < target:
 
-    # Increase the variable in small steps
-    var += 1
+    # Increase the variable each iteration
+    if var_input == 1:  # Step increase for spoiler angle
+        var += 1
+    elif var_input == 2:  # Step increase for spoiler span
+        var += 0.05
+    elif var_input == 3:  # Step increase for spoiler chord
+        var += 0.05
 
     # Create the spoiler based on the geometry inputs
     spoiler = Spoiler(label="Spoiler",
                       mid_airfoil='6412',
                       tip_airfoil='6408',
-                      spoiler_span=2.5,
-                      spoiler_chord=0.8,
-                      spoiler_angle=var,
+                      spoiler_angle=var if var_input == 1 else 10,
+                      spoiler_span=var if var_input == 2 else 2.5,
+                      spoiler_chord=var if var_input == 3 else 0.8,
                       strut_airfoil_shape=True,
                       strut_lat_location=0.8,
                       strut_height=0.25,
@@ -58,7 +75,7 @@ while current < target:
     current = analysis.total_force
 
     # Print the progress in the Python console
-    print("Current angle:", var, "degrees")
+    print("Current parameter value:", var)
     print("Current downforce:", round(current, 0), "Newtons")
     print("")
 
