@@ -59,7 +59,9 @@ class Spoiler(GeomBase):
         return self.position.translate("x", (self.spoiler_chord
                                              * cos(radians(self.spoiler_angle))
                                              - self.strut_chord_fraction
-                                             * self.spoiler_chord) / 2)
+                                             * self.spoiler_chord *
+                                             cos(radians(self.spoiler_angle)))
+                                       / 2)
 
     # Define the struts (part)
     @Part
