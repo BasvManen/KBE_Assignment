@@ -7,8 +7,10 @@ import kbeutils.avl as avl
 from math import sin, cos, radians
 import os
 
-
 DIR = os.path.dirname(__file__)
+
+# MAIN SPOILER CLASS
+# In this file, the main spoiler geometry will be defined
 
 
 class Spoiler(GeomBase):
@@ -36,10 +38,12 @@ class Spoiler(GeomBase):
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
 
+    # Calculate reference area based on chord and span
     @Attribute
     def reference_area(self):
         return self.spoiler_chord*self.spoiler_span
 
+    # Define the main plate (part)
     @Part
     def main_plate(self):
         return MainPlate(airfoil_mid=self.mid_airfoil,
@@ -49,6 +53,7 @@ class Spoiler(GeomBase):
                          angle=self.spoiler_angle,
                          tip_cant=self.endplate_cant)
 
+    # Calculate the strut location
     @Attribute
     def strut_position(self):
         return self.position.translate("x", (self.spoiler_chord
@@ -56,9 +61,11 @@ class Spoiler(GeomBase):
                                              - self.strut_chord_fraction
                                              * self.spoiler_chord) / 2)
 
+    # Define the struts (part)
     @Part
     def struts(self):
-        return DynamicType(type=StrutAirfoil if self.strut_airfoil_shape else StrutPlate,
+        return DynamicType(type=StrutAirfoil if self.strut_airfoil_shape
+                           else StrutPlate,
                            main_plate_span=self.spoiler_span,
                            chord_fraction=self.strut_chord_fraction,
                            strut_lat_location=self.strut_lat_location,
@@ -67,28 +74,39 @@ class Spoiler(GeomBase):
                            strut_sweepback_angle=self.strut_sweep,
                            strut_cant_angle=self.strut_cant,
                            main=self.main_plate,
-                           position=self.strut_position)  # due to earlier used transformations and scaling this is used.
+                           position=self.strut_position)
 
+    # Calculate the endplate location
     @Attribute
     def endplate_position(self):
-        return self.position.translate("z", self.spoiler_chord*sin(radians(self.spoiler_angle)))
+        return self.position.translate("z",
+                                       self.spoiler_chord *
+                                       sin(radians(self.spoiler_angle)))
 
+    # Calculate the endplate height based on spoiler angle and chord
     @Attribute
     def endplate_height(self):
-        camber = float(self.tip_airfoil[0]) if len(self.tip_airfoil) == 4 else 9.
+        camber = float(self.tip_airfoil[0]) \
+            if len(self.tip_airfoil) == 4 else 9.
         pos = float(self.tip_airfoil[1])/10
-        thickness = float(self.tip_airfoil[2:4]) if len(self.tip_airfoil) == 4 else float(self.tip_airfoil[3:5])
+        thickness = float(self.tip_airfoil[2:4]) \
+            if len(self.tip_airfoil) == 4 else float(self.tip_airfoil[3:5])
         height_frac_1 = sin(radians(self.spoiler_angle))
-        height_frac_2 = (camber/100. + 0.5*thickness/100.) * cos(radians(self.spoiler_angle)) - 0.9*(pos*sin(radians(self.spoiler_angle)))
+        height_frac_2 = (camber/100. + 0.5*thickness/100.) * \
+            cos(radians(self.spoiler_angle)) - \
+            0.9 * (pos*sin(radians(self.spoiler_angle)))
 
         return (height_frac_1 + height_frac_2) * self.spoiler_chord
 
+    # Define the endplates (part)
     @Part
     def endplates(self):
         return DynamicType(type=Endplates,
                            spoiler_span=self.spoiler_span,
-                           spoiler_height=self.spoiler_chord * sin(radians(self.spoiler_angle)),
-                           chord=self.spoiler_chord * cos(radians(self.spoiler_angle)),
+                           spoiler_height=self.spoiler_chord *
+                           sin(radians(self.spoiler_angle)),
+                           chord=self.spoiler_chord *
+                           cos(radians(self.spoiler_angle)),
                            height=self.endplate_height,
                            thickness=self.endplate_thickness,
                            sweepback_angle=self.endplate_sweep,
@@ -96,10 +114,12 @@ class Spoiler(GeomBase):
                            position=self.endplate_position,
                            hidden=False if self.endplate_present else True)
 
+    # Find the AVL surfaces in the part files
     @Attribute
     def avl_surfaces(self):
         return self.find_children(lambda o: isinstance(o, avl.Surface))
 
+    # Define the AVL configuration
     @Part
     def avl_configuration(self):
         return avl.Configuration(name='Spoiler',
@@ -110,6 +130,7 @@ class Spoiler(GeomBase):
                                  surfaces=self.avl_surfaces,
                                  mach=0.0)
 
+    # Define the STEP file nodes
     @Attribute
     def nodes_for_stepfile(self):
         if self.endplate_present:
@@ -126,6 +147,7 @@ class Spoiler(GeomBase):
                      self.struts.strut_left]
         return nodes
 
+    # Write the STEP components from the nodes
     @Part
     def step_writer_components(self):
         return STEPWriter(default_directory=DIR,
