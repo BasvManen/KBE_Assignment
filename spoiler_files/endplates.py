@@ -5,58 +5,69 @@ from parapy.geom import *
 
 import kbeutils.avl as avl
 
+# ENDPLATE CLASS
+# In this file, the endplates are defined
+
 
 class Endplates(GeomBase):
-    spoiler_span = Input()                   # Specify main spoiler span
+
+    # INPUTS
+    spoiler_span = Input()
     spoiler_height = Input()
-    chord = Input()                          # Should be the same as tip-chord of spoiler
+    chord = Input()
     height = Input()
     thickness = Input()
     sweepback_angle = Input()
     cant_angle = Input()
 
+    # Calculate endplate chord based on sweep angle and spoiler chord
     @Attribute
     def endplate_chord(self):
         return self.chord - self.height*tan(radians(self.sweepback_angle))
 
-    #@Part
-    #def mid_curve(self):
-    #    return Rectangle(width=self.chord, length=self.thickness,
-    #                     position=translate(self.position, "y", self.spoiler_span/2 + self.thickness/2))
-
+    # Define the upper (rectangular) curve of the endplate
     @Part
     def upper_curve(self):
         return Rectangle(width=self.endplate_chord, length=self.thickness,
                          position=translate(XOY,
-                                            "x", self.chord-self.endplate_chord/2,
+                                            "x", self.chord-self.endplate_chord
+                                            / 2,
                                             "y", self.spoiler_span/2,
                                             "z", self.spoiler_height)
                          )
 
+    # Define the lower (rectangular) curve of the endplate
     @Part
     def lower_curve(self):
         return Rectangle(width=self.endplate_chord, length=self.thickness,
                          position=translate(self.upper_curve.position,
-                                            "x", -self.height*tan(radians(self.sweepback_angle)),
-                                            "y", -self.height*tan(radians(self.cant_angle)),
+                                            "x", -self.height*tan(
+                                                radians(self.sweepback_angle)),
+                                            "y", -self.height*tan(
+                                                radians(self.cant_angle)),
                                             "z", -self.height))
 
+    # Define the upper curve for the AVL surface
     @Part(in_tree=False)
     def avl_section_up(self):
         return avl.SectionFromCurve(curve_in=self.upper_curve)
 
+    # Define the lower curve for the AVL surface
     @Part(in_tree=False)
     def avl_section_lo(self):
         return avl.SectionFromCurve(curve_in=self.lower_curve)
 
+    # Define the solid endplate based on the two curves
     @Part(in_tree=False)
     def solid(self):
         return RuledSolid(profile1=self.upper_curve, profile2=self.lower_curve)
 
+    # Smooth the edges of the solid to get a filleted endplate
     @Part
     def endplate_right(self):
         return FilletedSolid(built_from=self.solid, radius=self.thickness/3)
 
+    # Mirror of the endplate
     @Part
     def endplate_left(self):
         return MirroredShape(shape_in=self.endplate_right,
@@ -64,6 +75,7 @@ class Endplates(GeomBase):
                              vector1=self.position.Vx,
                              vector2=self.position.Vz)
 
+    # Create surface for the AVL analysis
     @Part(in_tree=False)
     def avl_surface(self):
         return avl.Surface(name="Endplates",
