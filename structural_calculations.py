@@ -1,6 +1,6 @@
 from math import tan, radians
 from structural_methods import mainplate_bending_xz, bending_stress, \
-    normal_stress_due_to_strut, shear_stress
+    normal_stress_due_to_strut, max_shear_stress, buckling_modes, failure_modes
 from spoiler_files.assembly import Spoiler
 from section_properties import SectionProperties
 from weight_estimation import WeightEstimation
@@ -16,7 +16,6 @@ from matplotlib import pyplot as plt
 
 
 class StructuralAnalysis(GeomBase):
-
     # MainPlate Inputs
     mid_airfoil = Input()
     tip_airfoil = Input()
@@ -24,6 +23,7 @@ class StructuralAnalysis(GeomBase):
     spoiler_chord = Input()
     spoiler_angle = Input()
     spoiler_skin_thickness = Input(0.001)  # this acts as an initial value
+    n_ribs = Input(0)
 
     # Strut Inputs
     strut_airfoil_shape = Input(False)
@@ -43,7 +43,10 @@ class StructuralAnalysis(GeomBase):
     # Additional inputs for calculations
     maximum_velocity = Input()
     youngs_modulus = Input()
+    yield_strength = Input()
+    shear_strength = Input()
     material_density = Input()
+    poisson_ratio = Input()
 
     # Add the spoiler geometry for several calculations in millimeter
     @Part(in_tree=False)
@@ -95,9 +98,10 @@ class StructuralAnalysis(GeomBase):
         model = WeightEstimation(
             material_density=self.material_density,
             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
+            ribs_area=self.area_of_ribs,
             spoiler_geometry=self.spoiler_in_mm)
         return model.weight_mainplate, model.weight_endplate, \
-               model.weight_strut, model.total_weight
+               model.weight_strut, model.weight_ribs, model.total_weight
 
     # Next the maximum lift and drag distributions are implemented. Note that
     # for this the cars maximum speed is used, together with a safety factor
@@ -142,6 +146,20 @@ class StructuralAnalysis(GeomBase):
     def number_of_lateral_cuts(self):
         return int(len(self.force_z) / 2) + 1
 
+    # Get the area of the ribs for the weight estimation
+    @Attribute
+    def area_of_ribs(self):
+        ribs_area = SectionProperties(
+            airfoil_mid=self.mid_airfoil,
+            airfoil_tip=self.tip_airfoil,
+            spoiler_span=self.spoiler_span,
+            spoiler_chord=self.spoiler_chord,
+            spoiler_angle=self.spoiler_angle,
+            spoiler_skin_thickness=self.spoiler_skin_thickness,
+            n_cuts=self.number_of_lateral_cuts,
+            n_ribs=self.n_ribs).ribs_area
+        return ribs_area
+
     # Retrieve the moment of inertia for this discretisation
     @Attribute
     def moment_of_inertia(self):
@@ -152,7 +170,8 @@ class StructuralAnalysis(GeomBase):
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
             spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts).full_moment_of_inertia
+            n_cuts=self.number_of_lateral_cuts,
+            n_ribs=self.n_ribs).full_moment_of_inertia
 
         moment_of_inertia_x = [row[0] for row in full_moment_of_inertia]
         moment_of_inertia_z = [row[1] for row in full_moment_of_inertia]
@@ -169,7 +188,8 @@ class StructuralAnalysis(GeomBase):
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
             spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts).area_along_spoiler
+            n_cuts=self.number_of_lateral_cuts,
+            n_ribs=self.n_ribs).area_along_spoiler
 
     # Retrieve the coordinates of the centroid for this discretisation
     @Attribute
@@ -181,7 +201,8 @@ class StructuralAnalysis(GeomBase):
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
             spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts).centroid
+            n_cuts=self.number_of_lateral_cuts,
+            n_ribs=self.n_ribs).centroid
         full_centroid_list = half_centroid_list[
                              ::-1] + half_centroid_list[1:]
         return full_centroid_list
@@ -197,7 +218,8 @@ class StructuralAnalysis(GeomBase):
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
             spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts).coordinates_sections_points
+            n_cuts=self.number_of_lateral_cuts,
+            n_ribs=self.n_ribs).coordinates_sections_points
         full_spoiler_coordinates = half_spoiler_coordinates[
                                    ::-1] + half_spoiler_coordinates[1:]
         return full_spoiler_coordinates
@@ -267,7 +289,7 @@ class StructuralAnalysis(GeomBase):
 
     # Calculate the shear stress along the spoiler and convert to MPa
     @Attribute
-    def shear_stress(self):
+    def maximum_shear_stress(self):
         force_x = self.get_distributed_forces[0]
         force_z = self.get_distributed_forces[1]
         moi_xx = self.moment_of_inertia[0]
@@ -276,9 +298,9 @@ class StructuralAnalysis(GeomBase):
         cutout_coordinates = self.cutout_coordinates
         centroid_coordinates = self.centroid_coordinates
 
-        tau = shear_stress(force_x, force_z, self.spoiler_skin_thickness,
-                           moi_xx, moi_zz, moi_xz, cutout_coordinates,
-                           centroid_coordinates)
+        tau = max_shear_stress(force_x, force_z, self.spoiler_skin_thickness,
+                               moi_xx, moi_zz, moi_xz, cutout_coordinates,
+                               centroid_coordinates)
 
         # convert to MPa
         for i in range(len(tau)):
@@ -286,16 +308,40 @@ class StructuralAnalysis(GeomBase):
 
         return tau
 
-    # @Attribute
-    # def column_buckling(self):
-    #     r_list = []
-    #     for i in range(self.number_of_lateral_cuts - 1):
-    #         r_list.append(self.moment_of_inertia[0][i + self.number_of_lateral_cuts]
-    #                       / self.area_along_spoiler[i])
-    #     r = min(r_list)
-    #     le = self.spoiler_span
-    #     sigma_cr = (np.pi ** 2 * self.youngs_modulus) / (le / r) ** 2
-    #     return sigma_cr
+    @Attribute
+    def critical_buckling_values(self):
+        buckling_values = buckling_modes(self.n_ribs, self.spoiler_span,
+                                         self.spoiler_chord,
+                                         self.spoiler_skin_thickness,
+                                         self.moment_of_inertia[0],
+                                         self.moment_of_inertia[1],
+                                         self.area_along_spoiler,
+                                         self.youngs_modulus,
+                                         self.poisson_ratio)
+        sigma_crit = buckling_values[0]
+        tau_crit = buckling_values[1]
+        sigma_column_crit = buckling_values[2]
+        return sigma_crit, tau_crit, sigma_column_crit
+
+    @Attribute
+    def failure(self):
+        occurred_failure = failure_modes(max(self.maximum_normal_stress[0]),
+                                         abs(min(
+                                             self.maximum_normal_stress[1])),
+                                         max([max(self.maximum_shear_stress),
+                                              abs(min(
+                                                  self.maximum_shear_stress))]),
+                                         max([max(self.bending_xz[2]),
+                                              abs(min(self.bending_xz[2]))]),
+                                         self.critical_buckling_values[0],
+                                         self.critical_buckling_values[1],
+                                         self.critical_buckling_values[2],
+                                         self.spoiler_span,
+                                         self.yield_strength,
+                                         self.shear_strength)
+        due_to_other_modes = occurred_failure[0]
+        due_to_ribs = occurred_failure[1]
+        return due_to_other_modes, due_to_ribs
 
     # Creating several actions to plot parameters along the spoiler
     @action(label="Plot the normal stress along the spoiler")
@@ -312,7 +358,7 @@ class StructuralAnalysis(GeomBase):
 
     @action(label="Plot the shear stress along the spoiler")
     def plot_shear_stress(self):
-        plt.plot(self.get_distributed_forces[2], self.shear_stress)
+        plt.plot(self.get_distributed_forces[2], self.maximum_shear_stress)
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Shear stress [MPa]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
@@ -346,18 +392,19 @@ if __name__ == '__main__':
     from parapy.gui import display
 
     thickness = 0.001
+    n_ribs = 1
     calc_normal_stress = 300.
     calc_shear_stress = 0.
     deflection = 0.
-    yield_strength = 276.
-    shear_strength = 207.
+    yield_strength = 3000.
+    shear_strength = 34.
     span = 2.5
-    density = 2700.
-    youngs_modulus = 68.9 * 10 ** 9
+    density = 1440.
+    youngs_modulus = 70 * 10 ** 9
+    poisson_ratio = 0.36
+    failure = True
 
-    while calc_normal_stress > yield_strength or calc_shear_stress > \
-            shear_strength or deflection > 0.1 * span:
-
+    while failure:
         print(thickness)
         obj = StructuralAnalysis(label="Aerodynamic Bending",
                                  material_density=density,
@@ -366,28 +413,32 @@ if __name__ == '__main__':
                                  spoiler_span=span,
                                  spoiler_chord=0.3,
                                  spoiler_angle=10.,
-                                 strut_airfoil_shape=False,
-                                 strut_lat_location=0.4,
+                                 strut_airfoil_shape=True,
+                                 strut_lat_location=0.65,
                                  strut_height=0.2,
                                  strut_chord_fraction=0.6,
                                  strut_thickness=0.01,
                                  strut_sweep=10.,
                                  strut_cant=10.,
-                                 endplate_present=False,
+                                 endplate_present=True,
                                  endplate_thickness=0.01,
                                  endplate_sweep=15.,
                                  endplate_cant=10.,
                                  maximum_velocity=60.,
                                  youngs_modulus=youngs_modulus,
-                                 spoiler_skin_thickness=thickness)
+                                 yield_strength=yield_strength,
+                                 shear_strength=shear_strength,
+                                 spoiler_skin_thickness=thickness,
+                                 n_ribs=n_ribs,
+                                 poisson_ratio=poisson_ratio)
+        failure = obj.failure[0]
+        failure_due_to_ribs = obj.failure[1]
+        if failure_due_to_ribs:
+            n_ribs += 1
+        elif failure:
+            thickness += 0.001
 
-        calc_normal_stress = max(obj.maximum_normal_stress[0])
-        calc_shear_stress = max(obj.shear_stress)
-        deflection = max([max(obj.bending_xz[2]), abs(min(obj.bending_xz[2])),
-                          max(obj.bending_xz[3]), abs(min(obj.bending_xz[3]))])
-
-        thickness += 0.0005
-
+    print(n_ribs)
     print(obj.weights)
 
     # obj = StructuralAnalysis(label="Aerodynamic Bending",

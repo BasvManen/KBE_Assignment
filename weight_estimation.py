@@ -1,6 +1,7 @@
 from spoiler_files.assembly import Spoiler
 from spoiler_files.section import Section
 
+
 from parapy.geom import *
 from parapy.core import *
 
@@ -10,6 +11,7 @@ class WeightEstimation(GeomBase):
     # INPUTS
     material_density = Input()
     spoiler_skin_thickness = Input()
+    ribs_area = Input()
     spoiler_geometry = Input(in_tree=True)
 
     # Begin with the first several steps of MainPlate to get to a lofted
@@ -63,6 +65,19 @@ class WeightEstimation(GeomBase):
     def volume_strut(self):         # in m^3 while inputs are in mm
         return self.spoiler_geometry.struts.strut_right.volume / 10**9
 
+    # Get the volume of the ribs, note that the imported area is in m^2,
+    # while the skin thickness is in mm. Therefor the volume has to be
+    # devided by a factor 1000.
+    @Attribute
+    def volume_ribs(self):
+        if self.spoiler_geometry.endplate_present:
+            total_rib_area = sum(self.ribs_area[1:-1])
+            ribs_volume = total_rib_area * self.spoiler_skin_thickness
+        else:
+            total_rib_area = sum(self.ribs_area)
+            ribs_volume = total_rib_area * self.spoiler_skin_thickness
+        return ribs_volume / 1000
+
     # Calculate the weight of the thick main plate
     @Attribute
     def weight_mainplate(self):     # in kg
@@ -78,11 +93,16 @@ class WeightEstimation(GeomBase):
     def weight_strut(self):     # in kg
         return self.volume_strut * self.material_density
 
+    # Calculate the weight of the ribs
+    @Attribute
+    def weight_ribs(self):
+        return self.volume_ribs * self.material_density
+
     # Calculate the total weight of the spoiler
     @Attribute
     def total_weight(self):
         return self.weight_mainplate + self.weight_endplate * 2 \
-               + self.weight_strut * 2
+               + self.weight_strut * 2 + self.weight_ribs
 
 
 if __name__ == '__main__':

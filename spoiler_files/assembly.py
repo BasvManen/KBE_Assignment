@@ -24,8 +24,7 @@ class Spoiler(GeomBase):
 
     # Strut Inputs
     strut_airfoil_shape = Input(False, validator=OneOf([True, False]))
-    strut_lat_location = Input(validator=And(Positive,
-                                             Range(limit1=0.1, limit2=1.0)))
+    strut_lat_location = Input(validator=Range(limit1=0.1, limit2=1.0))
     strut_height = Input(validator=Positive)
     strut_chord_fraction = Input(validator=Range(0.3, 1.0))
     strut_thickness = Input(validator=Positive)

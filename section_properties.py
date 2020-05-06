@@ -12,6 +12,7 @@ class SectionProperties(GeomBase):
     spoiler_chord = Input()
     spoiler_angle = Input()
     spoiler_skin_thickness = Input()
+    n_ribs = Input()
 
     # Inputs for the discretisation of the spoiler sections
     n_discretise = Input(120)
@@ -38,7 +39,7 @@ class SectionProperties(GeomBase):
                        position=self.section_positions[child.index])
 
     # Make a lofted surface so that curve-cutouts along the spoiler can be made
-    @Part(in_tree=False)
+    @Part(in_tree=True)
     def surface_lofted(self):
         return LoftedSurface(
             profiles=[section.curve for section in self.sections])
@@ -215,6 +216,40 @@ class SectionProperties(GeomBase):
                     self.moment_inertia_total[i - self.n_cuts + 1])
         return full_moment_inertia_list
 
+    # Calculate the placement of the ribs to calculate their weights
+    @Attribute
+    def position_ribs(self):
+        n_ribs_calc = self.n_ribs + 2
+        spacing_ribs = self.spoiler_span / (n_ribs_calc - 1)
+        position_ribs = []
+        for i in range(n_ribs_calc):
+            position_ribs.append(i * spacing_ribs)
+        spacing_discretisation = self.spoiler_span / 2 / (self.n_cuts - 1)
+        ribs_indices = []
+        for i in range(len(position_ribs)):
+            for j in range(self.n_cuts + 1):
+                y = self.spoiler_span / 2 + j * spacing_discretisation
+                if y >= position_ribs[i] > (y - spacing_discretisation):
+                    ribs_indices.append(j)
+        return ribs_indices
+
+    # Make rib curves
+    @Part(in_tree=True)
+    def rib_curves(self):
+        return ComposedCurve(quantify=round((self.n_ribs + 2) / 2 + 0.1),
+                             built_from=[self.cutout_curves[
+                                             self.position_ribs[child.index]]
+                                         [0]])
+
+    # Calculate the area of the ribs
+    @Attribute
+    def ribs_area(self):
+        ribs_area_list = []
+        for i in range(round((self.n_ribs + 2) / 2)):
+            ribs_area_list.append(Face(self.rib_curves[i]).area)
+        ribs_area_list = ribs_area_list[::-1] + ribs_area_list[1:]
+        return ribs_area_list
+
 
 if __name__ == '__main__':
     from parapy.gui import display
@@ -227,5 +262,6 @@ if __name__ == '__main__':
                             spoiler_angle=0.,
                             spoiler_skin_thickness=0.004,
                             n_discretise=300,
-                            n_cuts=5)
+                            n_cuts=5,
+                            n_ribs=3)
     display(obj)

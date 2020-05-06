@@ -223,8 +223,8 @@ def bending_stress(moment_x, moment_z, Ixx, Izz, Ixz, line_coordinates,
     return sigma_y, sigma_y_max
 
 
-def shear_stress(force_x, force_z, skin_thickness, Ixx, Izz, Ixz,
-                 line_coordinates, centroid_list):
+def max_shear_stress(force_x, force_z, skin_thickness, Ixx, Izz, Ixz,
+                     line_coordinates, centroid_list):
     """
     Function which calculates the shear stress along the spoiler due to the
     lift and drag forces along the spoiler. It returns an array of the
@@ -246,7 +246,7 @@ def shear_stress(force_x, force_z, skin_thickness, Ixx, Izz, Ixz,
     q_b_i = []  # integration of q_b for calculating the q_s,0
     q_s_0 = []  # closed section shear flow
     q_total = []  # q_total = q_b + q_s_0
-    tau_total = [] # actual shear stress
+    tau_total = []  # actual shear stress
     line_length = []
     for i in range(len(line_coordinates) - 1):
         q_b.append([0])
@@ -264,13 +264,15 @@ def shear_stress(force_x, force_z, skin_thickness, Ixx, Izz, Ixz,
             q_b_i[i].append(q_b_i[i][j - 1]
                             - (force_x[i] * Ixx[i] - force_z[i] * Ixz[i])
                             / (Ixx[i] * Izz[i] - Ixz[i] ** 2) * skin_thickness
-                            * ((x[i][j] - x[i][j - 1]) / 6 * line_length[i] ** 2
+                            * ((x[i][j] - x[i][j - 1]) / 6 * line_length[
+                i] ** 2
                                + x[i][j] / 2 * line_length[i] ** 2))
 
     # Calculate total shear flow along the cutout along the spoiler span
     for i in range(len(line_coordinates) - 1):
         q_total.append([])
-        q_s_0.append(sum(q_b_i[i]) / (line_length[i] * len(line_coordinates[0])))
+        q_s_0.append(
+            sum(q_b_i[i]) / (line_length[i] * len(line_coordinates[0])))
         for j in range(len(line_coordinates[0])):
             q_total[i].append(q_b[i][j] + q_s_0[i])
 
@@ -282,3 +284,64 @@ def shear_stress(force_x, force_z, skin_thickness, Ixx, Izz, Ixz,
             tau_total.append(min(q_total[i]) / skin_thickness)
 
     return tau_total
+
+
+def buckling_modes(n_ribs, span, chord, skin_thickness, Ixx_list, Izz_list,
+                   area_list, youngs_modulus, poisson_ratio):
+    """
+    Function which calculates the critical buckling stresses that the
+    spoiler can withstand. It returns the critical compressive stress,
+    critical shear stress and critical column buckling stress.
+    """
+    # calculate effective plate length and width
+    a = span / (n_ribs + 2)
+    b = chord
+    b_shear = b if b < a else a
+
+    # Set critical buckling coefficients
+    k_compression = 6.0
+    k_shear = 7.5
+
+    # Calculate normal and shear critical buckling stress
+    sigma_crit = ((k_compression * np.pi ** 2 * youngs_modulus)
+                  / (12 * (1 - poisson_ratio ** 2))
+                  * (skin_thickness / b) ** 2) / 10 ** 6
+    tau_crit = ((k_shear * np.pi ** 2 * youngs_modulus)
+                / (12 * (1 - poisson_ratio ** 2))
+                * (skin_thickness / b_shear) ** 2) / 10 ** 6
+
+    # Calculate the critical column buckling stress
+    # calculate radius of gyration in z using averages
+    I_min = min([sum(Izz_list) / len(Izz_list), sum(Ixx_list) / len(Ixx_list)])
+    area_avg = (sum(area_list) / len(area_list))
+    sigma_column_crit = ((np.pi ** 2 * youngs_modulus * I_min)
+                         / (a ** 2 * area_avg)) / 10 ** 6
+
+    return sigma_crit, tau_crit, sigma_column_crit
+
+
+def failure_modes(max_tensile_stress, max_compression_stress,
+                  maxi_shear_stress, maximum_deflection, sigma_crit, tau_crit,
+                  sigma_column_crit, span, yield_strength, shear_strength):
+    """
+    Function which determines whether the spoiler fails or not. It returns a
+    bool which is True if failure occurs and is False when no failure occurs.
+    """
+    # failure determines whether the spoiler fails or not
+    # False for no structural failure, True for structural failure
+    failure = False
+
+    if max_tensile_stress > yield_strength \
+            or max_compression_stress > sigma_crit \
+            or maxi_shear_stress > shear_strength \
+            or maxi_shear_stress > tau_crit \
+            or maximum_deflection > 0.1 * span:
+        failure = True
+
+    # Check whether failure is only due to column buckling, if so, increase
+    # amount of ribs
+    due_to_ribs = False
+    if max_compression_stress > sigma_column_crit and not failure:
+        due_to_ribs = True
+
+    return failure, due_to_ribs
