@@ -12,6 +12,7 @@ print("PLEASE SELECT THE VARIABLE PARAMETER")
 print("1: Spoiler Angle")
 print("2: Spoiler Span")
 print("3: Spoiler Chord")
+print("4: Car Velocity")
 var_input = int(input("Input: "))
 
 # User can input a desired downforce in Newtons
@@ -32,6 +33,8 @@ elif var_input == 2:  # Starting value for spoiler span
     var = 1
 elif var_input == 3:  # Starting value for spoiler chord
     var = 0.2
+elif var_input == 4:  # Starting value for car velocity
+    var = 20
 
 # Define history arrays to show progress
 history_x = []
@@ -47,6 +50,8 @@ while current < target:
         var += 0.1
     elif var_input == 3:  # Step increase for spoiler chord
         var += 0.05
+    elif var_input == 4:  # Step increase for car velocity
+        var += 1
 
     # Create the spoiler based on the geometry inputs
     spoiler = Spoiler(label="Spoiler",
@@ -73,7 +78,7 @@ while current < target:
     # Start the AVL analysis, which will give the total downforce
     analysis = AvlAnalysis(spoiler=spoiler,
                            case_settings=case,
-                           velocity=25)
+                           velocity=var if var_input == 4 else 25)
 
     # Extract total downforce from AVL and set as the current downforce
     current = analysis.total_force
