@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # The geometry can be optimized for spoiler angle, span and chord
 
 
-def geometry_calculator():
+def geometry_calculator(geom, cond):
     # Firstly, the variable parameter is chosen
     print("PLEASE SELECT THE VARIABLE PARAMETER")
     print("1: Spoiler Angle")
@@ -32,7 +32,7 @@ def geometry_calculator():
     if var_input == 1:  # Starting value for spoiler angle
         var = 0
     elif var_input == 2:  # Starting value for spoiler span
-        var = 1
+        var = 0.7
     elif var_input == 3:  # Starting value for spoiler chord
         var = 0.2
     elif var_input == 4:  # Starting value for car velocity
@@ -57,22 +57,24 @@ def geometry_calculator():
 
         # Create the spoiler based on the geometry inputs
         spoiler = Spoiler(label="Spoiler",
-                          mid_airfoil='6412',
-                          tip_airfoil='6408',
-                          spoiler_angle=var if var_input == 1 else 10,
-                          spoiler_span=var if var_input == 2 else 2.5,
-                          spoiler_chord=var if var_input == 3 else 0.8,
-                          strut_airfoil_shape=True,
-                          strut_lat_location=0.8,
-                          strut_height=0.25,
-                          strut_chord_fraction=0.5,
-                          strut_thickness=0.04,
-                          strut_sweep=15.,
-                          strut_cant=0.,
+                          mid_airfoil=geom[0],
+                          tip_airfoil=geom[1],
+                          spoiler_span=var if var_input == 2
+                          else geom[2] / 1000.,
+                          spoiler_chord=var if var_input == 3 else
+                          geom[3] / 1000.,
+                          spoiler_angle=var if var_input == 1 else geom[4],
+                          strut_airfoil_shape=geom[5],
+                          strut_lat_location=geom[6],
+                          strut_height=geom[7] / 1000.,
+                          strut_chord_fraction=geom[8],
+                          strut_thickness=geom[9] / 1000.,
+                          strut_sweep=geom[10],
+                          strut_cant=geom[11],
                           endplate_present=False,
-                          endplate_thickness=0.01,
-                          endplate_sweep=15.,
-                          endplate_cant=0.,
+                          endplate_thickness=geom[13] / 1000.,
+                          endplate_sweep=geom[14],
+                          endplate_cant=geom[15],
                           do_avl=True)
 
         # Define case used in AVL
@@ -81,7 +83,8 @@ def geometry_calculator():
         # Start the AVL analysis, which will give the total downforce
         analysis = AvlAnalysis(spoiler=spoiler,
                                case_settings=case,
-                               velocity=var if var_input == 4 else 25)
+                               velocity=var if var_input == 4 else cond[0],
+                               density=cond[2])
 
         # Extract total downforce from AVL and set as the current downforce
         current = analysis.total_force

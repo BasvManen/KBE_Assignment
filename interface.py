@@ -1,7 +1,8 @@
 from Geometry_calculator import geometry_calculator
 from AVL_main import avl_main
 from my_spoiler import geometry
-from inputs.read_inputs import read_geometry_inputs, read_flow_inputs, read_material_inputs
+from inputs.read_inputs import read_geometry_inputs, read_flow_inputs, \
+                               read_material_inputs
 
 import os
 
@@ -56,11 +57,12 @@ if var_input == 1:
 
     elif mode_input == 2:
         avl_main(geom, cond)
+        geometry(geom)
 
     elif mode_input == 3:
         print("Not available yet")
 
 elif var_input == 2:
-    geometry_calculator()
+    geometry_calculator(geom, cond)
 
 dummy = input("Press any key to continue")

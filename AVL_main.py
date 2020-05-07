@@ -76,6 +76,7 @@ class AvlAnalysis(avl.Interface):
         x_2 = self.lift_distribution[0][len(self.lift_distribution[0])//2:]
         y_2 = self.lift_distribution[1][len(self.lift_distribution[0])//2:]
 
+        plt.figure()
         plt.plot(x_1, y_1, c="black")
         plt.plot(x_2, y_2, c="black")
         # Total force coefficient visible in plot title
@@ -86,7 +87,6 @@ class AvlAnalysis(avl.Interface):
         plt.xlabel("Spanwise location [m]")
         plt.ylabel("Local downforce coefficient")
 
-        plt.show()
         return "Plot is generated in a separate window"
 
     # Generate a drag distribution plot from the AVL results
@@ -100,6 +100,7 @@ class AvlAnalysis(avl.Interface):
         x_2 = self.drag_distribution[0][len(self.drag_distribution[0])//2:]
         y_2 = self.drag_distribution[1][len(self.drag_distribution[0])//2:]
 
+        plt.figure()
         plt.plot(x_1, y_1, c="black")
         plt.plot(x_2, y_2, c="black")
         # Total force coefficient visible in plot title
@@ -110,7 +111,6 @@ class AvlAnalysis(avl.Interface):
         plt.xlabel("Spanwise location [m]")
         plt.ylabel("Local drag coefficient")
 
-        plt.show()
         return "Plot is generated in a separate window"
 
 
@@ -143,4 +143,6 @@ def avl_main(geom, cond):
                            velocity=cond[0],
                            density=cond[2])
 
-    display(analysis)
+    print(analysis.lift_plot)
+    print(analysis.drag_plot)
+    plt.show()
