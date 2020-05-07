@@ -37,6 +37,8 @@ class Spoiler(GeomBase):
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
 
+    do_avl = Input(False)
+
     # Calculate reference area based on chord and span
     @Attribute
     def reference_area(self):
@@ -50,7 +52,8 @@ class Spoiler(GeomBase):
                          span=self.spoiler_span,
                          chord=self.spoiler_chord,
                          angle=self.spoiler_angle,
-                         tip_cant=self.endplate_cant)
+                         tip_cant=self.endplate_cant,
+                         do_avl=self.do_avl)
 
     # Calculate the strut location
     @Attribute

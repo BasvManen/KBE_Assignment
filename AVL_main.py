@@ -132,7 +132,8 @@ if __name__ == '__main__':
                       endplate_present=False,
                       endplate_thickness=0.01,
                       endplate_sweep=15.,
-                      endplate_cant=0.)
+                      endplate_cant=0.,
+                      do_avl=True)
 
     case = [('AoA input', {'alpha': 3})]
 

@@ -19,6 +19,8 @@ class MainPlate(GeomBase):
     angle = Input()
     tip_cant = Input()
 
+    do_avl = Input(False)
+
     # Define sections in one array
     @Attribute
     def airfoil_names(self):
@@ -86,7 +88,8 @@ class MainPlate(GeomBase):
                            span_spacing=avl.Spacing.equal,
                            y_duplicate=self.position.point[1],
                            sections=[section.avl_section
-                                     for section in self.sections])
+                                     for section in self.sections],
+                           hidden=not self.do_avl)
 
 
 if __name__ == '__main__':

@@ -20,6 +20,8 @@ class StrutPlate(GeomBase):
     strut_cant_angle = Input()
     main = Input()
 
+    do_avl = Input(False)
+
     # Calculate the strut chord from the spoiler chord and angle
     @Attribute
     def strut_chord(self):
@@ -118,7 +120,8 @@ class StrutPlate(GeomBase):
                            n_spanwise=20,
                            span_spacing=avl.Spacing.cosine,
                            y_duplicate=self.position.point[1],
-                           sections=[self.avl_section_up, self.avl_section_lo])
+                           sections=[self.avl_section_up, self.avl_section_lo],
+                           hidden=not self.do_avl)
 
 
 if __name__ == '__main__':
