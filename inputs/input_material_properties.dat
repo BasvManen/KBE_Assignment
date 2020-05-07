@@ -4,7 +4,7 @@
 ##############################
 
 # Material Properties
-1600.		# density of the used material [kg/m3]
+2700.		# density of the used material [kg/m3]
 68.9		# Youngs modulus of the used material [GPa]
 276.		# Tensile yield strength of the used material [MPa]
 26.		    # Shear modulus of the used material [GPa]

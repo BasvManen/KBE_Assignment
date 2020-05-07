@@ -64,7 +64,8 @@ if var_input == 1:
         print("Please enter an initial skin thickness in meters")
         print("")
         initial_thickness = float(input("Initial skin thickness: "))
-        structural_analysis(initial_skin_thickness=initial_thickness)
+        structural_analysis(geom, cond, mat,
+                            initial_skin_thickness=initial_thickness)
 
 elif var_input == 2:
     geometry_calculator(geom, cond)

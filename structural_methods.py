@@ -344,7 +344,7 @@ def failure_modes(max_tensile_stress, max_compression_stress,
     if maxi_shear_stress > tau_crit:
         failure = True
         failure_mode[3] = True
-    if maximum_deflection > 0.05 * span:
+    if maximum_deflection > 0.025 * span:
         failure = True
         failure_mode[4] = True
     if max_compression_stress > sigma_column_crit:
