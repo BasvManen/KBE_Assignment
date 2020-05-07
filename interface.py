@@ -1,6 +1,7 @@
 from Geometry_calculator import geometry_calculator
 from AVL_main import avl_main
 from my_spoiler import geometry
+from inputs.read_inputs import read_geometry_inputs, read_flow_inputs, read_material_inputs
 
 import os
 
@@ -15,9 +16,28 @@ var_input = int(input("Input: "))
 
 os.system('cls')
 
-print("Please provide the name of the input file")
+print("Please provide the name of the geometry input file")
 print("")
-file_input = str(input("Input: "))
+geom_input = str(input("Input: "))
+
+geom_input = 'inputs/' + geom_input
+geom = read_geometry_inputs(geom_input)
+
+print("")
+print("Please provide the name of the flow conditions input file")
+print("")
+cond_input = str(input("Input: "))
+
+cond_input = 'inputs/' + cond_input
+cond = read_flow_inputs(cond_input)
+
+print("")
+print("Please provide the name of the material property input file")
+print("")
+mat_input = str(input("Input: "))
+
+mat_input = 'inputs/' + mat_input
+mat = read_material_inputs(mat_input)
 
 os.system('cls')
 
@@ -32,10 +52,10 @@ if var_input == 1:
 
     os.system('cls')
     if mode_input == 1:
-        geometry()
+        geometry(geom)
 
     elif mode_input == 2:
-        avl_main()
+        avl_main(geom, cond)
 
     elif mode_input == 3:
         print("Not available yet")

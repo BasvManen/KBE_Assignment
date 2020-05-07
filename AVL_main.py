@@ -15,6 +15,7 @@ class AvlAnalysis(avl.Interface):
     spoiler = Input(in_tree=True)
     case_settings = Input()
     velocity = Input()
+    density = Input()
 
     # Extract the AVL configuration from the assembly class
     @Attribute
@@ -31,7 +32,7 @@ class AvlAnalysis(avl.Interface):
     # Calculate the dynamic pressure from the velocity
     @Attribute
     def dyn_pressure(self):
-        return 0.5*1.225*self.velocity**2
+        return 0.5*self.density*self.velocity**2
 
     # Calculate the total force based on the AVL results and dynamic pressure
     @Attribute
@@ -113,32 +114,33 @@ class AvlAnalysis(avl.Interface):
         return "Plot is generated in a separate window"
 
 
-def avl_main():
+def avl_main(geom, cond):
     from parapy.gui import display
 
     spoiler = Spoiler(label="Spoiler",
-                      mid_airfoil='0012',
-                      tip_airfoil='0012',
-                      spoiler_span=2.5,
-                      spoiler_chord=0.8,
-                      spoiler_angle=0,
-                      strut_airfoil_shape=True,
-                      strut_lat_location=0.8,
-                      strut_height=0.25,
-                      strut_chord_fraction=0.7,
-                      strut_thickness=0.04,
-                      strut_sweep=15.,
-                      strut_cant=0.,
+                      mid_airfoil=geom[0],
+                      tip_airfoil=geom[1],
+                      spoiler_span=geom[2]/1000.,
+                      spoiler_chord=geom[3]/1000.,
+                      spoiler_angle=geom[4],
+                      strut_airfoil_shape=geom[5],
+                      strut_lat_location=geom[6],
+                      strut_height=geom[7]/1000.,
+                      strut_chord_fraction=geom[8],
+                      strut_thickness=geom[9]/1000.,
+                      strut_sweep=geom[10],
+                      strut_cant=geom[11],
                       endplate_present=False,
-                      endplate_thickness=0.01,
-                      endplate_sweep=15.,
-                      endplate_cant=0.,
+                      endplate_thickness=geom[13]/1000.,
+                      endplate_sweep=geom[14],
+                      endplate_cant=geom[15],
                       do_avl=True)
 
-    case = [('AoA input', {'alpha': 3})]
+    case = [('AoA input', {'alpha': 0})]
 
     analysis = AvlAnalysis(spoiler=spoiler,
                            case_settings=case,
-                           velocity=30)
+                           velocity=cond[0],
+                           density=cond[2])
 
     display(analysis)

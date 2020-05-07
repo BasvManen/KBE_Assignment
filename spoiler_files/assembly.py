@@ -131,7 +131,8 @@ class Spoiler(GeomBase):
                                  reference_chord=self.spoiler_chord,
                                  reference_point=self.position.point,
                                  surfaces=self.avl_surfaces,
-                                 mach=0.0)
+                                 mach=0.0,
+                                 hidden=True if not self.do_avl else False)
 
     # Define the STEP file nodes
     @Attribute
