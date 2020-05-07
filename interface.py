@@ -1,6 +1,7 @@
 from Geometry_calculator import geometry_calculator
 from AVL_main import avl_main
 from my_spoiler import geometry
+from structural_calculations import structural_analysis
 from inputs.read_inputs import read_geometry_inputs, read_flow_inputs, \
                                read_material_inputs
 
@@ -60,7 +61,10 @@ if var_input == 1:
         geometry(geom)
 
     elif mode_input == 3:
-        print("Not available yet")
+        print("Please enter an initial skin thickness in meters")
+        print("")
+        initial_thickness = float(input("Initial skin thickness: "))
+        structural_analysis(initial_skin_thickness=initial_thickness)
 
 elif var_input == 2:
     geometry_calculator(geom, cond)

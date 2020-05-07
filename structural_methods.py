@@ -52,7 +52,7 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
         y_ii[i] = y_i[i] + (y_i[i + 1] - y_i[i]) / 2
         area_i[i] = spoiler_chord * di
         weight_i[i] = -spoiler_weight * g / (spoiler_chord * spoiler_span) \
-                      * area_i[i]
+            * area_i[i]
 
     # adding the weight of the endplate to the first and last weight_i
     weight_i[0] += endplate_weight * g
@@ -156,7 +156,7 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
         u_i[i] = u_i[len(lift) - i]
 
     return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, \
-           f_strut_z, f_strut_x
+        f_strut_z, f_strut_x
 
 
 def normal_stress_due_to_strut(force_in_y, y_i, area_distribution,
@@ -212,8 +212,8 @@ def bending_stress(moment_x, moment_z, Ixx, Izz, Ixz, line_coordinates,
         sigma_y.append([])
         for j in range(len(line_coordinates[i])):
             calc_sigma = moment_x[i] * (Izz[i] * z[i][j] - Ixz[i] * x[i][j]) \
-                         / (Ixx[i] * Izz[i] - Ixz[i] ** 2) \
-                         + moment_z[i] * (Ixx[i] * x[i][j] - Ixz[i] * z[i][j]) \
+                         / (Ixx[i] * Izz[i] - Ixz[i] ** 2) + moment_z[i] \
+                         * (Ixx[i] * x[i][j] - Ixz[i] * z[i][j]) \
                          / (Ixx[i] * Izz[i] - Ixz[i] ** 2)
             sigma_y[i].append(calc_sigma)
         sigma_y_max.append(max(sigma_y[i])
@@ -264,8 +264,8 @@ def max_shear_stress(force_x, force_z, skin_thickness, Ixx, Izz, Ixz,
             q_b_i[i].append(q_b_i[i][j - 1]
                             - (force_x[i] * Ixx[i] - force_z[i] * Ixz[i])
                             / (Ixx[i] * Izz[i] - Ixz[i] ** 2) * skin_thickness
-                            * ((x[i][j] - x[i][j - 1]) / 6 * line_length[
-                i] ** 2
+                            * ((x[i][j] - x[i][j - 1]) / 6
+                               * line_length[i] ** 2
                                + x[i][j] / 2 * line_length[i] ** 2))
 
     # Calculate total shear flow along the cutout along the spoiler span
@@ -330,13 +330,25 @@ def failure_modes(max_tensile_stress, max_compression_stress,
     # failure determines whether the spoiler fails or not
     # False for no structural failure, True for structural failure
     failure = False
+    failure_mode = [False, False, False, False, False, False]
 
-    if max_tensile_stress > yield_strength \
-            or max_compression_stress > sigma_crit \
-            or maxi_shear_stress > shear_strength \
-            or maxi_shear_stress > tau_crit \
-            or maximum_deflection > 0.1 * span:
+    if max_tensile_stress > yield_strength:
         failure = True
+        failure_mode[0] = True
+    if max_compression_stress > sigma_crit:
+        failure = True
+        failure_mode[1] = True
+    if maxi_shear_stress > shear_strength:
+        failure = True
+        failure_mode[2] = True
+    if maxi_shear_stress > tau_crit:
+        failure = True
+        failure_mode[3] = True
+    if maximum_deflection > 0.05 * span:
+        failure = True
+        failure_mode[4] = True
+    if max_compression_stress > sigma_column_crit:
+        failure_mode[5] = True
 
     # Check whether failure is only due to column buckling, if so, increase
     # amount of ribs
@@ -344,4 +356,4 @@ def failure_modes(max_tensile_stress, max_compression_stress,
     if max_compression_stress > sigma_column_crit and not failure:
         due_to_ribs = True
 
-    return failure, due_to_ribs
+    return failure, due_to_ribs, failure_mode

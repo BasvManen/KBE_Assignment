@@ -42,6 +42,7 @@ class StructuralAnalysis(GeomBase):
 
     # Additional inputs for calculations
     maximum_velocity = Input()
+    air_density = Input()
     youngs_modulus = Input()
     yield_strength = Input()
     shear_strength = Input()
@@ -88,7 +89,8 @@ class StructuralAnalysis(GeomBase):
                        endplate_present=False,
                        endplate_thickness=self.endplate_thickness,
                        endplate_sweep=self.endplate_sweep,
-                       endplate_cant=self.endplate_cant)
+                       endplate_cant=self.endplate_cant,
+                       do_avl=True)
 
     @Attribute
     def weights(self):
@@ -101,7 +103,7 @@ class StructuralAnalysis(GeomBase):
             ribs_area=self.area_of_ribs,
             spoiler_geometry=self.spoiler_in_mm)
         return model.weight_mainplate, model.weight_endplate, \
-               model.weight_strut, model.weight_ribs, model.total_weight
+            model.weight_strut, model.weight_ribs, model.total_weight
 
     # Next the maximum lift and drag distributions are implemented. Note that
     # for this the cars maximum speed is used, together with a safety factor
@@ -109,14 +111,16 @@ class StructuralAnalysis(GeomBase):
     @Attribute
     def get_distributed_forces(self):
         safety_factor = 1.5
-        case = [('fixed aoa', {'alpha': 0})]
+        case = [('AoA input', {'alpha': 0})]
         analysis = AvlAnalysis(spoiler=self.spoiler_in_m,
                                case_settings=case,
-                               velocity=self.maximum_velocity * safety_factor)
+                               velocity=self.maximum_velocity * safety_factor,
+                               density=self.air_density)
+
+        spacing = self.spoiler_in_m.spoiler_span / len(
+            analysis.lift_distribution[0])
         lift_distribution = []
         drag_distribution = []
-        spacing = self.spoiler_in_m.spoiler_span / len(analysis.
-                                                       lift_distribution[0])
         for i in range(int(len(analysis.lift_distribution[0]) / 2)):
             lift_distribution.append(-analysis.lift_distribution[1][i]
                                      * analysis.dyn_pressure
@@ -239,7 +243,7 @@ class StructuralAnalysis(GeomBase):
             self.spoiler_span, self.spoiler_chord,
             self.strut_lat_location)
         return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, \
-               f_strut_z, f_strut_x
+            f_strut_z, f_strut_x
 
     # Calculate the normal stress in the spoiler, from the normal force and
     # the bending moment.
@@ -248,7 +252,7 @@ class StructuralAnalysis(GeomBase):
         f_strut_y = self.bending_xz[7] * tan(radians(self.strut_cant))
         y_i = self.bending_xz[4]
         total_area_distribution = self.area_along_spoiler[::-1] \
-                                  + self.area_along_spoiler[1:]
+            + self.area_along_spoiler[1:]
         sigma_y = normal_stress_due_to_strut(f_strut_y,
                                              y_i,
                                              total_area_distribution,
@@ -343,7 +347,8 @@ class StructuralAnalysis(GeomBase):
                                          self.shear_strength)
         due_to_other_modes = occurred_failure[0]
         due_to_ribs = occurred_failure[1]
-        return due_to_other_modes, due_to_ribs
+        due_to_which_mode = occurred_failure[2]
+        return due_to_other_modes, due_to_ribs, due_to_which_mode
 
     # Creating several actions to plot parameters along the spoiler
     @action(label="Plot the normal stress along the spoiler")
@@ -390,24 +395,30 @@ class StructuralAnalysis(GeomBase):
         plt.show()
 
 
-if __name__ == '__main__':
+def structural_analysis(initial_skin_thickness):
     from parapy.gui import display
 
-    thickness = 0.001
-    n_ribs = 1
-    calc_normal_stress = 300.
-    calc_shear_stress = 0.
-    deflection = 0.
+    print("-----------------------------------------------")
+    print('Structural iterator: the spoiler skin thickness '
+          'will be increased until the spoiler failure modes are satisfied.')
+    print("")
+
+    # initialising iterator
+    delta_thickness = 0.001
+    thickness = initial_skin_thickness
+    n_ribs = 1  # this number is minimum and excluding spoiler sides
+    failure = True
+
     yield_strength = 3000.
     shear_strength = 34.
     span = 2.5
     density = 1440.
-    youngs_modulus = 70 * 10 ** 9
+    youngs_modulus = 40 * 10 ** 9
     poisson_ratio = 0.36
-    failure = True
 
     while failure:
-        print(thickness)
+        print('Current skin thickness = '
+              + str(round(thickness, (len(str(delta_thickness))-2))))
         obj = StructuralAnalysis(label="Aerodynamic Bending",
                                  material_density=density,
                                  mid_airfoil='9404',
@@ -415,18 +426,19 @@ if __name__ == '__main__':
                                  spoiler_span=span,
                                  spoiler_chord=0.3,
                                  spoiler_angle=10.,
-                                 strut_airfoil_shape=False,
-                                 strut_lat_location=0.65,
+                                 strut_airfoil_shape=True,
+                                 strut_lat_location=0.4,
                                  strut_height=0.25,
                                  strut_chord_fraction=0.6,
                                  strut_thickness=0.01,
-                                 strut_sweep=10.1,
+                                 strut_sweep=15.,
                                  strut_cant=0.,
-                                 endplate_present=True,
+                                 endplate_present=False,
                                  endplate_thickness=0.01,
                                  endplate_sweep=15.,
                                  endplate_cant=10.,
                                  maximum_velocity=60.,
+                                 air_density=1.225,
                                  youngs_modulus=youngs_modulus,
                                  yield_strength=yield_strength,
                                  shear_strength=shear_strength,
@@ -435,33 +447,41 @@ if __name__ == '__main__':
                                  poisson_ratio=poisson_ratio)
         failure = obj.failure[0]
         failure_due_to_ribs = obj.failure[1]
+        failure_due_to_mode = obj.failure[2]
+
+        failure_text = ['   -Failure due to tensile yielding',
+                        '   -Failure due to compressive stress buckling',
+                        '   -Failure due to shear yielding',
+                        '   -Failure due to shear stress buckling',
+                        '   -Failure due to too high bending deflection',
+                        '   -Failure due to column buckling']
+        for i in range(len(failure_due_to_mode)):
+            if failure_due_to_mode[i]:
+                print(failure_text[i])
+
         if failure_due_to_ribs:
             n_ribs += 1
+            print('Failure occurred only due to lack of ribs, increasing '
+                  'amount of ribs...')
+            print("")
         elif failure:
-            thickness += 0.001
+            thickness += delta_thickness
+            print('Increasing skin thickness...')
+            print("")
+        elif not failure:
+            print(' -All failure modes satisfied')
 
-    print(n_ribs)
-    print(obj.weights)
+    print("")
+    print("-----------------------------------------------")
+    print('Final skin thickness = '
+          + str(round(thickness, (len(str(delta_thickness))-2))) + ' m')
+    print('Final amount of ribs = ' + str(n_ribs))
+    print('Calculated total weight = ' + str(round(obj.weights[4], 4)) + ' kg')
+    print("-----------------------------------------------")
 
-    # obj = StructuralAnalysis(label="Aerodynamic Bending",
-    #                          material_density=1600.,
-    #                          mid_airfoil='9404',
-    #                          tip_airfoil='9402',
-    #                          spoiler_span=2.5,
-    #                          spoiler_chord=0.3,
-    #                          spoiler_angle=10.,
-    #                          strut_airfoil_shape=False,
-    #                          strut_lat_location=0.4,
-    #                          strut_height=0.2,
-    #                          strut_chord_fraction=0.6,
-    #                          strut_thickness=0.01,
-    #                          strut_sweep=10.,
-    #                          strut_cant=10.,
-    #                          endplate_present=False,
-    #                          endplate_thickness=0.01,
-    #                          endplate_sweep=15.,
-    #                          endplate_cant=10.,
-    #                          maximum_velocity=60.,
-    #                          youngs_modulus=1.19 * 10 ** 9,
-    #                          spoiler_skin_thickness=0.01)
     display(obj)
+
+
+if __name__ == '__main__':
+    structural_analysis(initial_skin_thickness=0.001)
+
