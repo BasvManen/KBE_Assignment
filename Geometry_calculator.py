@@ -107,4 +107,7 @@ def geometry_calculator(geom, cond):
 
     # Once the iteration is finished, display the final geometry and
     # AVL analysis of the final geometry
+    print(analysis.lift_plot)
+    print(analysis.drag_plot)
+    plt.show()
     display(analysis)
