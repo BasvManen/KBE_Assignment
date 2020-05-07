@@ -110,7 +110,7 @@ class StructuralAnalysis(GeomBase):
     # of 1.5. For naming purposes, force_z and force_x are defined.
     @Attribute
     def get_distributed_forces(self):
-        safety_factor = 1.5
+        safety_factor = 1.25
         case = [('AoA input', {'alpha': 0})]
         analysis = AvlAnalysis(spoiler=self.spoiler_in_m,
                                case_settings=case,
