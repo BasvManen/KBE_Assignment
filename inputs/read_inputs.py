@@ -1,75 +1,87 @@
 
-# Read inputs from geometry file
-filename_geometry = 'input_geometry.dat'
+def read_geometry_inputs(filename_geometry):
+    # Read inputs from geometry file
 
-mylines = []
-elements = []
-with open(filename_geometry, 'r') as myfile:
-    for myline in myfile:
-        mylines.append(myline)
-    for element in mylines:
-        elements.append(element.split())
+    mylines = []
+    elements = []
+    with open(filename_geometry, 'r') as myfile:
+        for myline in myfile:
+            mylines.append(myline)
+        for element in mylines:
+            elements.append(element.split())
 
-airfoil = []
-for i in range(len(elements[6])):
-    if elements[6][i] == '#':
-        break
-    airfoil.append(elements[6][i])
+    airfoil = []
+    for i in range(len(elements[6])):
+        if elements[6][i] == '#':
+            break
+        airfoil.append(elements[6][i])
 
-# MainPlate Inputs
-airfoil_mid = airfoil[0]
-airfoil_tip = airfoil[1]
-spoiler_span = float(elements[7][0])
-spoiler_chord = float(elements[8][0])
-spoiler_angle = float(elements[9][0])
+    # MainPlate Inputs
+    airfoil_mid = airfoil[0]
+    airfoil_tip = airfoil[1]
+    spoiler_span = float(elements[7][0])
+    spoiler_chord = float(elements[8][0])
+    spoiler_angle = float(elements[9][0])
 
-# Strut Inputs
-strut_airfoil_shape = bool(elements[12][0])
-strut_lat_location = float(elements[13][0])
-strut_height = float(elements[14][0])
-strut_chord_fraction = float(elements[15][0])
-strut_thickness = float(elements[16][0])
-strut_sweep = float(elements[17][0])
-strut_cant = float(elements[18][0])
+    # Strut Inputs
+    strut_airfoil_shape = bool(elements[12][0])
+    strut_lat_location = float(elements[13][0])
+    strut_height = float(elements[14][0])
+    strut_chord_fraction = float(elements[15][0])
+    strut_thickness = float(elements[16][0])
+    strut_sweep = float(elements[17][0])
+    strut_cant = float(elements[18][0])
 
-# Endplate Inputs
-endplate_present = bool(elements[21][0])
-endplate_thickness = float(elements[22][0])
-endplate_sweep = float(elements[23][0])
-endplate_cant = float(elements[24][0])
+    # Endplate Inputs
+    endplate_present = bool(elements[21][0])
+    endplate_thickness = float(elements[22][0])
+    endplate_sweep = float(elements[23][0])
+    endplate_cant = float(elements[24][0])
 
-
-# Read inputs from materials file
-filename_materials = 'input_material_properties.dat'
-
-mylines = []
-elements = []
-with open(filename_materials, 'r') as myfile:
-    for myline in myfile:
-        mylines.append(myline)
-    for element in mylines:
-        elements.append(element.split())
-
-# Material Inputs
-material_density = float(elements[6][0])
-youngs_modulus = float(elements[7][0])
-yield_strength = float(elements[8][0])
-shear_modulus = float(elements[9][0])
-shear_strength = float(elements[10][0])
+    return airfoil_mid, airfoil_tip, spoiler_span, spoiler_chord, \
+        spoiler_angle, strut_airfoil_shape, strut_lat_location, \
+        strut_height, strut_chord_fraction, strut_thickness, \
+        strut_sweep, strut_cant, endplate_present, endplate_thickness, \
+        endplate_sweep, endplate_cant
 
 
-# Read inputs from external flow conditions file
-filename_materials = 'input_flow_conditions.dat'
+def read_material_inputs(filename_materials):
+    # Read inputs from materials file
 
-mylines = []
-elements = []
-with open(filename_materials, 'r') as myfile:
-    for myline in myfile:
-        mylines.append(myline)
-    for element in mylines:
-        elements.append(element.split())
+    mylines = []
+    elements = []
+    with open(filename_materials, 'r') as myfile:
+        for myline in myfile:
+            mylines.append(myline)
+        for element in mylines:
+            elements.append(element.split())
 
-# External Flow Conditions
-airspeed = float(elements[6][0])
-maximum_airspeed = float(elements[7][0])
-air_density = float(elements[8][0])
+    # Material Inputs
+    material_density = float(elements[6][0])
+    youngs_modulus = float(elements[7][0])
+    yield_strength = float(elements[8][0])
+    shear_modulus = float(elements[9][0])
+    shear_strength = float(elements[10][0])
+    poisson_ratio = float(elements[11][0])
+
+    return material_density, youngs_modulus, yield_strength, shear_modulus, \
+        shear_strength, poisson_ratio
+
+
+def read_flow_inputs(filename_flow):
+    # Read inputs from external flow conditions file
+
+    mylines = []
+    elements = []
+    with open(filename_flow, 'r') as myfile:
+        for myline in myfile:
+            mylines.append(myline)
+        for element in mylines:
+            elements.append(element.split())
+
+    # External Flow Conditions
+    airspeed = float(elements[6][0])
+    maximum_airspeed = float(elements[7][0])
+    air_density = float(elements[8][0])
+
+    return airspeed, maximum_airspeed, air_density

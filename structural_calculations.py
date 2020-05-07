@@ -308,6 +308,7 @@ class StructuralAnalysis(GeomBase):
 
         return tau
 
+    # Calculate the critical values for buckling failure modes
     @Attribute
     def critical_buckling_values(self):
         buckling_values = buckling_modes(self.n_ribs, self.spoiler_span,
@@ -323,6 +324,7 @@ class StructuralAnalysis(GeomBase):
         sigma_column_crit = buckling_values[2]
         return sigma_crit, tau_crit, sigma_column_crit
 
+    # Determine whether the spoiler fails or not
     @Attribute
     def failure(self):
         occurred_failure = failure_modes(max(self.maximum_normal_stress[0]),
@@ -413,13 +415,13 @@ if __name__ == '__main__':
                                  spoiler_span=span,
                                  spoiler_chord=0.3,
                                  spoiler_angle=10.,
-                                 strut_airfoil_shape=True,
+                                 strut_airfoil_shape=False,
                                  strut_lat_location=0.65,
-                                 strut_height=0.2,
+                                 strut_height=0.25,
                                  strut_chord_fraction=0.6,
                                  strut_thickness=0.01,
-                                 strut_sweep=10.,
-                                 strut_cant=10.,
+                                 strut_sweep=10.1,
+                                 strut_cant=0.,
                                  endplate_present=True,
                                  endplate_thickness=0.01,
                                  endplate_sweep=15.,
