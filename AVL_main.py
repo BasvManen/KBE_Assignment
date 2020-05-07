@@ -113,7 +113,7 @@ class AvlAnalysis(avl.Interface):
         return "Plot is generated in a separate window"
 
 
-if __name__ == '__main__':
+def avl_main():
     from parapy.gui import display
 
     spoiler = Spoiler(label="Spoiler",
