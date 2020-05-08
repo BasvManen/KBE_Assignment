@@ -58,7 +58,6 @@ if var_input == 1:
 
     elif mode_input == 2:
         avl_main(geom, cond)
-        geometry(geom)
 
     elif mode_input == 3:
         print("Please enter an initial skin thickness in meters")

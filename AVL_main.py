@@ -46,7 +46,8 @@ class AvlAnalysis(avl.Interface):
     @Attribute
     def ld_ratio(self):
         return self.results[self.case_settings[0][0]]['Totals']['CLtot'] \
-               / self.results[self.case_settings[0][0]]['Totals']['CDtot']
+               / (self.results[self.case_settings[0][0]]['Totals']['CDind'] +
+                  self.parasite_drag_coefficient)
 
     # Save the lift distribution from the AVL results
     @Attribute
@@ -61,17 +62,22 @@ class AvlAnalysis(avl.Interface):
     def drag_distribution(self):
         return [self.results[self.case_settings[0][0]]['StripForces']
                 ['Main Plate']['Yle'],
-                np.multiply(self.results[self.case_settings[0][0]]
-                            ['StripForces']['Main Plate']['cd'],
+                np.multiply((self.results[self.case_settings[0][0]]
+                            ['StripForces']['Main Plate']['cd'] +
+                             self.parasite_drag_coefficient),
                 self.results[self.case_settings[0][0]]['StripForces']
                 ['Main Plate']['Chord'])]
 
+    # Calculate Reynolds number based on chord and flow conditions
     @Attribute
     def reynolds_number(self):
         re = (self.density * self.velocity * self.spoiler.spoiler_chord) \
              / 1.47e-5
         return re
 
+    # Calculate parasite drag coefficient as addition to AVL induced drag
+    # This coefficient is calculated based on a semi-empirical method from
+    # a book from Torenbeek: Advanced Aircraft Design
     @Attribute
     def parasite_drag_coefficient(self):
         s_wet = self.spoiler.wetted_area
@@ -83,7 +89,7 @@ class AvlAnalysis(avl.Interface):
         return cd
 
     # Generate a lift distribution plot from the AVL results
-    @Attribute
+    @action(label="Plot lift distribution")
     def lift_plot(self):
         # Original surface data
         x_1 = self.lift_distribution[0][:len(self.lift_distribution[0])//2]
@@ -103,11 +109,10 @@ class AvlAnalysis(avl.Interface):
         # Axis labels
         plt.xlabel("Spanwise location [m]")
         plt.ylabel("Local downforce coefficient")
-
-        return "Plot is generated in a separate window"
+        plt.show()
 
     # Generate a drag distribution plot from the AVL results
-    @Attribute
+    @action(label="Plot drag distribution")
     def drag_plot(self):
         # Original surface data
         x_1 = self.drag_distribution[0][:len(self.drag_distribution[0])//2]
@@ -117,18 +122,16 @@ class AvlAnalysis(avl.Interface):
         x_2 = self.drag_distribution[0][len(self.drag_distribution[0])//2:]
         y_2 = self.drag_distribution[1][len(self.drag_distribution[0])//2:]
 
-        plt.figure()
         plt.plot(x_1, y_1, c="black")
         plt.plot(x_2, y_2, c="black")
         # Total force coefficient visible in plot title
         plt.title("Total Drag Coefficient: " +
                   str(self.results[self.case_settings[0][0]]
-                      ['Totals']['CDtot']))
+                      ['Totals']['CDind']+self.parasite_drag_coefficient))
         # Axis labels
         plt.xlabel("Spanwise location [m]")
         plt.ylabel("Local drag coefficient")
-
-        return "Plot is generated in a separate window"
+        plt.show()
 
 
 def avl_main(geom, cond):
@@ -160,7 +163,4 @@ def avl_main(geom, cond):
                            velocity=cond[0],
                            density=cond[2])
 
-    print(analysis.lift_plot)
-    print(analysis.drag_plot)
-    plt.show()
     display(analysis)
