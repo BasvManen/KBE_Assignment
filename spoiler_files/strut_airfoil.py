@@ -49,6 +49,11 @@ class StrutAirfoil(GeomBase):
             name = '000' + str(self.thickness_to_chord)
         return name
 
+    # Define wetted area
+    @Attribute
+    def wetted_area(self):
+        return 2 * self.strut_chord * self.strut_height * \
+               (0.5*self.thickness_to_chord/100 + 1.98)
     # Create the airfoil
     @Part(in_tree=False)
     def airfoil(self):

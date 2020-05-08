@@ -28,6 +28,13 @@ class StrutPlate(GeomBase):
         return self.main.chord * self.chord_fraction \
                * cos(radians(self.main.angle))
 
+    # Define wetted area
+    @Attribute
+    def wetted_area(self):
+        return 2 * self.strut_height * self.strut_chord + \
+               2 * self.strut_height * self.strut_thickness + \
+               2 * self.strut_chord * self.strut_thickness
+
     # Define the upper curve of the strut
     @Part(in_tree=False)
     def upper_curve_rectangle(self):

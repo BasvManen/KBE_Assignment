@@ -25,6 +25,13 @@ class Endplates(GeomBase):
     def endplate_chord(self):
         return self.chord
 
+    # Define wetted area
+    @Attribute
+    def wetted_area(self):
+        return 2 * self.chord * self.height + \
+               2 * self.chord * self.thickness + \
+               2 * self.height * self.thickness
+
     # Define the upper (rectangular) curve of the endplate
     @Part
     def upper_curve(self):
