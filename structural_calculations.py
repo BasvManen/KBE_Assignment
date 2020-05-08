@@ -60,21 +60,26 @@ class StructuralAnalysis(GeomBase):
     material_density = Input()
     poisson_ratio = Input()
 
-    @action(label="Check if the skin thickness is possible")
-    def check_validity(self):
-        # Additionally, it is checked whether the skin thickness is viable
-        # compared to the thickness of the spoiler itself.
-        t_c_mid = float(self.mid_airfoil[-2:])
-        t_c_tip = float(self.tip_airfoil[-2:])
-        minimum_t_c_ratio = min(t_c_mid, t_c_tip)
-        geom_thickness = self.spoiler_chord * minimum_t_c_ratio / 100
-        if self.spoiler_skin_thickness > 0.5 * geom_thickness:
-            msg = "Calculated skin thickness is larger than half the " \
-                  "thickness of the airfoil geometry. Define a thicker " \
-                  "airfoil/larger chord or choose a stiffer material. "
-            header = "WARNING: GEOMETRY NOT POSSIBLE"
-            generate_warning(header, msg)
-        return
+    # @action(label="Check if the skin thickness is possible")
+    # def check_validity(self):
+    #     # Additionally, it is checked whether the skin thickness is viable
+    #     # compared to the thickness of the spoiler itself.
+    #     t_c_mid = float(self.mid_airfoil[-2:])
+    #     t_c_tip = float(self.tip_airfoil[-2:])
+    #     minimum_t_c_ratio = min(t_c_mid, t_c_tip)
+    #     geom_thickness = self.spoiler_chord * minimum_t_c_ratio / 100
+    #     if self.spoiler_skin_thickness > 0.5 * geom_thickness:
+    #         msg = "Calculated skin thickness is larger than half the " \
+    #               "thickness of the airfoil geometry. Define a thicker " \
+    #               "airfoil/larger chord or choose a stiffer material. "
+    #         header = "WARNING: GEOMETRY NOT POSSIBLE"
+    #         generate_warning(header, msg)
+    #     elif self.spoiler_skin_thickness <= 0.5 * geom_thickness:
+    #         msg = "Calculated skin thickness is in coherence with the " \
+    #               "thickness of the spoiler. "
+    #         header = "Check completed"
+    #         generate_warning(header, msg)
+    #     return
 
     # Add the spoiler geometry for several calculations in millimeter
     @Part(in_tree=False)
@@ -378,15 +383,23 @@ class StructuralAnalysis(GeomBase):
         due_to_which_mode = occurred_failure[2]
         return due_to_other_modes, due_to_ribs, due_to_which_mode
 
-    # Creating several actions to plot parameters along the spoiler
+    # Creating several actions to plot parameters along the spoiler,
+    # additionally some error messages are implemented to pop up if
+    # parameters are changed in GUI
     @action(label="Plot the normal stress along the spoiler")
     def plot_normal_stress(self):
-        if abs(max(self.maximum_normal_stress[0]))>1:
-            msg = "The maximum normal stress is higher than the sigma_crit "
-            header = "WARNING: Stress too high"
+        if self.failure[2][0]:
+            msg = "Stress is too high: spoiler will yield."
+            header = "WARNING"
             generate_warning(header, msg)
-
-        # plt.plot(self.bending_xz[4], self.normal_stress)
+        if self.failure[2][1]:
+            msg = "Stress is too high: spoiler will buckle."
+            header = "WARNING"
+            generate_warning(header, msg)
+        if self.failure[2][5]:
+            msg = "Stress is too high: column buckling will occur."
+            header = "WARNING"
+            generate_warning(header, msg)
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[0])
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[1])
         plt.xlabel('Spanwise location [m]')
@@ -398,6 +411,14 @@ class StructuralAnalysis(GeomBase):
 
     @action(label="Plot the shear stress along the spoiler")
     def plot_shear_stress(self):
+        if self.failure[2][2]:
+            msg = "Stress is too high: shear yielding will occur."
+            header = "WARNING"
+            generate_warning(header, msg)
+        if self.failure[2][3]:
+            msg = "Stress is too high: shear buckling will occur."
+            header = "WARNING"
+            generate_warning(header, msg)
         plt.plot(self.get_distributed_forces[2], self.maximum_shear_stress)
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Shear stress [MPa]')
@@ -407,6 +428,10 @@ class StructuralAnalysis(GeomBase):
 
     @action(label="Plot the deflection of the spoiler")
     def plot_force_deflection(self):
+        if self.failure[2][4]:
+            msg = "Deflection is too high: deflection is higher than criteria."
+            header = "WARNING"
+            generate_warning(header, msg)
         plt.plot(self.bending_xz[4], self.bending_xz[2])
         plt.plot(self.bending_xz[4], self.bending_xz[3])
         plt.xlabel('Spanwise location [m]')
@@ -530,3 +555,4 @@ def structural_analysis(geom, cond, mat, initial_skin_thickness):
 
 if __name__ == '__main__':
     structural_analysis(initial_skin_thickness=0.001)
+
