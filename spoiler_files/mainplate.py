@@ -39,7 +39,6 @@ class MainPlate(GeomBase):
         t_avg = (int(self.airfoil_mid[2:4]) + int(self.airfoil_tip[2:4])) / 2 \
             if len(self.airfoil_mid) == 4 \
             else (int(self.airfoil_mid[3:5]) + int(self.airfoil_tip[3:5])) / 2
-        print(t_avg)
         s_wet = self.span * self.chord * (0.5*t_avg/100 + 1.98)
         return s_wet
 

@@ -11,6 +11,17 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
+def generate_warning(warning_header, msg):
+    from tkinter import Tk, mainloop, X, messagebox
+
+    # initialization
+    window = Tk()
+    window.withdraw()
+
+    # generates message box
+    messagebox.showwarning(warning_header, msg)
+
+
 # STRUCTURAL ANALYSIS CLASS
 # In this file, the structural analysis for the spoiler is performed
 
@@ -48,6 +59,22 @@ class StructuralAnalysis(GeomBase):
     shear_strength = Input()
     material_density = Input()
     poisson_ratio = Input()
+
+    @action(label="Check if the skin thickness is possible")
+    def check_validity(self):
+        # Additionally, it is checked whether the skin thickness is viable
+        # compared to the thickness of the spoiler itself.
+        t_c_mid = float(self.mid_airfoil[-2:])
+        t_c_tip = float(self.tip_airfoil[-2:])
+        minimum_t_c_ratio = min(t_c_mid, t_c_tip)
+        geom_thickness = self.spoiler_chord * minimum_t_c_ratio / 100
+        if self.spoiler_skin_thickness > 0.5 * geom_thickness:
+            msg = "Calculated skin thickness is larger than half the " \
+                  "thickness of the airfoil geometry. Define a thicker " \
+                  "airfoil/larger chord or choose a stiffer material. "
+            header = "WARNING: GEOMETRY NOT POSSIBLE"
+            generate_warning(header, msg)
+        return
 
     # Add the spoiler geometry for several calculations in millimeter
     @Part(in_tree=False)
@@ -102,8 +129,9 @@ class StructuralAnalysis(GeomBase):
             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
             ribs_area=self.area_of_ribs,
             spoiler_geometry=self.spoiler_in_mm)
+
         return model.weight_mainplate, model.weight_endplate, \
-               model.weight_strut, model.weight_ribs, model.total_weight
+            model.weight_strut, model.weight_ribs, model.total_weight
 
     # Next the maximum lift and drag distributions are implemented. Note that
     # for this the cars maximum speed is used, together with a safety factor
@@ -353,6 +381,11 @@ class StructuralAnalysis(GeomBase):
     # Creating several actions to plot parameters along the spoiler
     @action(label="Plot the normal stress along the spoiler")
     def plot_normal_stress(self):
+        if abs(max(self.maximum_normal_stress[0]))>1:
+            msg = "The maximum normal stress is higher than the sigma_crit "
+            header = "WARNING: Stress too high"
+            generate_warning(header, msg)
+
         # plt.plot(self.bending_xz[4], self.normal_stress)
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[0])
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[1])
@@ -397,6 +430,7 @@ class StructuralAnalysis(GeomBase):
 
 def structural_analysis(geom, cond, mat, initial_skin_thickness):
     from parapy.gui import display
+    import warnings
 
     print("-----------------------------------------------")
     print('Structural iterator: the spoiler skin thickness '
@@ -413,32 +447,7 @@ def structural_analysis(geom, cond, mat, initial_skin_thickness):
         print('Current skin thickness = '
               + str(round(current_thickness, (len(str(delta_thickness)) - 2)))
               + ', amount of ribs = ' + str(number_of_ribs))
-        # obj = StructuralAnalysis(label="Structural Analysis",
-        #                          material_density=density,
-        #                          mid_airfoil='9404',
-        #                          tip_airfoil='9402',
-        #                          spoiler_span=span,
-        #                          spoiler_chord=0.3,
-        #                          spoiler_angle=10.,
-        #                          strut_airfoil_shape=True,
-        #                          strut_lat_location=0.4,
-        #                          strut_height=0.25,
-        #                          strut_chord_fraction=0.6,
-        #                          strut_thickness=0.01,
-        #                          strut_sweep=15.,
-        #                          strut_cant=0.,
-        #                          endplate_present=False,
-        #                          endplate_thickness=0.01,
-        #                          endplate_sweep=15.,
-        #                          endplate_cant=10.,
-        #                          maximum_velocity=60.,
-        #                          air_density=1.225,
-        #                          youngs_modulus=youngs_modulus,
-        #                          yield_strength=yield_strength,
-        #                          shear_strength=shear_strength,
-        #                          spoiler_skin_thickness=thickness,
-        #                          n_ribs=n_ribs,
-        #                          poisson_ratio=poisson_ratio)
+
         obj = StructuralAnalysis(label="Structural Analysis",
                                  mid_airfoil=geom[0],
                                  tip_airfoil=geom[1],
@@ -498,6 +507,20 @@ def structural_analysis(geom, cond, mat, initial_skin_thickness):
     print('Final skin thickness = '
           + str(round(current_thickness,
                       (len(str(delta_thickness)) - 2))) + ' m')
+
+    # Additionally, it is checked whether the skin thickness is viable
+    # compared to the thickness of the spoiler itself.
+    t_c_mid = float(geom[0][-2:])
+    t_c_tip = float(geom[1][-2:])
+    minimum_t_c_ratio = min(t_c_mid, t_c_tip)
+    geom_thickness = geom[3] / 1000. * minimum_t_c_ratio / 100
+    if current_thickness > 0.5 * geom_thickness:
+        msg = "Calculated skin thickness is too large for the " \
+              "thickness of the airfoil geometry. Define a thicker " \
+              "airfoil/larger chord or choose a stiffer material. "
+        header = "WARNING: GEOMETRY NOT POSSIBLE"
+        warnings.warn(msg)
+
     print('Final amount of ribs = ' + str(number_of_ribs))
     print('Calculated total weight = ' + str(round(obj.weights[4], 4)) + ' kg')
     print("-----------------------------------------------")
