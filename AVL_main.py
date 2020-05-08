@@ -1,5 +1,6 @@
 from spoiler_files import Spoiler
 from parapy.core import *
+from math import sin, radians
 
 import kbeutils.avl as avl
 import matplotlib.pyplot as plt
@@ -64,6 +65,22 @@ class AvlAnalysis(avl.Interface):
                             ['StripForces']['Main Plate']['cd'],
                 self.results[self.case_settings[0][0]]['StripForces']
                 ['Main Plate']['Chord'])]
+
+    @Attribute
+    def reynolds_number(self):
+        re = (self.density * self.velocity * self.spoiler.spoiler_chord) \
+             / 1.47e-5
+        return re
+
+    @Attribute
+    def parasite_drag_coefficient(self):
+        s_wet = self.spoiler.wetted_area
+        s_front = self.spoiler.spoiler_chord * self.spoiler.spoiler_span * \
+                  sin(radians(self.spoiler.spoiler_angle))
+        phi = 1 + 5 * (s_front / s_wet)
+        cf = 0.455 / ((np.log10(self.reynolds_number))**2.58)
+        cd = phi * cf * s_wet/self.spoiler.reference_area
+        return cd
 
     # Generate a lift distribution plot from the AVL results
     @Attribute
@@ -146,3 +163,4 @@ def avl_main(geom, cond):
     print(analysis.lift_plot)
     print(analysis.drag_plot)
     plt.show()
+    display(analysis)

@@ -65,6 +65,12 @@ class Spoiler(GeomBase):
                                              cos(radians(self.spoiler_angle)))
                                        / 2)
 
+    # Define wetted area
+    @Attribute
+    def wetted_area(self):
+        return self.main_plate.wetted_area + self.struts.wetted_area + \
+               (self.endplates.wetted_area if self.endplate_present else 0)
+
     # Define the struts (part)
     @Part
     def struts(self):

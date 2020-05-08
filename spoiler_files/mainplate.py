@@ -43,7 +43,6 @@ class MainPlate(GeomBase):
         s_wet = self.span * self.chord * (0.5*t_avg/100 + 1.98)
         return s_wet
 
-
     # Create the sections from name and position
     @Part(in_tree=False)
     def sections(self):

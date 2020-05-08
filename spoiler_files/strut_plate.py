@@ -31,9 +31,9 @@ class StrutPlate(GeomBase):
     # Define wetted area
     @Attribute
     def wetted_area(self):
-        return 2 * self.strut_height * self.strut_chord + \
-               2 * self.strut_height * self.strut_thickness + \
-               2 * self.strut_chord * self.strut_thickness
+        return 2 * (2 * self.strut_height * self.strut_chord +
+                    2 * self.strut_height * self.strut_thickness +
+                    2 * self.strut_chord * self.strut_thickness)
 
     # Define the upper curve of the strut
     @Part(in_tree=False)
