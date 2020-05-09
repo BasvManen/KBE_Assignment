@@ -58,10 +58,12 @@ class Spoiler(GeomBase):
     # Calculate the strut location
     @Attribute
     def strut_position(self):
-        return self.position.translate("x",
-                                       (self.spoiler_chord *
-                                        (1-self.strut_chord_fraction)) *
-                                       cos(radians(self.spoiler_angle)))
+        return self.position.translate("x", (self.spoiler_chord
+                                             * cos(radians(self.spoiler_angle))
+                                             - self.strut_chord_fraction
+                                             * self.spoiler_chord *
+                                             cos(radians(self.spoiler_angle)))
+                                       / 2)
 
     # Define wetted area
     @Attribute
