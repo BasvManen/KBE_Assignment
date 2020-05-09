@@ -70,7 +70,7 @@ if var_input == 1:
     print("1. Show geometry")
     print("2. Calculate lift and drag distribution")
     print("3. Calculate spoiler angle vs downforce for a given section")
-    print("4. Calculate structural weight and stiffness")
+    print("4. Perform structural analysis and calculate weight")
     print("")
     mode_input = int(input("Input: "))
 
