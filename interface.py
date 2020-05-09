@@ -64,8 +64,6 @@ var_input = int(input("Input: "))
 #
 # mat = read_material_inputs(mat_input)
 
-os.system('cls')
-
 if var_input == 1:
     print("Please select one of the following")
     print("")
@@ -76,7 +74,6 @@ if var_input == 1:
     print("")
     mode_input = int(input("Input: "))
 
-    os.system('cls')
     if mode_input == 1:
         check = 0
         while check == 0:

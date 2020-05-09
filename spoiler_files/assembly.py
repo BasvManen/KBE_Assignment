@@ -102,8 +102,7 @@ class Spoiler(GeomBase):
             if len(self.tip_airfoil) == 4 else float(self.tip_airfoil[3:5])
         height_frac_1 = sin(radians(self.spoiler_angle))
         height_frac_2 = (camber/100. + 0.5*thickness/100.) * \
-            cos(radians(self.spoiler_angle)) - \
-            0.9 * (pos*sin(radians(self.spoiler_angle)))
+            cos(radians(self.spoiler_angle))
 
         return (height_frac_1 + height_frac_2) * self.spoiler_chord
 
