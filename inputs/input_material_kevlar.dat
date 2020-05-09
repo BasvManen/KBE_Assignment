@@ -1,0 +1,12 @@
+##############################
+# This file acts as the input file for carbon fibre composite material (Kevlar aramid/Epoxy)
+# Please only input data in lines that do not begin with '#', do not alter the format.
+##############################
+
+# Material Properties
+1400.		# density of the used material [kg/m3]
+75.		# Youngs modulus of the used material [GPa]
+1400.		# Tensile yield strength of the used material [MPa]
+2.3		# Shear modulus of the used material [GPa]
+34.		# Shear strength of the used material [MPa]
+0.34       	# Poisson ratio of the used material
