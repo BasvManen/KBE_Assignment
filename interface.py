@@ -4,6 +4,7 @@ from my_spoiler import geometry
 from structural_calculations import structural_analysis
 from inputs.read_inputs import read_geometry_inputs, read_flow_inputs, \
                                read_material_inputs
+from XFOIL_main import xfoil_main
 
 import os
 
@@ -70,7 +71,8 @@ if var_input == 1:
     print("")
     print("1. Show geometry")
     print("2. Calculate lift and drag distribution")
-    print("3. Calculate structural weight and stiffness")
+    print("3. Calculate spoiler angle vs downforce for a given section")
+    print("4. Calculate structural weight and stiffness")
     print("")
     mode_input = int(input("Input: "))
 
@@ -127,6 +129,44 @@ if var_input == 1:
         avl_main(geom, cond)
 
     elif mode_input == 3:
+        check = 0
+        while check == 0:
+            print("Please provide the name of the geometry input file")
+            print("")
+            geom_input = str(input("Input: "))
+            geom_input = 'inputs/' + geom_input
+
+            if os.path.exists(geom_input):
+                check = 1
+            else:
+                print("Please provide a valid file name")
+                print("")
+
+        geom = read_geometry_inputs(geom_input)
+
+        check = 0
+        while check == 0:
+            print("")
+            print("Please provide the name of the flow conditions input file")
+            print("")
+            cond_input = str(input("Input: "))
+            cond_input = 'inputs/' + cond_input
+
+            if os.path.exists(cond_input):
+                check = 1
+            else:
+                print("Please provide a valid file name")
+
+        cond = read_flow_inputs(cond_input)
+
+        print("")
+        print("Please choose a fraction of the span from 0 to 1")
+        print("")
+        frac = float(input("Input: "))
+
+        xfoil_main(frac, geom, cond)
+
+    elif mode_input == 4:
         check = 0
         while check == 0:
             print("Please provide the name of the geometry input file")
