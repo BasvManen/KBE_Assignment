@@ -35,7 +35,9 @@ be visualised and interactively altered.
 Mode 2 will perform some aerodynamic calculations for the lift and drag force of the spoiler
 geometry. These calculations are from both AVL and emperical methods. It will subsequently
 send the user to the ParaPy GUI where the lift and drag distributions can be evaluated.
-Mode 3 will ???
+Mode 3 will use the user specified section to do a viscous analysis using XFOIL. The 
+application will send the user to the ParaPy GUI where a plot is generated in which the 
+section downforce coefficient is plotted against different spoiler angles.
 Mode 4 will perform calculations on wheter the geometry can withstand the aerodynamic forces
 on the spoiler. It will first ask for an initial skin thickness, and will iteratively 
 increase this thickness untill the spoiler does not fail under the aerodynamic forces. Next,
@@ -55,4 +57,6 @@ following parameters to be iterated:
 
 The user has to specify a desired target downforce in Newton, which the application will 
 consequently try to find by adjusting one of the above mentioned parameters. If the desired
-downforce is found, the application will open the GUI ???
+downforce is found, the application will save the geometry for which the desired downforce is
+obtained and the ParaPy GUI will be opened. Here, the geometry can be visualized and the lift 
+and drag distribution of the optimized spoiler can be plotted.
