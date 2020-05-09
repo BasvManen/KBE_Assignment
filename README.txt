@@ -26,18 +26,25 @@ In each of these modes, the user has to specify the inputs for the geometry of t
 For mode 2, 3 and 4, the user also has to specify the flow conditions of the spoiler. 
 For mode 4, the properties of the used material have to be specified as well.
 In order to specify these inputs, the interface will ask for a .dat file from the 'inputs'
-folder. The user can simply type the file_name + .extension of the file, for instance as:
+folder. In this folder some generic examples are already provided. Please do not alter the
+format of these files and adhere to the prescribed layout as presented in these files when 
+entering a new input file. When calling any input file, the user can simply type the 
+file_name + .extension of the file, for instance as:
 
 	input_properties.dat
 
 Mode 1 will directly send the user to the ParaPy GUI where the whole spoiler geometry can 
-be visualised and interactively altered. 
+be visualised and interactively altered. Here, the user can also write a STEP-file of the
+geometry.
+
 Mode 2 will perform some aerodynamic calculations for the lift and drag force of the spoiler
 geometry. These calculations are from both AVL and emperical methods. It will subsequently
 send the user to the ParaPy GUI where the lift and drag distributions can be evaluated.
+
 Mode 3 will use the user specified section to do a viscous analysis using XFOIL. The 
 application will send the user to the ParaPy GUI where a plot is generated in which the 
 section downforce coefficient is plotted against different spoiler angles.
+
 Mode 4 will perform calculations on wheter the geometry can withstand the aerodynamic forces
 on the spoiler. It will first ask for an initial skin thickness, and will iteratively 
 increase this thickness untill the spoiler does not fail under the aerodynamic forces. Next,
@@ -60,3 +67,37 @@ consequently try to find by adjusting one of the above mentioned parameters. If 
 downforce is found, the application will save the geometry for which the desired downforce is
 obtained and the ParaPy GUI will be opened. Here, the geometry can be visualized and the lift 
 and drag distribution of the optimized spoiler can be plotted.
+
+
+## Inputs and outputs
+
+To summarise inputs and outputs of the different modes:
+* : note that the inputs and outputs for all modes of analysis type 2 are the same
+
+MODE	|	INPUTS			|	OUTPUTS
+-------------------------------------------------------------------------------------
+1.1	|	geometry		|	geometry visualisation,
+	|				|	STEP-file
+	|				|
+1.2	|	geometry,		|	total aerodynamic forces,
+	|	flow conditions		|	aerodynamic force distribution plots
+	|				|
+1.3	|	geometry,		|	sectional downforce plot
+	|	flow conditions,	|
+	|	span-wise section	|	
+	|				|
+1.4	|	geometry,		|	stress plots,
+	|	flow conditions,	|	deflection plots,
+	|	material properties,	|	total weight
+	|	initial skin thickness	|	
+-------------------------------------------------------------------------------------
+2*	|	geometry,		|	geometry visualisation,		
+	|	flow properties,	|	STEP-file,
+	|	desired downforce	|	total aerodynamic forces,
+	|				|	aerodynamic force distribution plots
+
+
+
+
+
+
