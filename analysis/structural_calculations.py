@@ -60,27 +60,6 @@ class StructuralAnalysis(GeomBase):
     material_density = Input()
     poisson_ratio = Input()
 
-    # @action(label="Check if the skin thickness is possible")
-    # def check_validity(self):
-    #     # Additionally, it is checked whether the skin thickness is viable
-    #     # compared to the thickness of the spoiler itself.
-    #     t_c_mid = float(self.mid_airfoil[-2:])
-    #     t_c_tip = float(self.tip_airfoil[-2:])
-    #     minimum_t_c_ratio = min(t_c_mid, t_c_tip)
-    #     geom_thickness = self.spoiler_chord * minimum_t_c_ratio / 100
-    #     if self.spoiler_skin_thickness > 0.5 * geom_thickness:
-    #         msg = "Calculated skin thickness is larger than half the " \
-    #               "thickness of the airfoil geometry. Define a thicker " \
-    #               "airfoil/larger chord or choose a stiffer material. "
-    #         header = "WARNING: GEOMETRY NOT POSSIBLE"
-    #         generate_warning(header, msg)
-    #     elif self.spoiler_skin_thickness <= 0.5 * geom_thickness:
-    #         msg = "Calculated skin thickness is in coherence with the " \
-    #               "thickness of the spoiler. "
-    #         header = "Check completed"
-    #         generate_warning(header, msg)
-    #     return
-
     # Add the spoiler geometry for several calculations in millimeter
     @Part(in_tree=False)
     def spoiler_in_mm(self):
