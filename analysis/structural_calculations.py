@@ -385,7 +385,8 @@ class StructuralAnalysis(GeomBase):
         plt.ylabel('Normal stress [MPa]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
         plt.legend(['Maximum tensile stress', 'Maximum compressive stress'])
-        plt.title("Close it to refresh the ParaPy GUI")
+        plt.title("Skin thickness = "
+                  + str(self.spoiler_skin_thickness * 1000) + 'mm')
         plt.show()
 
     @action(label="Plot the shear stress along the spoiler")
@@ -402,7 +403,8 @@ class StructuralAnalysis(GeomBase):
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Shear stress [MPa]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
-        plt.title("Close it to refresh the ParaPy GUI")
+        plt.title("Skin thickness = "
+                  + str(self.spoiler_skin_thickness * 1000) + 'mm')
         plt.show()
 
     @action(label="Plot the deflection of the spoiler")
@@ -416,7 +418,8 @@ class StructuralAnalysis(GeomBase):
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Deflection [m]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
-        plt.title("Close it to refresh the ParaPy GUI")
+        plt.title("Skin thickness = "
+                  + str(self.spoiler_skin_thickness * 1000) + 'mm')
         plt.legend(['Deflection in z', 'Deflection in x'])
         plt.show()
 
@@ -427,7 +430,8 @@ class StructuralAnalysis(GeomBase):
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Bending moment [Nm]')
         plt.grid(b=True, which='both', color='0.65', linestyle='-')
-        plt.title("Close it to refresh the ParaPy GUI")
+        plt.title("Skin thickness = "
+                  + str(self.spoiler_skin_thickness * 1000) + 'mm')
         plt.legend(['Moment about x', 'Moment about z'])
         plt.show()
 
