@@ -124,14 +124,16 @@ class StrutAirfoil(GeomBase):
     def partitioned_solid(self):
         return PartitionedSolid(solid_in=self.main.surface,
                                 tool=self.solid,
-                                keep_tool=True)
+                                keep_tool=True,
+                                mesh_deflection=1e-5)
 
     # Create part of the right strut from the subtracted solid
     @Part
     def strut_right(self):
         return SubtractedSolid(shape_in=SubtractedSolid(shape_in=self.solid,
                                                         tool=self.partitioned_solid.solids[2]),
-                               tool=self.partitioned_solid.solids[1])
+                               tool=self.partitioned_solid.solids[1],
+                               mesh_deflection=1e-5)
 
     # Mirror right strut to get the left strut
     @Part
@@ -139,7 +141,8 @@ class StrutAirfoil(GeomBase):
         return MirroredShape(shape_in=self.strut_right,
                              reference_point=Point(0, 0, 0),
                              vector1=self.position.Vx,
-                             vector2=self.position.Vz)
+                             vector2=self.position.Vz,
+                             mesh_deflection=1e-5)
 
     # Create aerodynamic surface for AVL analysis
     @Part
