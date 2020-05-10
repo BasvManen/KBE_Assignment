@@ -92,15 +92,3 @@ class Endplates(GeomBase):
                            span_spacing=avl.Spacing.cosine,
                            y_duplicate=self.position.point[1],
                            sections=[self.avl_section_up, self.avl_section_lo])
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-    obj = Endplates(label="endplates",
-                    spoiler_span=3000,
-                    chord=800,
-                    height=400,
-                    thickness=10,
-                    sweepback_angle=15,
-                    cant_angle=15)
-    display(obj)

@@ -249,19 +249,3 @@ class SectionProperties(GeomBase):
             ribs_area_list.append(Face(self.rib_curves[i]).area)
         ribs_area_list = ribs_area_list[::-1] + ribs_area_list[1:]
         return ribs_area_list
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-
-    obj = SectionProperties(label='Moment of Inertia',
-                            airfoil_mid='0012',
-                            airfoil_tip='0012',
-                            spoiler_span=3.,
-                            spoiler_chord=1.,
-                            spoiler_angle=0.,
-                            spoiler_skin_thickness=0.004,
-                            n_discretise=300,
-                            n_cuts=5,
-                            n_ribs=3)
-    display(obj)

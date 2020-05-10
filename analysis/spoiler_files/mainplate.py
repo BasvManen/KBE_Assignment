@@ -99,14 +99,3 @@ class MainPlate(GeomBase):
                            sections=[section.avl_section
                                      for section in self.sections],
                            hidden=not self.do_avl)
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-    obj = MainPlate(airfoil_mid='9412',
-                    airfoil_tip='7408',
-                    span=3,
-                    chord=0.8,
-                    angle=0,
-                    tip_cant=15)
-    display(obj)

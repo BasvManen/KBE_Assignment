@@ -129,17 +129,3 @@ class StrutPlate(GeomBase):
                            y_duplicate=self.position.point[1],
                            sections=[self.avl_section_up, self.avl_section_lo],
                            hidden=not self.do_avl)
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-
-    obj = StrutPlate(label="strut",
-                     spoiler_span=3000,
-                     strut_lat_location=0.8,
-                     chord=800,
-                     height=400,
-                     thickness=20,
-                     sweepback_angle=15,
-                     cant_angle=0)
-    display(obj)

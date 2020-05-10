@@ -17,53 +17,6 @@ print("")
 
 var_input = int(input("Input: "))
 
-# os.system('cls')
-#
-# check = 0
-# while check == 0:
-#     print("Please provide the name of the geometry input file")
-#     print("")
-#     geom_input = str(input("Input: "))
-#     geom_input = 'inputs/' + geom_input
-#
-#     if os.path.exists(geom_input):
-#         check = 1
-#     else:
-#         print("Please provide a valid file name")
-#         print("")
-#
-# geom = read_geometry_inputs(geom_input)
-#
-# check = 0
-# while check == 0:
-#     print("")
-#     print("Please provide the name of the flow conditions input file")
-#     print("")
-#     cond_input = str(input("Input: "))
-#     cond_input = 'inputs/' + cond_input
-#
-#     if os.path.exists(cond_input):
-#         check = 1
-#     else:
-#         print("Please provide a valid file name")
-#
-# cond = read_flow_inputs(cond_input)
-#
-# check = 0
-# while check == 0:
-#     print("")
-#     print("Please provide the name of the material property input file")
-#     print("")
-#     mat_input = str(input("Input: "))
-#     mat_input = 'inputs/' + mat_input
-#
-#     if os.path.exists(mat_input):
-#         check = 1
-#     else:
-#         print("Please provide a valid file name")
-#
-# mat = read_material_inputs(mat_input)
-
 if var_input == 1:
     print("Please select one of the following")
     print("")

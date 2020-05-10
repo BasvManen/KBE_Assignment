@@ -115,7 +115,8 @@ class StrutAirfoil(GeomBase):
     @Part(in_tree=False)
     def solid(self):
         return RuledSolid(profile1=self.extended_airfoil,
-                          profile2=self.lower_curve_airfoil)
+                          profile2=self.lower_curve_airfoil,
+                          mesh_deflection=1e-5)
 
     # Initialise subtraction of the solid at the main plate lower surface by
     # cutting the solid into several pieces.
@@ -151,17 +152,3 @@ class StrutAirfoil(GeomBase):
                            y_duplicate=self.position.point[1],
                            sections=[self.avl_section_up, self.avl_section_lo],
                            hidden=not self.do_avl)
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-
-    obj = StrutAirfoil(label="strut",
-                       main_plate_span=3000,
-                       strut_lat_location=0.1,
-                       strut_chord=400,
-                       strut_height=500,
-                       strut_thickness=20,
-                       strut_sweepback_angle=15,
-                       strut_cant_angle=0)
-    display(obj)

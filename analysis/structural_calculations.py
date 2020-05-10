@@ -551,8 +551,3 @@ def structural_analysis(geom, cond, mat, initial_skin_thickness):
     print("-----------------------------------------------")
 
     display(obj)
-
-
-if __name__ == '__main__':
-    structural_analysis(initial_skin_thickness=0.001)
-
