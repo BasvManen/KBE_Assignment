@@ -1,5 +1,5 @@
-from spoiler_files import Spoiler
-from AVL_main import AvlAnalysis
+from analysis.spoiler_files import Spoiler
+from analysis.AVL_main import AvlAnalysis
 from parapy.gui import display
 import matplotlib.pyplot as plt
 
@@ -107,7 +107,4 @@ def geometry_calculator(geom, cond):
 
     # Once the iteration is finished, display the final geometry and
     # AVL analysis of the final geometry
-    print(analysis.lift_plot)
-    print(analysis.drag_plot)
-    plt.show()
     display(analysis)

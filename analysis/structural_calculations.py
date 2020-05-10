@@ -1,10 +1,10 @@
 from math import tan, radians
-from structural_methods import mainplate_bending_xz, bending_stress, \
+from analysis.structural_methods import mainplate_bending_xz, bending_stress, \
     normal_stress_due_to_strut, max_shear_stress, buckling_modes, failure_modes
-from spoiler_files.assembly import Spoiler
-from section_properties import SectionProperties
-from weight_estimation import WeightEstimation
-from AVL_main import AvlAnalysis
+from analysis.spoiler_files.assembly import Spoiler
+from analysis.section_properties import SectionProperties
+from analysis.weight_estimation import WeightEstimation
+from analysis.AVL_main import AvlAnalysis
 from parapy.geom import *
 from parapy.core import *
 import numpy as np

@@ -4,19 +4,19 @@
 ##############################
 
 # Main Plate Inputs
-9402 9402 	# sequence of main plate shapes from mid plane to tip. Either 4 of 5 digit NACA airfoils.
-800.		# span of the main plate [mm]
-300. 		# chord of the main plate [mm]
-15. 		# downward inclination of the main plate [deg]
+6406 6406 	# sequence of main plate shapes from mid plane to tip. Either 4 of 5 digit NACA airfoils.
+1600.		# span of the main plate [mm]
+500. 		# chord of the main plate [mm]
+10. 		# downward inclination of the main plate [deg]
 
 # Strut Inputs
 False		# Bool to specify struts shape. True for airfoil shape, False for a simple filleted plate.
-0.5		# placement of the struts on the main plate in terms of fraction of the semi span of the main plate.
-300.		# height of the struts [mm]
+0.7		# placement of the struts on the main plate in terms of fraction of the semi span of the main plate.
+250.		# height of the struts [mm]
 0.7		# chord of the struts as a fraction of the main plate chord
 5. 		# thickness of the struts [mm]
 15.		# sweepback angle of the struts [deg]
-15.		# cant angle of the struts [deg]
+10.		# cant angle of the struts [deg]
 
 # Endplate Inputs
 True		# Bool to specify whether endplates are present on the configuration

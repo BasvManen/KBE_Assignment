@@ -1,7 +1,7 @@
 from parapy.core import Input, Attribute, Part, child
 from parapy.gui import display
 
-from spoiler_files import Spoiler
+from analysis.spoiler_files import Spoiler
 
 
 def geometry(geom):

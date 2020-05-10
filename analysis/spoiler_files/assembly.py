@@ -1,4 +1,4 @@
-from spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
+from analysis.spoiler_files import MainPlate, StrutAirfoil, StrutPlate, Endplates
 from parapy.core import Input, Attribute, Part, child, DynamicType
 from parapy.core.validate import *
 from parapy.geom import *

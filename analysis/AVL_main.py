@@ -1,4 +1,4 @@
-from spoiler_files import Spoiler
+from analysis.spoiler_files import Spoiler
 from parapy.core import *
 from math import sin, radians
 

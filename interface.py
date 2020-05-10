@@ -1,10 +1,10 @@
-from Geometry_calculator import geometry_calculator
-from AVL_main import avl_main
-from my_spoiler import geometry
-from structural_calculations import structural_analysis
+from analysis.Geometry_calculator import geometry_calculator
+from analysis.AVL_main import avl_main
+from analysis.my_spoiler import geometry
+from analysis.structural_calculations import structural_analysis
 from inputs.read_inputs import read_geometry_inputs, read_flow_inputs, \
                                read_material_inputs
-from XFOIL_main import xfoil_main
+from analysis.XFOIL_main import xfoil_main
 
 import os
 

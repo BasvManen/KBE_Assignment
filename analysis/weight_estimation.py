@@ -1,5 +1,5 @@
-from spoiler_files.assembly import Spoiler
-from spoiler_files.section import Section
+from analysis.spoiler_files.assembly import Spoiler
+from analysis.spoiler_files.section import Section
 
 
 from parapy.geom import *

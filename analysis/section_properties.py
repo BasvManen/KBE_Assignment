@@ -1,4 +1,4 @@
-from spoiler_files.section import Section
+from analysis.spoiler_files.section import Section
 from parapy.core import *
 from parapy.geom import *
 from math import atan, cos, sin, radians

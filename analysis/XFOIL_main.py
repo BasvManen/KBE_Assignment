@@ -1,4 +1,4 @@
-from spoiler_files import Spoiler
+from analysis.spoiler_files import Spoiler
 from parapy.core import *
 from parapy.geom import *
 from parapy.lib.xfoil import *
@@ -46,12 +46,15 @@ class XFoilAnalysis(GeomBase):
 
     @action(label="Plot spoiler angle vs downforce")
     def cl_alpha_plot(self):
-        columns = self.xfoil_analysis
-        rows = tuple(zip(*columns))
-        plt.plot(rows[0], rows[1])
-        plt.xlabel("Spoiler angle")
-        plt.ylabel("Downforce coefficient")
-        plt.show()
+        if self.xfoil_analysis == []:
+            return print("Section is stalled!")
+        else:
+            columns = self.xfoil_analysis
+            rows = tuple(zip(*columns))
+            plt.plot(rows[0], rows[1])
+            plt.xlabel("Spoiler angle")
+            plt.ylabel("Downforce coefficient")
+            plt.show()
 
 
 def xfoil_main(frac, geom, cond):

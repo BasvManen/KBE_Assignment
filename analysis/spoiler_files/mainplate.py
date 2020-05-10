@@ -3,7 +3,7 @@ from parapy.geom import *
 from math import sin, cos, radians
 
 import kbeutils.avl as avl
-from spoiler_files.section import Section
+from analysis.spoiler_files.section import Section
 
 # MAIN PLATE CLASS
 # In this file, the spoiler main plate is defined
