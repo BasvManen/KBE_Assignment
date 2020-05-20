@@ -1,4 +1,4 @@
-from math import radians, sin, cos
+from math import radians, sin, cos, tan
 from parapy.core import Input, Attribute, Part
 from parapy.geom import *
 from kbeutils.geom.curve import Naca4AirfoilCurve
@@ -11,7 +11,6 @@ import kbeutils.avl as avl
 class StrutAirfoil(GeomBase):
 
     # INPUTS
-    strut_lat_location = Input()
     chord_fraction = Input()
     strut_height = Input()
     strut_thickness = Input()
@@ -64,28 +63,21 @@ class StrutAirfoil(GeomBase):
             rotation_point=XOY,
             vector=self.position.Vx, angle=radians(90))
 
-    # Scale the airfoil to correct inputted chord
+    # Create upper curve for the ruled solid by scaling the airfoil to
+    # correct inputted chord
     @Part(in_tree=False)
-    def airfoil_scaled(self):
+    def upper_curve_airfoil(self):
         return ScaledCurve(curve_in=self.airfoil,
                            reference_point=XOY,
                            factor=self.strut_chord)
 
-    # Create the upper and lower curve for the ruled solid
-    @Part(in_tree=False)
-    def upper_curve_airfoil(self):
-        return TranslatedCurve(curve_in=self.airfoil_scaled,
-                               displacement=Vector(self.position.point[0],
-                                                   self.strut_lat_location
-                                                   * self.main.span / 2,
-                                                   self.position.point[2]))
-
+    # Create the lower curve for the ruled solid
     @Part(in_tree=False)
     def lower_curve_airfoil(self):
         return TranslatedCurve(curve_in=self.upper_curve_airfoil,
-                               displacement=Vector(-self.strut_height * sin(
+                               displacement=Vector(-self.strut_height * tan(
                                    radians(self.strut_sweepback_angle)),
-                                                   -self.strut_height * sin(radians(
+                                                   -self.strut_height * tan(radians(
                                                        self.strut_cant_angle)),
                                                    -self.strut_height))
 
@@ -105,44 +97,36 @@ class StrutAirfoil(GeomBase):
     def extended_airfoil(self):
         return TranslatedCurve(curve_in=self.upper_curve_airfoil,
                                displacement=
-                               Vector(self.strut_height
+                               Vector((self.strut_height + self.main.chord)
                                       * sin(radians(self.strut_sweepback_angle)),
-                                      self.strut_height
+                                      (self.strut_height + self.main.chord)
                                       * sin(radians(self.strut_cant_angle)),
                                       self.strut_height + self.main.chord))
 
-    # Create the initial solid for the extended strut
-    @Part(in_tree=False)
-    def solid(self):
+    # Create the initial solid for the extended strut, which will be
+    # subtracted in the assembly class
+    @Part(in_tree=True)
+    def strut(self):
         return RuledSolid(profile1=self.extended_airfoil,
                           profile2=self.lower_curve_airfoil,
                           mesh_deflection=1e-5)
 
-    # Initialise subtraction of the solid at the main plate lower surface by
-    # cutting the solid into several pieces.
-    @Part(in_tree=False)
-    def partitioned_solid(self):
-        return PartitionedSolid(solid_in=self.main.surface,
-                                tool=self.solid,
-                                keep_tool=True,
-                                mesh_deflection=1e-5)
-
-    # Create part of the right strut from the subtracted solid
-    @Part
-    def strut_right(self):
-        return SubtractedSolid(shape_in=SubtractedSolid(shape_in=self.solid,
-                                                        tool=self.partitioned_solid.solids[2]),
-                               tool=self.partitioned_solid.solids[1],
-                               mesh_deflection=1e-5)
-
-    # Mirror right strut to get the left strut
-    @Part
-    def strut_left(self):
-        return MirroredShape(shape_in=self.strut_right,
-                             reference_point=Point(0, 0, 0),
-                             vector1=self.position.Vx,
-                             vector2=self.position.Vz,
-                             mesh_deflection=1e-5)
+    # # Initialise subtraction of the solid at the main plate lower surface by
+    # # cutting the solid into several pieces.
+    # @Part(in_tree=False)
+    # def partitioned_solid(self):
+    #     return PartitionedSolid(solid_in=self.main.surface,
+    #                             tool=self.solid,
+    #                             keep_tool=True,
+    #                             mesh_deflection=1e-5)
+    #
+    # # Create part of the strut from the subtracted solid
+    # @Part
+    # def strut(self):
+    #     return SubtractedSolid(shape_in=SubtractedSolid(shape_in=self.solid,
+    #                                                     tool=self.partitioned_solid.solids[2]),
+    #                            tool=self.partitioned_solid.solids[1],
+    #                            mesh_deflection=1e-5)
 
     # Create aerodynamic surface for AVL analysis
     @Part

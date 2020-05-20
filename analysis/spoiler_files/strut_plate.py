@@ -1,4 +1,4 @@
-from math import radians, sin, cos
+from math import radians, sin, cos, tan
 
 from parapy.core import Input, Attribute, Part
 from parapy.geom import *
@@ -12,7 +12,6 @@ import kbeutils.avl as avl
 class StrutPlate(GeomBase):
 
     # INPUTS
-    strut_lat_location = Input()
     chord_fraction = Input()
     strut_height = Input()
     strut_thickness = Input()
@@ -39,9 +38,6 @@ class StrutPlate(GeomBase):
     @Part(in_tree=False)
     def upper_curve_rectangle(self):
         return Rectangle(width=self.strut_chord, length=self.strut_thickness,
-                         position=translate(self.position, "y",
-                                            self.strut_lat_location
-                                            * self.main.span / 2),
                          centered=False)
 
     # Define the lower curve of the strut
@@ -51,9 +47,9 @@ class StrutPlate(GeomBase):
                          position=translate(
                              self.upper_curve_rectangle.position,
                              "x", -self.strut_height *
-                                  sin(radians(self.strut_sweepback_angle)),
+                                  tan(radians(self.strut_sweepback_angle)),
                              "y", -self.strut_height *
-                                  sin(radians(self.strut_cant_angle)),
+                                  tan(radians(self.strut_cant_angle)),
                              "z", -self.strut_height),
                          centered=False)
 
@@ -74,10 +70,10 @@ class StrutPlate(GeomBase):
         return Rectangle(width=self.strut_chord, length=self.strut_thickness,
                          position=translate(
                              self.upper_curve_rectangle.position,
-                             "x", self.strut_height *
-                                  sin(radians(self.strut_sweepback_angle)),
-                             "y", self.strut_height *
-                                  sin(radians(self.strut_cant_angle)),
+                             "x", (self.strut_height + self.main.chord) *
+                                  tan(radians(self.strut_sweepback_angle)),
+                             "y", (self.strut_height + self.main.chord) *
+                                  tan(radians(self.strut_cant_angle)),
                              "z", self.strut_height + self.main.chord),
                          centered=False)
 
@@ -88,35 +84,35 @@ class StrutPlate(GeomBase):
                           profile2=self.lower_curve_rectangle)
 
     # Smooth the edges to obtain a filleted strut
-    @Part(in_tree=False)
-    def fillet(self):
+    @Part(in_tree=True)
+    def strut(self):
         return FilletedSolid(built_from=self.solid,
                              radius=self.strut_thickness / 3)
 
-    # Define the intersection of the strut and the main plate.
-    # This is needed to define the cutting plane for the strut
-    @Part(in_tree=False)
-    def partitioned_solid(self):
-        return PartitionedSolid(solid_in=self.main.surface, tool=self.fillet,
-                                keep_tool=True)
+    # # Define the intersection of the strut and the main plate.
+    # # This is needed to define the cutting plane for the strut
+    # @Part(in_tree=False)
+    # def partitioned_solid(self):
+    #     return PartitionedSolid(solid_in=self.main.surface, tool=self.fillet,
+    #                             keep_tool=True)
+    #
+    # # Create the strut by cutting the filleted solid at the main plate
+    # @Part
+    # def strut_right(self):
+    #     return SubtractedSolid(shape_in=
+    #                            SubtractedSolid(shape_in=self.fillet,
+    #                                            tool=
+    #                                            self.partitioned_solid.solids[
+    #                                                2]),
+    #                            tool=self.partitioned_solid.solids[1])
 
-    # Create the strut by cutting the filleted solid at the main plate
-    @Part
-    def strut_right(self):
-        return SubtractedSolid(shape_in=
-                               SubtractedSolid(shape_in=self.fillet,
-                                               tool=
-                                               self.partitioned_solid.solids[
-                                                   2]),
-                               tool=self.partitioned_solid.solids[1])
-
-    # Mirror of the first strut
-    @Part
-    def strut_left(self):
-        return MirroredShape(shape_in=self.strut_right,
-                             reference_point=Point(0, 0, 0),
-                             vector1=self.position.Vx,
-                             vector2=self.position.Vz)
+    # # Mirror of the first strut
+    # @Part
+    # def strut_left(self):
+    #     return MirroredShape(shape_in=self.strut_right,
+    #                          reference_point=Point(0, 0, 0),
+    #                          vector1=self.position.Vx,
+    #                          vector2=self.position.Vz)
 
     # Define the surface for the AVL analysis
     @Part
