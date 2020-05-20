@@ -1,5 +1,4 @@
-from analysis.spoiler_files import MainPlate, StrutAirfoil, StrutPlate, \
-    Endplates, Struts
+from analysis.spoiler_files import MainPlate, Endplates, Struts, Car
 from parapy.core import Input, Attribute, Part, child, DynamicType
 from parapy.core.validate import *
 from parapy.geom import *
@@ -145,6 +144,10 @@ class Spoiler(GeomBase):
     def step_writer_components(self):
         return STEPWriter(default_directory=DIR,
                           nodes=self.nodes_for_stepfile)
+
+    @Part
+    def car(self):
+        return Car(step_file='audi_step_file')
 
 
 if __name__ == '__main__':
