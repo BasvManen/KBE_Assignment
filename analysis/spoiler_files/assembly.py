@@ -37,8 +37,6 @@ class Spoiler(GeomBase):
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
 
-    do_avl = Input(False)
-
     # Calculate reference area based on chord and span
     @Attribute
     def reference_area(self):
@@ -47,13 +45,11 @@ class Spoiler(GeomBase):
     # Define the main plate (part)
     @Part
     def main_plate(self):
-        return MainPlate(airfoil_mid=self.mid_airfoil,
-                         airfoil_tip=self.tip_airfoil,
+        return MainPlate(airfoils=[self.mid_airfoil, self.tip_airfoil],
                          span=self.spoiler_span,
                          chord=self.spoiler_chord,
                          angle=self.spoiler_angle,
-                         tip_cant=self.endplate_cant,
-                         do_avl=self.do_avl)
+                         tip_cant=self.endplate_cant)
 
     # Calculate the strut location
     @Attribute
@@ -136,8 +132,7 @@ class Spoiler(GeomBase):
                                  reference_chord=self.spoiler_chord,
                                  reference_point=self.position.point,
                                  surfaces=self.avl_surfaces,
-                                 mach=0.0,
-                                 hidden=True if not self.do_avl else False)
+                                 mach=0.0)
 
     # Define the STEP file nodes
     @Attribute

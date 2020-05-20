@@ -1,101 +1,102 @@
 from parapy.core import *
 from parapy.geom import *
-from math import sin, cos, radians
 
-import kbeutils.avl as avl
 from analysis.spoiler_files.section import Section
+from math import radians
 
-# MAIN PLATE CLASS
-# In this file, the spoiler main plate is defined
+###############################################################################
+# MAIN PLATE CLASS                                                            #
+# In this file, the spoiler main plate is defined                             #
+#                                                                             #
+# Inputs:                                                                     #
+# - airfoils, defined in a list of strings. See documentation of the Section  #
+#   class for profile definition.                                             #
+# - Span of the main plate                                                    #
+# - Chord of the main plate                                                   #
+# - Angle of the main plate, positive defined upwards                         #
+# - Cant angle of the tip, positive defined inwards                           #
+###############################################################################
 
 
 class MainPlate(GeomBase):
 
-    # INPUTS
-    airfoil_mid = Input()
-    airfoil_tip = Input()
+    # List of strings, distributed equidistant along the span. First section is
+    # the mid of the main plate and the last section is the tip of the main
+    # plate. At least two sections are required.
+    airfoils = Input()
+
     span = Input()
     chord = Input()
     angle = Input()
     tip_cant = Input()
 
-    do_avl = Input(False)
-
-    # Define sections in one array
     @Attribute
-    def airfoil_names(self):
-        return self.airfoil_mid, self.airfoil_tip
-
-    # Define positions of sections in one array
-    @Attribute
-    def section_positions(self):
-        mid_position = self.position
-        tip_position = self.position.translate('y', self.span/2)
-        return mid_position, tip_position
-
-    # Define wetted area
-    @ Attribute
     def wetted_area(self):
-        t_avg = (int(self.airfoil_mid[2:4]) + int(self.airfoil_tip[2:4])) / 2 \
-            if len(self.airfoil_mid) == 4 \
-            else (int(self.airfoil_mid[3:5]) + int(self.airfoil_tip[3:5])) / 2
-        s_wet = self.span * self.chord * (0.5*t_avg/100 + 1.98)
-        return s_wet
+        """ This attribute retrieves the area of the main plate solid. This is
+        used as wetted area for the friction drag calculation. """
+        return 2 * self.surface.solids[0].area
 
-    # Create the sections from name and position
     @Part(in_tree=False)
     def sections(self):
-        return Section(quantify=2,
-                       airfoil_name=self.airfoil_names[child.index],
+        """ Create the sections based on the airfoils list input. They are
+        translated such that the first section is at the mid and the last
+        section is at the tip of the main plate. The other sections are placed
+        equidistant from mid to tip. """
+        return Section(quantify=len(self.airfoils),
+                       airfoil_name=self.airfoils[child.index],
                        chord=self.chord,
-                       angle=self.angle,
-                       position=self.section_positions[child.index])
+                       position=self.position if child.index == 0
+                       # Position the mid section at the mid of the main plate
+                       else translate(child.previous.position,
+                                      'y',
+                                      0.5*self.span/(len(self.airfoils)-1))
+                       if child.index != len(self.airfoils)-1
+                       # Position the intermediate sections equidistant
+                       else rotate(translate(child.previous.position,
+                                             'y',
+                                             0.5*self.span /
+                                             (len(self.airfoils)-1)),
+                                   self.position.Vx,
+                                   radians(-self.tip_cant))
+                       # For the last section, also account for the tip cant
+                       )
 
-    # Create a solid between the created sections
-    @Part(in_tree=False)
-    def surface_whole(self):
-        return LoftedSolid(profiles=[section.curve
-                                     for section in self.sections],
-                           ruled=True)
-
-    # Create a cutting plane parallel to the end plate
-    @Part(in_tree=False)
-    def cutting_plane(self):
-        return Plane(translate(XOY, 'x', self.chord*cos(radians(self.angle)),
-                               'y', self.span/2,
-                               'z', self.chord*sin(radians(self.angle))),
-                     normal=rotate(VY, VX, -self.tip_cant, deg=True))
-
-    # Define the part of the main plate that needs to be cut off
-    @Part(in_tree=False)
-    def half_space_solid(self):
-        return HalfSpaceSolid(self.cutting_plane, Point(0, self.span, 0))
-
-    # Create the canted solid from the whole plate and the cutting plane
     @Part
     def surface(self):
-        return SubtractedSolid(shape_in=self.surface_whole,
-                               tool=self.half_space_solid,
-                               mesh_deflection=1e-5)
+        """ Create the main plate based on the sections defined in the
+        sections part. The main plate is then rotated based on the spoiler
+        angle given as input. """
+        return RotatedShape(shape_in=LoftedSolid(profiles=[section.curve
+                                                 for section in self.sections],
+                                                 ),
+                            # Firstly, create a solid from the sections
+                            rotation_point=self.position.point,
+                            vector=self.position.Vy,
+                            angle=radians(-self.angle),
+                            mesh_deflection=1e-4,
+                            # Rotate the solid to the desired spoiler angle
+                            label="right_side"
+                            )
 
-    # Mirror the canted solid the obtain the whole main plate
     @Part
-    def surface_mirrored(self):
+    def mirrored_surface(self):
+        """ Mirror the surface (which is defined from the mid position to the
+        tip position) in order to obtain the entire main plate. """
         return MirroredShape(shape_in=self.surface,
                              reference_point=self.position.point,
                              vector1=self.position.Vx,
                              vector2=self.position.Vz,
-                             mesh_deflection=1e-5)
+                             # Mirror the shape in the XZ-plane
+                             label="left_side"
+                             )
 
-    # Create aerodynamic surface for AVL analysis
-    @Part
-    def avl_surface(self):
-        return avl.Surface(name="Main Plate",
-                           n_chordwise=12,
-                           chord_spacing=avl.Spacing.cosine,
-                           n_spanwise=20,
-                           span_spacing=avl.Spacing.equal,
-                           y_duplicate=self.position.point[1],
-                           sections=[section.avl_section
-                                     for section in self.sections],
-                           hidden=not self.do_avl)
+
+if __name__ == '__main__':
+    from parapy.gui import display
+    obj = MainPlate(label="mainplate",
+                    airfoils=["test", "naca6408", "naca6406"],
+                    span=4,
+                    chord=2,
+                    angle=10,
+                    tip_cant=15)
+    display(obj)
