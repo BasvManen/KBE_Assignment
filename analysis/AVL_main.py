@@ -13,15 +13,47 @@ import numpy as np
 class AvlAnalysis(avl.Interface):
 
     # INPUTS
-    spoiler = Input(in_tree=True)
+    spoiler = Input()
     case_settings = Input()
     velocity = Input()
     density = Input()
 
+    @Attribute
+    def reference_area(self):
+        return self.spoiler.spoiler_chord * self.spoiler.spoiler_span
+
+    @Part
+    def avl_sections(self):
+        return avl.SectionFromCurve(quantify=len(self.spoiler.main_plate.
+                                    sections),
+                                    curve_in=self.spoiler.main_plate.
+                                    sections[child.index].curve)
+
+    @Part
+    def avl_surface(self):
+        return avl.Surface(name='Main Plate',
+                           n_chordwise=12,
+                           chord_spacing=avl.Spacing.equal,
+                           n_spanwise=12,
+                           span_spacing=avl.Spacing.equal,
+                           y_duplicate=self.spoiler.position.point[1],
+                           sections=self.avl_sections,
+                           angle=self.spoiler.spoiler_angle)
+
     # Extract the AVL configuration from the assembly class
+    @Part
+    def configuration_part(self):
+        return avl.Configuration(name='Spoiler',
+                                 reference_area=self.reference_area,
+                                 reference_span=self.spoiler.spoiler_span,
+                                 reference_chord=self.spoiler.spoiler_chord,
+                                 reference_point=self.spoiler.position.point,
+                                 surfaces=[self.avl_surface],
+                                 mach=0.0)
+
     @Attribute
     def configuration(self):
-        return self.spoiler.avl_configuration
+        return self.configuration_part
 
     # Define the cases given as input
     @Part
@@ -134,33 +166,30 @@ class AvlAnalysis(avl.Interface):
         plt.show()
 
 
-def avl_main(geom, cond):
+if __name__ == '__main__':
     from parapy.gui import display
 
-    spoiler = Spoiler(label="Spoiler",
-                      mid_airfoil=geom[0],
-                      tip_airfoil=geom[1],
-                      spoiler_span=geom[2]/1000.,
-                      spoiler_chord=geom[3]/1000.,
-                      spoiler_angle=geom[4],
-                      strut_airfoil_shape=geom[5],
-                      strut_lat_location=geom[6],
-                      strut_height=geom[7]/1000.,
-                      strut_chord_fraction=geom[8],
-                      strut_thickness=geom[9]/1000.,
-                      strut_sweep=geom[10],
-                      strut_cant=geom[11],
-                      endplate_present=False,
-                      endplate_thickness=geom[13]/1000.,
-                      endplate_sweep=geom[14],
-                      endplate_cant=geom[15],
-                      do_avl=True)
+    obj = Spoiler(spoiler_airfoils=["test", "naca6408", "naca6406"],
+                  spoiler_span=1.6,
+                  spoiler_chord=0.3,
+                  spoiler_angle=10.,
+                  strut_lat_location=0.6,
+                  strut_thickness=0.01,
+                  strut_height=0.25,
+                  strut_chord_fraction=0.4,
+                  strut_sweep=10.,
+                  strut_cant=0.,
+                  endplate_present=False,
+                  endplate_thickness=0.05,
+                  endplate_sweep=0.,
+                  endplate_cant=0.,
+                  strut_amount=3)
 
-    case = [('AoA input', {'alpha': 0})]
+    cases = [('fixed_aoa', {'alpha': 3}), ('fixed_cl', {
+        'alpha': avl.Parameter(name='alpha', value=0.3, setting='CL')})]
 
-    analysis = AvlAnalysis(spoiler=spoiler,
-                           case_settings=case,
-                           velocity=cond[0],
-                           density=cond[2])
-
+    analysis = AvlAnalysis(spoiler=obj,
+                           velocity=10,
+                           density=1.225,
+                           case_settings=cases)
     display(analysis)

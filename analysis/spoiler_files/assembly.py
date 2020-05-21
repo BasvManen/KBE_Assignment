@@ -106,22 +106,6 @@ class Spoiler(GeomBase):
                            position=self.endplate_position,
                            hidden=False if self.endplate_present else True)
 
-    # Find the AVL surfaces in the part files
-    @Attribute
-    def avl_surfaces(self):
-        return self.find_children(lambda o: isinstance(o, avl.Surface))
-
-    # Define the AVL configuration
-    @Part
-    def avl_configuration(self):
-        return avl.Configuration(name='Spoiler',
-                                 reference_area=self.reference_area,
-                                 reference_span=self.spoiler_span,
-                                 reference_chord=self.spoiler_chord,
-                                 reference_point=self.position.point,
-                                 surfaces=self.avl_surfaces,
-                                 mach=0.0)
-
     # Define the STEP file nodes
     @Attribute
     def nodes_for_stepfile(self):
