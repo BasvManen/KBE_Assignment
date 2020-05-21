@@ -145,9 +145,9 @@ class Spoiler(GeomBase):
         return STEPWriter(default_directory=DIR,
                           nodes=self.nodes_for_stepfile)
 
-    @Part
-    def car(self):
-        return Car(step_file='audi_step_file')
+    # @Part
+    # def car(self):
+    #     return Car(step_file='audi_step_file')
 
 
 if __name__ == '__main__':
