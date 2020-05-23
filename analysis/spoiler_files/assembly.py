@@ -1,4 +1,4 @@
-from analysis.spoiler_files import MainPlate, Endplates, Struts, Car
+from analysis.spoiler_files import MainPlate, Endplate, Struts, Car
 from parapy.core import Input, Attribute, Part, child, DynamicType
 from parapy.core.validate import *
 from parapy.geom import *
@@ -69,41 +69,27 @@ class Spoiler(GeomBase):
                       strut_cant=self.strut_cant,
                       main=self.main_plate)
 
-    # Calculate the endplate location
-    @Attribute
-    def endplate_position(self):
-        return self.position.translate("z",
-                                       self.spoiler_chord *
-                                       sin(radians(self.spoiler_angle)))
-
-    # Calculate the endplate height based on spoiler angle and chord
-    @Attribute
-    def endplate_height(self):
-        camber = float(self.tip_airfoil[0]) \
-            if len(self.tip_airfoil) == 4 else 9.
-        pos = float(self.tip_airfoil[1]) / 10
-        thickness = float(self.tip_airfoil[2:4]) \
-            if len(self.tip_airfoil) == 4 else float(self.tip_airfoil[3:5])
-        height_frac_1 = sin(radians(self.spoiler_angle))
-        height_frac_2 = (camber / 100. + 0.5 * thickness / 100.) * \
-                        cos(radians(self.spoiler_angle))
-
-        return (height_frac_1 + height_frac_2) * self.spoiler_chord
-
     # Define the endplates (part)
     @Part
-    def endplates(self):
-        return DynamicType(type=Endplates,
-                           spoiler_span=self.spoiler_span,
-                           spoiler_height=self.spoiler_chord *
-                                          sin(radians(self.spoiler_angle)),
-                           chord=self.spoiler_chord *
-                                 cos(radians(self.spoiler_angle)),
-                           height=self.endplate_height,
+    def endplate(self):
+        return DynamicType(type=Endplate,
+                           chord=(self.spoiler_chord *
+                                  cos(radians(self.spoiler_angle))),
+                           height=(self.spoiler_chord *
+                                   sin(radians(self.spoiler_angle))),
                            thickness=self.endplate_thickness,
                            sweepback_angle=self.endplate_sweep,
-                           cant_angle=self.endplate_cant,
-                           position=self.endplate_position,
+                           position=rotate(translate(self.position,
+                                                     'y',
+                                                     self.spoiler_span / 2,
+                                                     'x',
+                                                     self.spoiler_chord *
+                                                     cos(radians(self.spoiler_angle)),
+                                                     'z',
+                                                     self.spoiler_chord *
+                                                     sin(radians(self.spoiler_angle))),
+                                           self.position.Vx,
+                                           -radians(self.endplate_cant)),
                            hidden=False if self.endplate_present else True)
 
     # Define the STEP file nodes
@@ -147,7 +133,7 @@ if __name__ == '__main__':
                   strut_chord_fraction=0.4,
                   strut_sweep=10.,
                   strut_cant=0.,
-                  endplate_present=False,
+                  endplate_present=True,
                   endplate_thickness=5.,
                   endplate_sweep=0.,
                   endplate_cant=0.,
