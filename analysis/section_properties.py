@@ -6,8 +6,7 @@ from math import atan, cos, sin, radians
 
 class SectionProperties(GeomBase):
     # Main plate inputs
-    airfoil_mid = Input()
-    airfoil_tip = Input()
+    airfoils = Input()
     spoiler_span = Input()
     spoiler_chord = Input()
     spoiler_angle = Input()
@@ -20,29 +19,65 @@ class SectionProperties(GeomBase):
 
     # Define the two section similarly as in the mainplate file to get the
     # half span of the spoiler
-    @Attribute
-    def airfoil_names(self):
-        return self.airfoil_mid, self.airfoil_tip
+    # @Attribute
+    # def airfoil_names(self):
+    #     return self.airfoil_mid, self.airfoil_tip
+    #
+    # @Attribute
+    # def section_positions(self):
+    #     mid_position = self.position
+    #     tip_position = self.position.translate('y', self.spoiler_span / 2)
+    #     return mid_position, tip_position
 
-    @Attribute
-    def section_positions(self):
-        mid_position = self.position
-        tip_position = self.position.translate('y', self.spoiler_span / 2)
-        return mid_position, tip_position
+    # @Part(in_tree=False)
+    # def sections(self):
+    #     return Section(quantify=2,
+    #                    airfoil_name=self.airfoil_names[child.index],
+    #                    chord=self.spoiler_chord,
+    #                    angle=self.spoiler_angle,
+    #                    position=self.section_positions[child.index])
+    #
+    # # Make a lofted surface so that curve-cutouts along the spoiler can be made
+    # @Part(in_tree=True)
+    # def surface_lofted(self):
+    #     return LoftedSurface(
+    #         profiles=[section.curve for section in self.sections])
 
-    @Part(in_tree=False)
+    @Part(in_tree=True)
     def sections(self):
-        return Section(quantify=2,
-                       airfoil_name=self.airfoil_names[child.index],
+        """ Create the sections based on the airfoils list input. They are
+        translated such that the first section is at the mid and the last
+        section is at the tip of the main plate. The other sections are placed
+        equidistant from mid to tip. """
+        return Section(quantify=len(self.airfoils),
+                       airfoil_name=self.airfoils[child.index],
                        chord=self.spoiler_chord,
-                       angle=self.spoiler_angle,
-                       position=self.section_positions[child.index])
+                       position=self.position if child.index == 0
+                       # Position the mid section at the mid of the main plate
+                       else translate(child.previous.position,
+                                      'y',
+                                      0.5 * self.spoiler_span / (
+                                              len(self.airfoils) - 1))
+                       if child.index != len(self.airfoils) - 1
+                       # Position the intermediate sections equidistant
+                       else translate(child.previous.position,
+                                      'y',
+                                      0.5 * self.spoiler_span /
+                                      (len(self.airfoils) - 1)))
 
-    # Make a lofted surface so that curve-cutouts along the spoiler can be made
     @Part(in_tree=True)
     def surface_lofted(self):
-        return LoftedSurface(
-            profiles=[section.curve for section in self.sections])
+        """ Create the main plate based on the sections defined in the
+        sections part. The main plate is then rotated based on the spoiler
+        angle given as input. """
+        return RotatedSurface(surface_in=LoftedSurface(profiles=[section.curve
+                                                                 for section in
+                                                                 self.sections],
+                                                       ),
+                              rotation_point=self.position.point,
+                              vector=self.position.Vy,
+                              angle=radians(-self.spoiler_angle),
+                              mesh_deflection=1e-4)
 
     @Attribute
     def cutout_curves(self):
@@ -249,3 +284,16 @@ class SectionProperties(GeomBase):
             ribs_area_list.append(Face(self.rib_curves[i]).area)
         ribs_area_list = ribs_area_list[::-1] + ribs_area_list[1:]
         return ribs_area_list
+
+
+if __name__ == '__main__':
+    from parapy.gui import display
+
+    obj = SectionProperties(airfoils=['test', 'test'],
+                            spoiler_span=1600.,
+                            spoiler_chord=300.,
+                            spoiler_angle=10.,
+                            spoiler_skin_thickness=2,
+                            n_cuts=4,
+                            n_ribs=0)
+    display(obj)

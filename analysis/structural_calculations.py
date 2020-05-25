@@ -7,7 +7,6 @@ from analysis.weight_estimation import WeightEstimation
 from analysis.AVL_main import AvlAnalysis
 from parapy.geom import *
 from parapy.core import *
-import numpy as np
 from matplotlib import pyplot as plt
 
 
@@ -28,8 +27,7 @@ def generate_warning(warning_header, msg):
 
 class StructuralAnalysis(GeomBase):
     # MainPlate Inputs
-    mid_airfoil = Input()
-    tip_airfoil = Input()
+    spoiler_airfoils = Input()
     spoiler_span = Input()
     spoiler_chord = Input()
     spoiler_angle = Input()
@@ -37,6 +35,7 @@ class StructuralAnalysis(GeomBase):
     n_ribs = Input(0)
 
     # Strut Inputs
+    strut_amount = Input()
     strut_airfoil_shape = Input(False)
     strut_lat_location = Input()
     strut_height = Input()
@@ -64,11 +63,11 @@ class StructuralAnalysis(GeomBase):
     @Part(in_tree=False)
     def spoiler_in_mm(self):
         return Spoiler(label="Spoiler",
-                       mid_airfoil=self.mid_airfoil,
-                       tip_airfoil=self.tip_airfoil,
+                       spoiler_airfoils=self.spoiler_airfoils,
                        spoiler_span=self.spoiler_span * 1000,
                        spoiler_chord=self.spoiler_chord * 1000,
                        spoiler_angle=self.spoiler_angle,
+                       strut_amount=self.strut_amount,
                        strut_airfoil_shape=self.strut_airfoil_shape,
                        strut_lat_location=self.strut_lat_location,
                        strut_height=self.strut_height * 1000,
@@ -85,11 +84,11 @@ class StructuralAnalysis(GeomBase):
     @Part(in_tree=False)
     def spoiler_in_m(self):
         return Spoiler(label="Spoiler",
-                       mid_airfoil=self.mid_airfoil,
-                       tip_airfoil=self.tip_airfoil,
+                       spoiler_airfoils=self.spoiler_airfoils,
                        spoiler_span=self.spoiler_span,
                        spoiler_chord=self.spoiler_chord,
                        spoiler_angle=self.spoiler_angle,
+                       strut_amount=self.strut_amount,
                        strut_airfoil_shape=self.strut_airfoil_shape,
                        strut_lat_location=self.strut_lat_location,
                        strut_height=self.strut_height,
@@ -100,8 +99,7 @@ class StructuralAnalysis(GeomBase):
                        endplate_present=False,
                        endplate_thickness=self.endplate_thickness,
                        endplate_sweep=self.endplate_sweep,
-                       endplate_cant=self.endplate_cant,
-                       do_avl=True)
+                       endplate_cant=self.endplate_cant)
 
     @Attribute
     def weights(self):
@@ -112,10 +110,11 @@ class StructuralAnalysis(GeomBase):
             material_density=self.material_density,
             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
             ribs_area=self.area_of_ribs,
-            spoiler_geometry=self.spoiler_in_mm)
+            spoiler_geometry=self.spoiler_in_mm,
+            strut_amount=self.strut_amount)
 
         return model.weight_mainplate, model.weight_endplate, \
-            model.weight_strut, model.weight_ribs, model.total_weight
+               model.weight_strut, model.weight_ribs, model.total_weight
 
     # Next the maximum lift and drag distributions are implemented. Note that
     # for this the cars maximum speed is used, together with a safety factor
@@ -166,8 +165,7 @@ class StructuralAnalysis(GeomBase):
     @Attribute
     def area_of_ribs(self):
         ribs_area = SectionProperties(
-            airfoil_mid=self.mid_airfoil,
-            airfoil_tip=self.tip_airfoil,
+            airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
@@ -180,8 +178,7 @@ class StructuralAnalysis(GeomBase):
     @Attribute
     def moment_of_inertia(self):
         full_moment_of_inertia = SectionProperties(
-            airfoil_mid=self.mid_airfoil,
-            airfoil_tip=self.tip_airfoil,
+            airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
@@ -198,8 +195,7 @@ class StructuralAnalysis(GeomBase):
     @Attribute
     def area_along_spoiler(self):
         return SectionProperties(
-            airfoil_mid=self.mid_airfoil,
-            airfoil_tip=self.tip_airfoil,
+            airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
@@ -211,8 +207,7 @@ class StructuralAnalysis(GeomBase):
     @Attribute
     def centroid_coordinates(self):
         half_centroid_list = SectionProperties(
-            airfoil_mid=self.mid_airfoil,
-            airfoil_tip=self.tip_airfoil,
+            airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
@@ -228,8 +223,7 @@ class StructuralAnalysis(GeomBase):
     @Attribute
     def cutout_coordinates(self):
         half_spoiler_coordinates = SectionProperties(
-            airfoil_mid=self.mid_airfoil,
-            airfoil_tip=self.tip_airfoil,
+            airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
             spoiler_chord=self.spoiler_chord,
             spoiler_angle=self.spoiler_angle,
@@ -253,7 +247,8 @@ class StructuralAnalysis(GeomBase):
             self.weights[0],
             self.weights[1],
             self.spoiler_span, self.spoiler_chord,
-            self.strut_lat_location)
+            self.strut_lat_location,
+            self.strut_amount)
         return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, \
                f_strut_z, f_strut_x
 
@@ -269,7 +264,8 @@ class StructuralAnalysis(GeomBase):
                                              y_i,
                                              total_area_distribution,
                                              self.strut_lat_location,
-                                             self.spoiler_span)
+                                             self.spoiler_span,
+                                             self.strut_amount)
         return sigma_y
 
     @Attribute
@@ -457,13 +453,13 @@ def structural_analysis(geom, cond, mat, initial_skin_thickness):
               + ', amount of ribs = ' + str(number_of_ribs))
 
         obj = StructuralAnalysis(label="Structural Analysis",
-                                 mid_airfoil=geom[0],
-                                 tip_airfoil=geom[1],
+                                 spoiler_airfoils=[geom[0], geom[1]],
                                  spoiler_span=geom[2] / 1000.,
                                  spoiler_chord=geom[3] / 1000.,
                                  spoiler_angle=geom[4],
                                  spoiler_skin_thickness=current_thickness,
                                  n_ribs=number_of_ribs,
+                                 strut_amount=3,
                                  strut_airfoil_shape=geom[5],
                                  strut_lat_location=geom[6],
                                  strut_height=geom[7] / 1000.,
@@ -533,4 +529,36 @@ def structural_analysis(geom, cond, mat, initial_skin_thickness):
     print('Calculated total weight = ' + str(round(obj.weights[4], 4)) + ' kg')
     print("-----------------------------------------------")
 
+    display(obj)
+
+
+if __name__ == '__main__':
+    from parapy.gui import display
+
+    obj = StructuralAnalysis(label="Structural Analysis",
+                             spoiler_airfoils=['test', 'test'],
+                             spoiler_span=1600. / 1000.,
+                             spoiler_chord=300. / 1000.,
+                             spoiler_angle=10.,
+                             spoiler_skin_thickness=0.002,
+                             n_ribs=1,
+                             strut_amount=5,
+                             strut_airfoil_shape=True,
+                             strut_lat_location=0.7,
+                             strut_height=250. / 1000.,
+                             strut_chord_fraction=0.4,
+                             strut_thickness=10. / 1000.,
+                             strut_sweep=15.,
+                             strut_cant=10.,
+                             endplate_present=False,
+                             endplate_thickness=3 / 1000.,
+                             endplate_sweep=3,
+                             endplate_cant=3,
+                             maximum_velocity=80.,
+                             air_density=1.225,
+                             youngs_modulus=70 * 10 ** 9,
+                             yield_strength=225,
+                             shear_strength=223,
+                             material_density=2700,
+                             poisson_ratio=0.33)
     display(obj)

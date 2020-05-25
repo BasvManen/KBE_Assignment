@@ -40,9 +40,9 @@ class Struts(GeomBase):
     def strut_y_position(self):
         """ This attribute calculates the lateral y-location at which points
         along the main plate each strut will be attached. It first checks
-        wheter the inputted strut amount is even or uneven. Depending on
+        whether the inputted strut amount is even or uneven. Depending on
         this, the spacing of the struts is determined. The input of
-        strut_lat_location determines the most outboard strut loaction,
+        strut_lat_location determines the most outboard strut location,
         and the other struts are equidistantly distributed over the main
         plate span. It return a list of y-locations of the struts, for only
         one half of the total spoiler span. """

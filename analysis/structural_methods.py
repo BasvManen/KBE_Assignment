@@ -1,4 +1,5 @@
 import numpy as np
+from math import floor
 
 g = 9.80665
 
@@ -24,7 +25,7 @@ def distributed_force_moment(force_list, y_i, y_current):
 
 def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
                          endplate_weight, spoiler_span, spoiler_chord,
-                         strut_lat_location):
+                         strut_lat_location, strut_amount):
     """
     This function calculates the bending moment along the spoiler in x and
     z, as well as the bending displacement in x and z. It uses as inputs the
@@ -35,6 +36,34 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
     # retrieve y-location of the struts
     strut_location_1 = spoiler_span / 2 * (1 - strut_lat_location)
     strut_location_2 = spoiler_span / 2 * (1 + strut_lat_location)
+    strut_locations = []
+    amount = strut_amount - floor(strut_amount / 2)
+    if strut_amount % 2 == 0:
+        for i in range(amount):
+            strut_locations.append(strut_lat_location * spoiler_span
+                                   / (strut_amount - 1) / 2 * (2 * i + 1)
+                                   + spoiler_span / 2)
+            strut_locations.append(-strut_lat_location * spoiler_span
+                                   / (strut_amount - 1) / 2 * (2 * i + 1)
+                                   + spoiler_span / 2)
+        strut_locations = sorted(strut_locations)
+    else:
+        for i in range(amount):
+            if i == 0:
+                strut_locations.append(spoiler_span / 2)
+            else:
+                strut_locations.append(strut_lat_location * spoiler_span
+                                       / (strut_amount - 1) * i
+                                       + spoiler_span / 2)
+                strut_locations.append(-strut_lat_location * spoiler_span
+                                       / (strut_amount - 1) * i
+                                       + spoiler_span / 2)
+        strut_locations = sorted(strut_locations)
+
+    total_strut_locations = strut_locations
+    total_strut_locations.append(0.)
+    total_strut_locations.append(spoiler_span)
+    total_strut_locations = sorted(total_strut_locations)
 
     # calculating y-coordinate, area and weight at each increment i. the
     # weight distribution is approximated by separate weight forces along
@@ -59,9 +88,9 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
     weight_i[-1] += endplate_weight * g
 
     # calculate the z-force on the strut by sum of forces in z
-    f_strut_z = -(sum(lift) + sum(weight_i)) / 2
+    f_strut_z = -(sum(lift) + sum(weight_i)) / strut_amount
     # calculate the z-force on the strut by sum of forces in x
-    f_strut_x = -sum(drag) / 2
+    f_strut_x = -sum(drag) / strut_amount
 
     # calculate the influence of the lift and weight on the bending moment
     # for each increment i
@@ -79,35 +108,28 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
 
     # calculating the moment in x along the spoiler
     moment_x_i = []
-    for i in range(len(lift) + 1):
-        y_set = y_i[i]
-        if y_set >= strut_location_2 and y_set >= strut_location_1:
-            mom_i = f_strut_z * (y_set - strut_location_2) + f_strut_z \
-                    * (y_set - strut_location_1) \
-                    + moment_lift_i[i] + moment_weight_i[i]
-            moment_x_i.append(mom_i)
-        elif strut_location_2 > y_set >= strut_location_1:
-            mom_i = f_strut_z * (y_set - strut_location_1) + moment_lift_i[i] \
-                    + moment_weight_i[i]
-            moment_x_i.append(mom_i)
-        elif y_set < strut_location_2 and y_set < strut_location_1:
-            mom_i = moment_lift_i[i] + moment_weight_i[i]
-            moment_x_i.append(mom_i)
+    tsl = total_strut_locations
+    for j in range(strut_amount + 1):
+        for i in range(len(lift) + 1):
+            y_set = y_i[i]
+            strut_moment = [f_strut_z * (y_set - x) for x in strut_locations]
+            if tsl[j] <= y_set < tsl[j + 1]:
+                mom_i = sum(strut_moment[0:j]) + moment_lift_i[i] + \
+                        moment_weight_i[i]
+                moment_x_i.append(mom_i)
+    moment_x_i.append(0.)
 
-    # calculating the moment in z along the spoiler
+    # calculating the moment in x along the spoiler
     moment_z_i = []
-    for i in range(len(drag) + 1):
-        y_set = y_i[i]
-        if y_set >= strut_location_2 and y_set >= strut_location_1:
-            mom_i = f_strut_x * (y_set - strut_location_2) + f_strut_x \
-                    * (y_set - strut_location_1) + moment_drag_i[i]
-            moment_z_i.append(mom_i)
-        elif strut_location_2 > y_set >= strut_location_1:
-            mom_i = f_strut_x * (y_set - strut_location_1) + moment_drag_i[i]
-            moment_z_i.append(mom_i)
-        elif y_set < strut_location_2 and y_set < strut_location_1:
-            mom_i = moment_drag_i[i]
-            moment_z_i.append(mom_i)
+    tsl = total_strut_locations
+    for j in range(strut_amount + 1):
+        for i in range(len(drag) + 1):
+            y_set = y_i[i]
+            strut_moment = [f_strut_x * (y_set - x) for x in strut_locations]
+            if tsl[j] <= y_set < tsl[j + 1]:
+                mom_i = sum(strut_moment[0:j]) + moment_drag_i[i]
+                moment_z_i.append(mom_i)
+    moment_z_i.append(0.)
 
     # Calculate deflection angles and displacement using Euler-Bernoulli
     # beam theory in unsymmetrical bending. The deflection angle (theta) in the
@@ -160,7 +182,8 @@ def mainplate_bending_xz(lift, drag, E, Ixx, Izz, Ixz, spoiler_weight,
 
 
 def normal_stress_due_to_strut(force_in_y, y_i, area_distribution,
-                               strut_lat_location, spoiler_span):
+                               strut_lat_location, spoiler_span,
+                               strut_amount):
     """
     Function which calculates the normal stress along the spoiler, due to
     the normal force which is present due to the cant angle of the struts.
@@ -169,14 +192,49 @@ def normal_stress_due_to_strut(force_in_y, y_i, area_distribution,
     # retrieve y-location of the struts
     strut_location_1 = spoiler_span / 2 * (1 - strut_lat_location)
     strut_location_2 = spoiler_span / 2 * (1 + strut_lat_location)
+    strut_locations = []
+    amount = strut_amount - floor(strut_amount / 2)
+    if strut_amount % 2 == 0:
+        for i in range(amount):
+            strut_locations.append(strut_lat_location * spoiler_span
+                                   / (strut_amount - 1) / 2 * (2 * i + 1)
+                                   + spoiler_span / 2)
+            strut_locations.append(-strut_lat_location * spoiler_span
+                                   / (strut_amount - 1) / 2 * (2 * i + 1)
+                                   + spoiler_span / 2)
+        strut_locations = sorted(strut_locations)
+    else:
+        for i in range(amount):
+            if i == 0:
+                strut_locations.append(spoiler_span / 2)
+            else:
+                strut_locations.append(strut_lat_location * spoiler_span
+                                       / (strut_amount - 1) * i
+                                       + spoiler_span / 2)
+                strut_locations.append(-strut_lat_location * spoiler_span
+                                       / (strut_amount - 1) * i
+                                       + spoiler_span / 2)
+        strut_locations = sorted(strut_locations)
 
-    # make normal force distribution
+    total_strut_locations = strut_locations
+    total_strut_locations.append(0.)
+    total_strut_locations.append(spoiler_span)
+    total_strut_locations = sorted(total_strut_locations)
+
     normal_force = np.zeros(len(y_i))
-    for i in range(len(y_i)):
-        if y_i[i] < strut_location_1 or y_i[i] > strut_location_2:
-            normal_force[i] = 0
-        elif strut_location_1 <= y_i[i] <= strut_location_2:
-            normal_force[i] = force_in_y
+    tsl = total_strut_locations
+    force_in_y_factor = np.ndarray.tolist(np.arange(floor((strut_amount + 1)
+                                                          / 2)))
+    if strut_amount % 2 == 0:
+        force_in_y_factor = force_in_y_factor + [max(force_in_y_factor) + 1] \
+                            + force_in_y_factor[::-1]
+    else:
+        force_in_y_factor = force_in_y_factor + force_in_y_factor[::-1]
+
+    for j in range(strut_amount + 1):
+        for i in range(len(y_i)):
+            if tsl[j] <= y_i[i] < tsl[j + 1]:
+                normal_force[i] = force_in_y * force_in_y_factor[j]
 
     # make normal stress distribution
     sigma_y = []

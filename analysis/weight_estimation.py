@@ -1,45 +1,23 @@
 from analysis.spoiler_files.assembly import Spoiler
 from analysis.spoiler_files.section import Section
-
+from analysis.section_properties import SectionProperties
+from math import radians
 
 from parapy.geom import *
 from parapy.core import *
 
 
 class WeightEstimation(GeomBase):
-
     # INPUTS
     material_density = Input()
     spoiler_skin_thickness = Input()
     ribs_area = Input()
     spoiler_geometry = Input(in_tree=True)
-
-    # Begin with the first several steps of MainPlate to get to a lofted
-    # surface
-    @Attribute
-    def airfoil_names(self):
-        return self.spoiler_geometry.mid_airfoil, \
-               self.spoiler_geometry.tip_airfoil
-
-    @Attribute
-    def section_positions(self):
-        mid_position = self.position
-        tip_position = self.position.translate('y', self.spoiler_geometry.
-                                               spoiler_span / 2)
-        return mid_position, tip_position
-
-    @Part(in_tree=False)
-    def sections(self):
-        return Section(quantify=2,
-                       airfoil_name=self.airfoil_names[child.index],
-                       chord=self.spoiler_geometry.spoiler_chord,
-                       angle=self.spoiler_geometry.spoiler_angle,
-                       position=self.section_positions[child.index])
+    strut_amount = Input()
 
     @Part(in_tree=False)
     def surface_lofted(self):
-        return LoftedShell(profiles=
-                           [section.curve for section in self.sections])
+        return Solid(self.spoiler_geometry.main_plate.lofted_shell)
 
     # From the lofted surface, make a thick surface with the inputted skin
     # thickness projected to the inside
@@ -56,14 +34,14 @@ class WeightEstimation(GeomBase):
 
     # Get the volume of a single endplate
     @Attribute
-    def volume_endplate(self):      # in m^3 while inputs are in mm
-        return self.spoiler_geometry.endplates.endplate_right.volume / 10**9 \
+    def volume_endplate(self):  # in m^3 while inputs are in mm
+        return self.spoiler_geometry.endplates.endplate_right.volume / 10 ** 9 \
             if self.spoiler_geometry.endplate_present else 0.
 
     # Get the volume of a single strut
     @Attribute
-    def volume_strut(self):         # in m^3 while inputs are in mm
-        return self.spoiler_geometry.struts.strut_right.volume / 10**9
+    def volume_strut(self):  # in m^3 while inputs are in mm
+        return self.spoiler_geometry.struts.struts_right[0].volume / 10 ** 9
 
     # Get the volume of the ribs, note that the imported area is in m^2,
     # while the skin thickness is in mm. Therefor the volume has to be
@@ -80,17 +58,17 @@ class WeightEstimation(GeomBase):
 
     # Calculate the weight of the thick main plate
     @Attribute
-    def weight_mainplate(self):     # in kg
+    def weight_mainplate(self):  # in kg
         return self.volume_mainplate * self.material_density
 
     # Calculate the weight of a single endplate
     @Attribute
-    def weight_endplate(self):     # in kg
+    def weight_endplate(self):  # in kg
         return self.volume_endplate * self.material_density
 
     # Calculate the weight of a single strut
     @Attribute
-    def weight_strut(self):     # in kg
+    def weight_strut(self):  # in kg
         return self.volume_strut * self.material_density
 
     # Calculate the weight of the ribs
@@ -102,4 +80,39 @@ class WeightEstimation(GeomBase):
     @Attribute
     def total_weight(self):
         return self.weight_mainplate + self.weight_endplate * 2 \
-               + self.weight_strut * 2 + self.weight_ribs
+               + self.weight_strut * self.strut_amount + self.weight_ribs
+
+
+if __name__ == '__main__':
+    from parapy.gui import display
+
+
+    ribs_area = SectionProperties(
+            airfoils=['test', 'test'],
+                      spoiler_span=1600.,
+                      spoiler_chord=300.,
+                      spoiler_angle=10.,
+            spoiler_skin_thickness=2,
+            n_cuts=4,
+            n_ribs=0).ribs_area
+
+    spoiler = Spoiler(spoiler_airfoils=['test', 'test'],
+                      spoiler_span=1600.,
+                      spoiler_chord=300.,
+                      spoiler_angle=10.,
+                      strut_amount=2,
+                      strut_airfoil_shape=True,
+                      strut_lat_location=0.7,
+                      strut_height=250.,
+                      strut_chord_fraction=0.4,
+                      strut_thickness=10.,
+                      strut_sweep=15.,
+                      strut_cant=10.,
+                      endplate_present=False,
+                      endplate_thickness=3,
+                      endplate_sweep=3,
+                      endplate_cant=3, hidden=True)
+    obj = WeightEstimation(material_density=2700., spoiler_skin_thickness=2,
+                           ribs_area = ribs_area, spoiler_geometry=spoiler)
+
+    display(obj)

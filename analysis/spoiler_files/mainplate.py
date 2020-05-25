@@ -78,6 +78,22 @@ class MainPlate(GeomBase):
                             label="right_side"
                             )
 
+    @Part(in_tree=False)
+    def lofted_shell(self):
+        """ Create a lofted shell of the main plate based on the sections
+        defined in the sections part. This instance is later used in the
+        structural analysis of the spoiler. """
+        return RotatedShape(shape_in=LoftedShell(profiles=[section.curve
+                                                 for section in self.sections],
+                                                 ),
+                            # Firstly, create a shell from the sections
+                            rotation_point=self.position.point,
+                            vector=self.position.Vy,
+                            angle=radians(-self.angle),
+                            mesh_deflection=1e-4,
+                            # Rotate the shell to the desired spoiler angle
+                            )
+
     @Part
     def mirrored_surface(self):
         """ Mirror the surface (which is defined from the mid position to the
