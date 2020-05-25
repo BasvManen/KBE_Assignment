@@ -69,22 +69,35 @@ class Spoiler(GeomBase):
                       strut_cant=self.strut_cant,
                       main=self.main_plate)
 
+    @Attribute
+    def endplate_height(self):
+        z1 = self.main_plate.surface.edges[-1].bbox.bounds[2]
+        z2 = self.main_plate.surface.edges[-1].bbox.bounds[5]
+        return z2 - z1
+
+    @Attribute
+    def endplate_chord(self):
+        x1 = self.main_plate.surface.edges[-1].bbox.bounds[0]
+        x2 = self.main_plate.surface.edges[-1].bbox.bounds[3]
+        return x2 - x1
+
     # Define the endplates (part)
     @Part
     def endplates(self):
         return DynamicType(type=Endplates,
-                           chord=(self.spoiler_chord *
-                                  cos(radians(self.spoiler_angle))),
-                           height=(self.spoiler_chord *
-                                   sin(radians(self.spoiler_angle))) + 100,
+                           chord=self.endplate_chord,
+                           height=self.endplate_height,
                            thickness=self.endplate_thickness,
                            sweep=self.endplate_sweep,
                            cant=self.endplate_cant,
                            main=self.main_plate,
                            position=translate(self.position,
-                                              'x', self.endplates.chord,
+                                              'x', (self.spoiler_chord * cos(
+                                               radians(self.spoiler_angle))),
                                               'y', self.spoiler_span/2,
-                                              'z', self.endplates.height - 100),
+                                              'z', (self.spoiler_chord * sin(
+                                               radians(self.spoiler_angle)))
+                                              ),
                            hidden=False if self.endplate_present else True)
 
     # Define the STEP file nodes
