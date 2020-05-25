@@ -1,52 +1,37 @@
-from math import radians, sin, tan, cos
-
 from parapy.core import *
 from parapy.geom import *
 
+from math import sin, radians
 
-# ENDPLATE CLASS
-# In this file, the spoiler endplates are defined
+###############################################################################
+# ENDPLATE CLASS                                                              #
+# In this file, the spoiler endplate is defined                               #
+#                                                                             #
+# Inputs:                                                                     #
+# - Chord of the endplate                                                     #
+# - Height of the endplate                                                    #
+# - Thickness of the endplate                                                 #
+# - Sweep angle of the endplate                                               #
+###############################################################################
 
 
 class Endplate(GeomBase):
 
-    # INPUTS
     chord = Input()
     height = Input()
     thickness = Input()
-    sweepback_angle = Input()
+    sweep = Input()
 
-    pos = Input(XOY)
-
-    @Attribute
-    def colors(self):
-        return ["red", "green", "blue"]
-
-    @Attribute
-    def vectors(self):
-        return [self.pos.Vx, self.pos.Vy, self.pos.Vz]
-
-    @Part
-    def vector(self):
-        return LineSegment(quantify=3,
-                           start=self.pos.location,
-                           end=(translate(self.pos.location, self.vectors[child.index], 0.3)),
-                           color=self.colors[child.index],
-                           line_thickness=2
-                           )
-
-    @Attribute
-    def endplate_chord(self):
-        return self.chord
-
-    # Define wetted area
     @Attribute
     def wetted_area(self):
+        """ This attribute retrieves the wetted area of the endplate, based on
+        the solid property. """
         return self.solid.area
 
-    # Define the upper (rectangular) curve of the endplate
     @Part(in_tree=False)
     def upper_curve(self):
+        """ This part defines the upper curve of the endplate. It is positioned
+        at the origin of the local axis system in negative x-direction. """
         return Rectangle(width=self.chord,
                          length=self.thickness,
                          centered=False,
@@ -54,30 +39,33 @@ class Endplate(GeomBase):
                                             'x', -self.chord)
                          )
 
-    # Define the lower (rectangular) curve of the endplate
     @Part(in_tree=False)
     def lower_curve(self):
+        """ This part defines the lower curve of the endplate. It is positioned
+         relative to the upper curve, based on height and sweep. """
         return Rectangle(width=self.chord,
                          length=self.thickness,
                          centered=False,
                          position=translate(self.upper_curve.position,
-                                            'z', -self.height)
+                                            'z', -self.height,
+                                            'x', (-sin(radians(self.sweep))
+                                                  * self.height))
                          )
 
-    # Define the solid endplate based on the two curves
     @Part
     def solid(self):
+        """ This part is the resulting solid based on the upper and the lower
+        curve. This is the end product of the endplate class. """
         return FilletedSolid(built_from=RuledSolid(profile1=self.upper_curve,
                                                    profile2=self.lower_curve),
-                             radius=self.thickness/3
-                             )
+                             radius=self.thickness/3)
 
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = Endplate(chord=0.8,
-                   height=0.2,
-                   thickness=0.02,
-                   sweepback_angle=0)
+    obj = Endplate(chord=800,
+                   height=200,
+                   thickness=20,
+                   sweep=0)
     display(obj)
 

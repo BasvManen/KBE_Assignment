@@ -1,4 +1,4 @@
-from analysis.spoiler_files import MainPlate, Endplate, Struts, Car
+from analysis.spoiler_files import MainPlate, Endplates, Struts, Car
 from parapy.core import Input, Attribute, Part, child, DynamicType
 from parapy.core.validate import *
 from parapy.geom import *
@@ -54,8 +54,8 @@ class Spoiler(GeomBase):
     # Define wetted area
     @Attribute
     def wetted_area(self):
-        return self.main_plate.wetted_area + self.struts.wetted_area + \
-               (self.endplates.wetted_area if self.endplate_present else 0)
+        return (self.main_plate.wetted_area + self.struts.wetted_area +
+                (self.endplates.wetted_area if self.endplate_present else 0))
 
     @Part
     def struts(self):
@@ -71,25 +71,20 @@ class Spoiler(GeomBase):
 
     # Define the endplates (part)
     @Part
-    def endplate(self):
-        return DynamicType(type=Endplate,
+    def endplates(self):
+        return DynamicType(type=Endplates,
                            chord=(self.spoiler_chord *
                                   cos(radians(self.spoiler_angle))),
                            height=(self.spoiler_chord *
-                                   sin(radians(self.spoiler_angle))),
+                                   sin(radians(self.spoiler_angle))) + 100,
                            thickness=self.endplate_thickness,
-                           sweepback_angle=self.endplate_sweep,
-                           position=rotate(translate(self.position,
-                                                     'y',
-                                                     self.spoiler_span / 2,
-                                                     'x',
-                                                     self.spoiler_chord *
-                                                     cos(radians(self.spoiler_angle)),
-                                                     'z',
-                                                     self.spoiler_chord *
-                                                     sin(radians(self.spoiler_angle))),
-                                           self.position.Vx,
-                                           -radians(self.endplate_cant)),
+                           sweep=self.endplate_sweep,
+                           cant=self.endplate_cant,
+                           main=self.main_plate,
+                           position=translate(self.position,
+                                              'x', self.endplates.chord,
+                                              'y', self.spoiler_span/2,
+                                              'z', self.endplates.height - 100),
                            hidden=False if self.endplate_present else True)
 
     # Define the STEP file nodes
