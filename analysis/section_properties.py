@@ -17,32 +17,6 @@ class SectionProperties(GeomBase):
     n_discretise = Input(120)
     n_cuts = Input()
 
-    # Define the two section similarly as in the mainplate file to get the
-    # half span of the spoiler
-    # @Attribute
-    # def airfoil_names(self):
-    #     return self.airfoil_mid, self.airfoil_tip
-    #
-    # @Attribute
-    # def section_positions(self):
-    #     mid_position = self.position
-    #     tip_position = self.position.translate('y', self.spoiler_span / 2)
-    #     return mid_position, tip_position
-
-    # @Part(in_tree=False)
-    # def sections(self):
-    #     return Section(quantify=2,
-    #                    airfoil_name=self.airfoil_names[child.index],
-    #                    chord=self.spoiler_chord,
-    #                    angle=self.spoiler_angle,
-    #                    position=self.section_positions[child.index])
-    #
-    # # Make a lofted surface so that curve-cutouts along the spoiler can be made
-    # @Part(in_tree=True)
-    # def surface_lofted(self):
-    #     return LoftedSurface(
-    #         profiles=[section.curve for section in self.sections])
-
     @Part(in_tree=True)
     def sections(self):
         """ Create the sections based on the airfoils list input. They are
@@ -269,12 +243,44 @@ class SectionProperties(GeomBase):
         return ribs_indices
 
     # Make rib curves
-    @Part(in_tree=True)
+    @Part(in_tree=False)
     def rib_curves(self):
         return ComposedCurve(quantify=round((self.n_ribs + 2) / 2 + 0.1),
                              built_from=[self.cutout_curves[
                                              self.position_ribs[child.index]]
                                          [0]])
+
+    @Part(in_tree=False)
+    def ribs_right(self):
+        return RuledSolid(quantify=round((self.n_ribs + 2) / 2 + 0.1),
+                          profile1=self.rib_curves[child.index],
+                          profile2=
+                          TranslatedCurve(curve_in=
+                                          self.rib_curves[child.index],
+                                          displacement=
+                                          Vector(0.,
+                                                 self.spoiler_skin_thickness,
+                                                 0.)))
+
+    @Part(in_tree=False)
+    def ribs_left(self):
+        return MirroredShape(quantify=round((self.n_ribs + 2) / 2 + 0.1)
+                             if self.n_ribs % 2 == 0
+                             else round((self.n_ribs + 2) / 2 + 0.1) - 1,
+                             shape_in=self.ribs_right[child.index]
+                             if self.n_ribs % 2 == 0
+                             else self.ribs_right[child.index + 1],
+                             reference_point=Point(0, 0, 0),
+                             vector1=Vector(1, 0, 0),
+                             vector2=Vector(0, 0, 1))
+
+    @Part(in_tree=True)
+    def ribs_total(self):
+        return SewnSolid(quantify=self.n_ribs + 2,
+                         built_from=self.ribs_right[child.index]
+                         if child.index <= round((self.n_ribs + 2) / 2 + 0.1)-1
+                         else self.ribs_left[
+                             child.index - round((self.n_ribs + 2) / 2 + 0.1)])
 
     # Calculate the area of the ribs
     @Attribute
@@ -294,6 +300,6 @@ if __name__ == '__main__':
                             spoiler_chord=300.,
                             spoiler_angle=10.,
                             spoiler_skin_thickness=2,
-                            n_cuts=4,
+                            n_cuts=40,
                             n_ribs=0)
     display(obj)

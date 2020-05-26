@@ -358,6 +358,36 @@ class StructuralAnalysis(GeomBase):
         due_to_which_mode = occurred_failure[2]
         return due_to_other_modes, due_to_ribs, due_to_which_mode
 
+    @Part
+    def structural_mainplate(self):
+        return SewnSolid(quantify=2,
+                         built_from=WeightEstimation(
+                             material_density=self.material_density,
+                             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
+                             ribs_area=self.area_of_ribs,
+                             spoiler_geometry=self.spoiler_in_mm,
+                             strut_amount=self.strut_amount).thick_mainplate
+                         if child.index == 0
+                         else WeightEstimation(
+                             material_density=self.material_density,
+                             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
+                             ribs_area=self.area_of_ribs,
+                             spoiler_geometry=self.spoiler_in_mm,
+                             strut_amount=self.strut_amount).thick_mainplate_mirror)
+
+    @Part
+    def structural_ribs(self):
+        return SewnSolid(quantify=self.n_ribs + 2,
+                         built_from=SectionProperties(
+                             airfoils=self.spoiler_airfoils,
+                             spoiler_span=self.spoiler_span * 1000,
+                             spoiler_chord=self.spoiler_chord * 1000,
+                             spoiler_angle=self.spoiler_angle,
+                             spoiler_skin_thickness=
+                             self.spoiler_skin_thickness * 1000,
+                             n_cuts=self.number_of_lateral_cuts,
+                             n_ribs=self.n_ribs).ribs_total[child.index])
+
     # Creating several actions to plot parameters along the spoiler,
     # additionally some error messages are implemented to pop up if
     # parameters are changed in GUI

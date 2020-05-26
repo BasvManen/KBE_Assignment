@@ -26,6 +26,13 @@ class WeightEstimation(GeomBase):
         return ThickShell(built_from=self.surface_lofted,
                           offset=-self.spoiler_skin_thickness)
 
+    @Part(in_tree=True)
+    def thick_mainplate_mirror(self):
+        return MirroredShape(shape_in=self.thick_mainplate,
+                             reference_point=Point(0, 0, 0),
+                             vector1=Vector(1, 0, 0),
+                             vector2=Vector(0, 0, 1))
+
     # Retrieve the volume of this thick main plate
     @Attribute
     def volume_mainplate(self):
