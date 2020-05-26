@@ -10,6 +10,7 @@ from parapy.core import *
 from matplotlib import pyplot as plt
 
 
+# Import and define the pop-up warnings
 def generate_warning(warning_header, msg):
     from tkinter import Tk, mainloop, X, messagebox
 
@@ -21,18 +22,35 @@ def generate_warning(warning_header, msg):
     messagebox.showwarning(warning_header, msg)
 
 
-# STRUCTURAL ANALYSIS CLASS
-# In this file, the structural analysis for the spoiler is performed
+###############################################################################
+# STRUCTURAL ANALYSIS CLASS                                                   #
+# In this file, the structural analysis for the spoiler is performed          #
+#                                                                             #
+# Inputs:                                                                     #
+# - The same inputs as for the Spoiler class, these inputs are specified      #
+#   under MainPlate, Strut and Endplate inputs. For more information,         #
+#   check assembly.py                                                         #
+# - The skin thickness of the spoiler                                         #
+# - The number of ribs in the spoiler, excluding the 2 ribs at the            #
+#   two sides of the main plate.                                              #
+# - The maximum velocity of the car, to simulate the worst case scenario      #
+#   that the spoiler has to withstand.                                        #
+# - The air density at the moment of the aerodynamic analysis.                #
+# - Young's modulus of the used material.                                     #
+# - Yield strength of the used material.                                      #
+# - Shear strength of the used material.                                      #
+# - Density of the used material.                                             #
+# - Poisson ratio of the used material.                                       #
+###############################################################################
 
 
 class StructuralAnalysis(GeomBase):
+
     # MainPlate Inputs
     spoiler_airfoils = Input()
     spoiler_span = Input()
     spoiler_chord = Input()
     spoiler_angle = Input()
-    spoiler_skin_thickness = Input(0.001)  # this acts as an initial value
-    n_ribs = Input(0)
 
     # Strut Inputs
     strut_amount = Input()
@@ -51,6 +69,8 @@ class StructuralAnalysis(GeomBase):
     endplate_cant = Input()
 
     # Additional inputs for calculations
+    spoiler_skin_thickness = Input(0.001)
+    n_ribs = Input(0)
     maximum_velocity = Input()
     air_density = Input()
     youngs_modulus = Input()
@@ -59,10 +79,12 @@ class StructuralAnalysis(GeomBase):
     material_density = Input()
     poisson_ratio = Input()
 
-    # Add the spoiler geometry for several calculations in millimeter
     @Part(in_tree=False)
     def spoiler_in_mm(self):
-        return Spoiler(label="Spoiler",
+        """ Create the spoiler assembly part in millimeters. This instance
+        is used for the weights estimation and the creation of the thick
+        structural main plate. """
+        return Spoiler(label="Spoiler in mm",
                        spoiler_airfoils=self.spoiler_airfoils,
                        spoiler_span=self.spoiler_span * 1000,
                        spoiler_chord=self.spoiler_chord * 1000,
@@ -80,10 +102,11 @@ class StructuralAnalysis(GeomBase):
                        endplate_sweep=self.endplate_sweep,
                        endplate_cant=self.endplate_cant)
 
-    # Add the spoiler geometry for several calculations in meter
     @Part(in_tree=False)
     def spoiler_in_m(self):
-        return Spoiler(label="Spoiler",
+        """ Also create the spoiler assembly part in meters. This instance
+            is used as inputs for the AVL calculations. """
+        return Spoiler(label="Spoiler in m",
                        spoiler_airfoils=self.spoiler_airfoils,
                        spoiler_span=self.spoiler_span,
                        spoiler_chord=self.spoiler_chord,
@@ -103,9 +126,10 @@ class StructuralAnalysis(GeomBase):
 
     @Attribute
     def weights(self):
-        # Here the weights of the parts are calculated as input for the
-        # force distribution. Note that WeightEstimation asks for inputs of mm,
-        # while Bending asks for inputs in meters.
+        """ This attribute calculates the weights of each of the components,
+        as well as the total weight of the spoiler. It uses the
+        WeightEstimation class for this. Note that the input of the spoiler
+        geometry should be defined in mm. """
         model = WeightEstimation(
             material_density=self.material_density,
             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
@@ -116,18 +140,25 @@ class StructuralAnalysis(GeomBase):
         return model.weight_mainplate, model.weight_endplate, \
                model.weight_strut, model.weight_ribs, model.total_weight
 
-    # Next the maximum lift and drag distributions are implemented. Note that
-    # for this the cars maximum speed is used, together with a safety factor
-    # of 1.5. For naming purposes, force_z and force_x are defined.
     @Attribute
     def get_distributed_forces(self):
+        """ This attribute calculates the lift and drag distributions for
+        the inputted maximum velocity that the spoiler has to withstand. It
+        also outputs distribution of y locations at which these forces are
+        applied. Note that it also uses a slight safety factor of 1.25 on
+        this maximum velocity. """
+        # Define the safety factor and the case for the AVL analysis
         safety_factor = 1.25
         case = [('AoA input', {'alpha': 0})]
+        # Perform the aerodynamic analysis
         analysis = AvlAnalysis(spoiler=self.spoiler_in_m,
                                case_settings=case,
                                velocity=self.maximum_velocity * safety_factor,
                                density=self.air_density)
 
+        # The outputted data is defined in a slightly off format. This
+        # section places the lift, drag and y-distribution in a format to
+        # comply with the rest of the class.
         spacing = self.spoiler_in_m.spoiler_span / len(
             analysis.lift_distribution[0])
         lift_distribution = []
@@ -146,24 +177,33 @@ class StructuralAnalysis(GeomBase):
 
     @Attribute
     def force_y_location(self):
+        """ This attribute renames the y_distribution from
+        get_distributed_forces. """
         return self.get_distributed_forces[2]
 
     @Attribute
     def force_z(self):
+        """ This attribute renames the lift_distribution from
+            get_distributed_forces. """
         return self.get_distributed_forces[0]
 
     @Attribute
     def force_x(self):
+        """ This attribute renames the drag_distribution from
+                get_distributed_forces. """
         return self.get_distributed_forces[1]
 
-    # Discretise the spoiler along the span
     @Attribute
     def number_of_lateral_cuts(self):
+        """ This attribute defines the discretisation along the half span of
+        the spoiler, based on the lift distribution on the spoiler. """
         return int(len(self.force_z) / 2) + 1
 
-    # Get the area of the ribs for the weight estimation
     @Attribute
     def area_of_ribs(self):
+        """ This attribute retrieves the area of each of the ribs of the
+        spoiler, from SectionProperties. It is used for the weight estimation
+        of the ribs. """
         ribs_area = SectionProperties(
             airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
@@ -174,9 +214,10 @@ class StructuralAnalysis(GeomBase):
             n_ribs=self.n_ribs).ribs_area
         return ribs_area
 
-    # Retrieve the moment of inertia for this discretisation
     @Attribute
     def moment_of_inertia(self):
+        """ This attribute retrieves the moments of inertia (Ixx, Izz and
+        Ixz) along the entire spoiler, from SectionProperties. """
         full_moment_of_inertia = SectionProperties(
             airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
@@ -191,9 +232,10 @@ class StructuralAnalysis(GeomBase):
         moment_of_inertia_xz = [row[2] for row in full_moment_of_inertia]
         return moment_of_inertia_x, moment_of_inertia_z, moment_of_inertia_xz
 
-    # Retrieve the area along the spoiler for this discretisation
     @Attribute
     def area_along_spoiler(self):
+        """ This attribute retrieves the cross sectional area along the
+        spoiler, from the discretisation defined in number_of_lateral_cuts. """
         return SectionProperties(
             airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
@@ -203,9 +245,10 @@ class StructuralAnalysis(GeomBase):
             n_cuts=self.number_of_lateral_cuts,
             n_ribs=self.n_ribs).area_along_spoiler
 
-    # Retrieve the coordinates of the centroid for this discretisation
     @Attribute
     def centroid_coordinates(self):
+        """ This attribute retrieves the centroid's location along the
+        spoiler, for the discretisation defined in number_of_lateral_cuts. """
         half_centroid_list = SectionProperties(
             airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
@@ -218,10 +261,10 @@ class StructuralAnalysis(GeomBase):
                              ::-1] + half_centroid_list[1:]
         return full_centroid_list
 
-    # Retrieve the coordinates along each of the discretised cutouts along
-    # the spoiler span
     @Attribute
     def cutout_coordinates(self):
+        """ This attribute retrieves the coordinates of the cutouts along the
+        spoiler, for the discretisation defined in number_of_lateral_cuts. """
         half_spoiler_coordinates = SectionProperties(
             airfoils=self.spoiler_airfoils,
             spoiler_span=self.spoiler_span,
@@ -234,9 +277,13 @@ class StructuralAnalysis(GeomBase):
                                    ::-1] + half_spoiler_coordinates[1:]
         return full_spoiler_coordinates
 
-    # Calculate the bending moments and deflections in x and z.
     @Attribute
     def bending_xz(self):
+        """ This attribute uses the mainplate_bending_xz as described in
+        structural_methods.py. It returns the bending deflection,
+        the bending deflection angle and the bending moment along the
+        spoiler (in x and z). It also returns the x and z forces on the
+        struts. """
         theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, \
         f_strut_z, f_strut_x = mainplate_bending_xz(
             self.force_z, self.force_x,
@@ -252,10 +299,10 @@ class StructuralAnalysis(GeomBase):
         return theta_x_i, theta_z_i, w_i, u_i, y_i, moment_x_i, moment_z_i, \
                f_strut_z, f_strut_x
 
-    # Calculate the normal stress in the spoiler, from the normal force and
-    # the bending moment.
     @Attribute
     def normal_stress(self):
+        """ This attribute calculates the normal stress along the spoiler,
+        due to the normal force the struts exert on the spoiler. """
         f_strut_y = self.bending_xz[7] * tan(radians(self.strut_cant))
         y_i = self.bending_xz[4]
         total_area_distribution = self.area_along_spoiler[::-1] \
@@ -270,6 +317,11 @@ class StructuralAnalysis(GeomBase):
 
     @Attribute
     def normal_bending_stress(self):
+        """ This attribute calculates the normal stress along the spoiler,
+        due to the bending moments along the spoiler. It returns the bending
+        stress along each of the cutout, along the whole spoiler, as well as
+        the maximum compressive and tensile stresses along the spoiler. """
+        # Initialise inputs
         moment_x = self.bending_xz[5]
         moment_z = self.bending_xz[6]
         moi_xx = self.moment_of_inertia[0]
@@ -278,16 +330,18 @@ class StructuralAnalysis(GeomBase):
         cutout_coordinates = self.cutout_coordinates
         centroid_coordinates = self.centroid_coordinates
 
+        # Use bending_stress() method
         sigma_y, sigma_y_max = bending_stress(moment_x, moment_z, moi_xx,
                                               moi_zz, moi_xz,
                                               cutout_coordinates,
                                               centroid_coordinates)
         return sigma_y, sigma_y_max
 
-    # Calculate the maximum tensile and compressive stress along the spoiler
-    # and convert it to MPa
     @Attribute
     def maximum_normal_stress(self):
+        """ This attribute calculates the total maximum tensile and
+        compressive stress along the spoiler, and it returns these values in
+        MPa. """
         max_normal_stress_tensile = []
         max_normal_stress_compressive = []
         for i in range(len(self.normal_bending_stress[0])):
@@ -299,9 +353,11 @@ class StructuralAnalysis(GeomBase):
                         self.normal_bending_stress[0][i])) / 10 ** 6)
         return max_normal_stress_tensile, max_normal_stress_compressive
 
-    # Calculate the shear stress along the spoiler and convert to MPa
     @Attribute
     def maximum_shear_stress(self):
+        """ This attribute calculates the maximum shear stress along the
+        spoiler, and returns it in MPa. """
+        # Initialise inputs
         force_x = self.get_distributed_forces[0]
         force_z = self.get_distributed_forces[1]
         moi_xx = self.moment_of_inertia[0]
@@ -310,19 +366,21 @@ class StructuralAnalysis(GeomBase):
         cutout_coordinates = self.cutout_coordinates
         centroid_coordinates = self.centroid_coordinates
 
+        # Use max_shear_stress() method
         tau = max_shear_stress(force_x, force_z, self.spoiler_skin_thickness,
                                moi_xx, moi_zz, moi_xz, cutout_coordinates,
                                centroid_coordinates)
-
-        # convert to MPa
+        # Convert to MPa
         for i in range(len(tau)):
             tau[i] = tau[i] / 10 ** 6
-
         return tau
 
-    # Calculate the critical values for buckling failure modes
     @Attribute
     def critical_buckling_values(self):
+        """ This attribute calculates all different critical buckling values
+        for the spoiler geometry. It returns the critical normal buckling
+        stress, shear buckling stress and column buckling stress by using
+        the buckling_modes() method. """
         buckling_values = buckling_modes(self.n_ribs, self.spoiler_span,
                                          self.spoiler_chord,
                                          self.spoiler_skin_thickness,
@@ -339,6 +397,9 @@ class StructuralAnalysis(GeomBase):
     # Determine whether the spoiler fails or not
     @Attribute
     def failure(self):
+        """ This attribute determines whether the spoiler can withstand the
+        forces and stresses, or it fails. It returns several lists of bools,
+        determining due to which failure mode the spoiler will fail. """
         occurred_failure = failure_modes(max(self.maximum_normal_stress[0]),
                                          abs(min(
                                              self.maximum_normal_stress[1])),
@@ -360,6 +421,8 @@ class StructuralAnalysis(GeomBase):
 
     @Part
     def structural_mainplate(self):
+        """ This part returns a thick main plate instance, representing the
+        resulting main plate with its skin thickness. """
         return SewnSolid(quantify=2,
                          built_from=WeightEstimation(
                              material_density=self.material_density,
@@ -377,6 +440,9 @@ class StructuralAnalysis(GeomBase):
 
     @Part
     def structural_ribs(self):
+        """ This part returns the various ribs instances, representing the
+        resulting calculated ribs with the same thickness as the thick main
+        plate. """
         return SewnSolid(quantify=self.n_ribs + 2,
                          built_from=SectionProperties(
                              airfoils=self.spoiler_airfoils,
@@ -388,11 +454,14 @@ class StructuralAnalysis(GeomBase):
                              n_cuts=self.number_of_lateral_cuts,
                              n_ribs=self.n_ribs).ribs_total[child.index])
 
-    # Creating several actions to plot parameters along the spoiler,
-    # additionally some error messages are implemented to pop up if
-    # parameters are changed in GUI
     @action(label="Plot the normal stress along the spoiler")
     def plot_normal_stress(self):
+        """ This action plots the maximum tensile and compressive normal
+        stresses along the spoiler span. It also includes several pop-up
+        warnings if the maximum stresses exceed the critical failure mode
+        values. """
+
+        # Define the warnings
         if self.failure[2][0]:
             msg = "Stress is too high: spoiler will yield."
             header = "WARNING"
@@ -405,6 +474,8 @@ class StructuralAnalysis(GeomBase):
             msg = "Stress is too high: column buckling will occur."
             header = "WARNING"
             generate_warning(header, msg)
+
+        # Plot the normal stress
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[0])
         plt.plot(self.bending_xz[4], self.maximum_normal_stress[1])
         plt.xlabel('Spanwise location [m]')
@@ -417,6 +488,11 @@ class StructuralAnalysis(GeomBase):
 
     @action(label="Plot the shear stress along the spoiler")
     def plot_shear_stress(self):
+        """ This action plots the maximum shear stresses along the spoiler
+        span. It also includes several pop-up warnings if the maximum
+        stresses exceed the critical failure mode values. """
+
+        # Define the warnings
         if self.failure[2][2]:
             msg = "Stress is too high: shear yielding will occur."
             header = "WARNING"
@@ -425,6 +501,8 @@ class StructuralAnalysis(GeomBase):
             msg = "Stress is too high: shear buckling will occur."
             header = "WARNING"
             generate_warning(header, msg)
+
+        # Plot the shear stress
         plt.plot(self.get_distributed_forces[2], self.maximum_shear_stress)
         plt.xlabel('Spanwise location [m]')
         plt.ylabel('Shear stress [MPa]')
@@ -435,10 +513,17 @@ class StructuralAnalysis(GeomBase):
 
     @action(label="Plot the deflection of the spoiler")
     def plot_force_deflection(self):
+        """ This action plots the maximum deflections (in x and z) along the
+        spoiler span. It also includes a pop-up warnings if the
+        maximum deflection exceeds 5% of the spoiler half-span. """
+
+        # Define the warning
         if self.failure[2][4]:
             msg = "Deflection is too high: deflection is higher than criteria."
             header = "WARNING"
             generate_warning(header, msg)
+
+        # Plot the deflection
         plt.plot(self.bending_xz[4], self.bending_xz[2])
         plt.plot(self.bending_xz[4], self.bending_xz[3])
         plt.xlabel('Spanwise location [m]')
@@ -451,6 +536,8 @@ class StructuralAnalysis(GeomBase):
 
     @action(label="Plot the bending moment along the spoiler")
     def plot_bending_moment(self):
+        """ This action plots the maximum bending moments (in x and z) along
+        the spoiler span. """
         plt.plot(self.bending_xz[4], self.bending_xz[5])
         plt.plot(self.bending_xz[4], self.bending_xz[6])
         plt.xlabel('Spanwise location [m]')
