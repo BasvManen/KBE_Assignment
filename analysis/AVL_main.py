@@ -23,11 +23,37 @@ import numpy as np
 class AvlAnalysis(avl.Interface):
 
     # INPUTS
-    spoiler = Input()
+    spoiler_input = Input()
     case_settings = Input()
     velocity = Input()
     density = Input()
     viscosity = Input(1.47e-5)
+
+    @Part
+    def spoiler(self):
+        """ This part retrieves the input of the main file spoiler and creates
+        an identical spoiler, but this time with dimensions in meters instead
+        of dimensions in millimeters. """
+        return Spoiler(spoiler_airfoils=self.spoiler_input.spoiler_airfoils,
+                       spoiler_span=self.spoiler_input.spoiler_span/1000,
+                       spoiler_chord=self.spoiler_input.spoiler_chord/1000,
+                       spoiler_angle=self.spoiler_input.spoiler_angle,
+                       strut_amount=self.spoiler_input.strut_amount,
+                       strut_airfoil_shape=
+                       self.spoiler_input.strut_airfoil_shape,
+                       strut_lat_location=
+                       self.spoiler_input.strut_lat_location,
+                       strut_height=self.spoiler_input.strut_height/1000,
+                       strut_chord_fraction=
+                       self.spoiler_input.strut_chord_fraction,
+                       strut_thickness=self.spoiler_input.strut_thickness/1000,
+                       strut_sweep=self.spoiler_input.strut_sweep,
+                       strut_cant=self.spoiler_input.strut_cant,
+                       endplate_present=False,
+                       endplate_thickness=
+                       self.spoiler_input.endplate_thickness/1000,
+                       endplate_sweep=self.spoiler_input.endplate_sweep,
+                       endplate_cant=self.spoiler_input.endplate_cant)
 
     @Attribute
     def reference_area(self):
@@ -233,7 +259,7 @@ if __name__ == '__main__':
 
     cases = [('Incoming flow angle', {'alpha': 2})]
 
-    analysis = AvlAnalysis(spoiler=obj,
+    analysis = AvlAnalysis(spoiler_input=obj,
                            velocity=10,
                            density=1.225,
                            case_settings=cases)
