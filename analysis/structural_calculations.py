@@ -45,7 +45,6 @@ def generate_warning(warning_header, msg):
 
 
 class StructuralAnalysis(GeomBase):
-
     # MainPlate Inputs
     spoiler_airfoils = Input()
     spoiler_span = Input()
@@ -124,21 +123,25 @@ class StructuralAnalysis(GeomBase):
                        endplate_sweep=self.endplate_sweep,
                        endplate_cant=self.endplate_cant)
 
+    @Part
+    def weight_estimation(self):
+        """ This part instance retrieves the WeightEstimation class. Note that
+        the input of the spoiler geometry should be defined in mm in this
+        class. """
+        return WeightEstimation(material_density=self.material_density,
+                                spoiler_skin_thickness=
+                                self.spoiler_skin_thickness * 1000,
+                                ribs_area=self.area_of_ribs,
+                                spoiler_geometry=self.spoiler_in_mm,
+                                strut_amount=self.strut_amount)
+
     @Attribute
     def weights(self):
         """ This attribute calculates the weights of each of the components,
-        as well as the total weight of the spoiler. It uses the
-        WeightEstimation class for this. Note that the input of the spoiler
-        geometry should be defined in mm. """
-        model = WeightEstimation(
-            material_density=self.material_density,
-            spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
-            ribs_area=self.area_of_ribs,
-            spoiler_geometry=self.spoiler_in_mm,
-            strut_amount=self.strut_amount)
-
-        return model.weight_mainplate, model.weight_endplate, \
-               model.weight_strut, model.weight_ribs, model.total_weight
+        as well as the total weight of the spoiler. """
+        weight = self.weight_estimation
+        return weight.weight_mainplate, weight.weight_endplate, \
+               weight.weight_strut, weight.weight_ribs, weight.total_weight
 
     @Attribute
     def get_distributed_forces(self):
@@ -151,7 +154,7 @@ class StructuralAnalysis(GeomBase):
         safety_factor = 1.25
         case = [('AoA input', {'alpha': 0})]
         # Perform the aerodynamic analysis
-        analysis = AvlAnalysis(spoiler=self.spoiler_in_m,
+        analysis = AvlAnalysis(spoiler_input=self.spoiler_in_mm,
                                case_settings=case,
                                velocity=self.maximum_velocity * safety_factor,
                                density=self.air_density)
@@ -199,33 +202,32 @@ class StructuralAnalysis(GeomBase):
         the spoiler, based on the lift distribution on the spoiler. """
         return int(len(self.force_z) / 2) + 1
 
+    @Part
+    def sectional_properties(self):
+        """ This part instance retrieves SectionalProperties class. """
+        return SectionProperties(airfoils=self.spoiler_airfoils,
+                                 spoiler_span=self.spoiler_span,
+                                 spoiler_chord=self.spoiler_chord,
+                                 spoiler_angle=self.spoiler_angle,
+                                 spoiler_skin_thickness=
+                                 self.spoiler_skin_thickness,
+                                 n_cuts=self.number_of_lateral_cuts,
+                                 n_ribs=self.n_ribs)
+
     @Attribute
     def area_of_ribs(self):
         """ This attribute retrieves the area of each of the ribs of the
         spoiler, from SectionProperties. It is used for the weight estimation
         of the ribs. """
-        ribs_area = SectionProperties(
-            airfoils=self.spoiler_airfoils,
-            spoiler_span=self.spoiler_span,
-            spoiler_chord=self.spoiler_chord,
-            spoiler_angle=self.spoiler_angle,
-            spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts,
-            n_ribs=self.n_ribs).ribs_area
+        ribs_area = self.sectional_properties.ribs_area
         return ribs_area
 
     @Attribute
     def moment_of_inertia(self):
         """ This attribute retrieves the moments of inertia (Ixx, Izz and
         Ixz) along the entire spoiler, from SectionProperties. """
-        full_moment_of_inertia = SectionProperties(
-            airfoils=self.spoiler_airfoils,
-            spoiler_span=self.spoiler_span,
-            spoiler_chord=self.spoiler_chord,
-            spoiler_angle=self.spoiler_angle,
-            spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts,
-            n_ribs=self.n_ribs).full_moment_of_inertia
+        full_moment_of_inertia = \
+            self.sectional_properties.full_moment_of_inertia
 
         moment_of_inertia_x = [row[0] for row in full_moment_of_inertia]
         moment_of_inertia_z = [row[1] for row in full_moment_of_inertia]
@@ -236,27 +238,14 @@ class StructuralAnalysis(GeomBase):
     def area_along_spoiler(self):
         """ This attribute retrieves the cross sectional area along the
         spoiler, from the discretisation defined in number_of_lateral_cuts. """
-        return SectionProperties(
-            airfoils=self.spoiler_airfoils,
-            spoiler_span=self.spoiler_span,
-            spoiler_chord=self.spoiler_chord,
-            spoiler_angle=self.spoiler_angle,
-            spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts,
-            n_ribs=self.n_ribs).area_along_spoiler
+        areas = self.sectional_properties.area_along_spoiler
+        return areas
 
     @Attribute
     def centroid_coordinates(self):
         """ This attribute retrieves the centroid's location along the
         spoiler, for the discretisation defined in number_of_lateral_cuts. """
-        half_centroid_list = SectionProperties(
-            airfoils=self.spoiler_airfoils,
-            spoiler_span=self.spoiler_span,
-            spoiler_chord=self.spoiler_chord,
-            spoiler_angle=self.spoiler_angle,
-            spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts,
-            n_ribs=self.n_ribs).centroid
+        half_centroid_list = self.sectional_properties.centroid
         full_centroid_list = half_centroid_list[
                              ::-1] + half_centroid_list[1:]
         return full_centroid_list
@@ -265,14 +254,8 @@ class StructuralAnalysis(GeomBase):
     def cutout_coordinates(self):
         """ This attribute retrieves the coordinates of the cutouts along the
         spoiler, for the discretisation defined in number_of_lateral_cuts. """
-        half_spoiler_coordinates = SectionProperties(
-            airfoils=self.spoiler_airfoils,
-            spoiler_span=self.spoiler_span,
-            spoiler_chord=self.spoiler_chord,
-            spoiler_angle=self.spoiler_angle,
-            spoiler_skin_thickness=self.spoiler_skin_thickness,
-            n_cuts=self.number_of_lateral_cuts,
-            n_ribs=self.n_ribs).coordinates_sections_points
+        half_spoiler_coordinates = \
+            self.sectional_properties.coordinates_sections_points
         full_spoiler_coordinates = half_spoiler_coordinates[
                                    ::-1] + half_spoiler_coordinates[1:]
         return full_spoiler_coordinates
@@ -424,25 +407,15 @@ class StructuralAnalysis(GeomBase):
         """ This part returns a thick main plate instance, representing the
         resulting main plate with its skin thickness. """
         return SewnSolid(quantify=2,
-                         built_from=WeightEstimation(
-                             material_density=self.material_density,
-                             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
-                             ribs_area=self.area_of_ribs,
-                             spoiler_geometry=self.spoiler_in_mm,
-                             strut_amount=self.strut_amount).thick_mainplate
+                         built_from=self.weight_estimation.thick_mainplate
                          if child.index == 0
-                         else WeightEstimation(
-                             material_density=self.material_density,
-                             spoiler_skin_thickness=self.spoiler_skin_thickness * 1000,
-                             ribs_area=self.area_of_ribs,
-                             spoiler_geometry=self.spoiler_in_mm,
-                             strut_amount=self.strut_amount).thick_mainplate_mirror)
+                         else self.weight_estimation.thick_mainplate_mirror)
 
     @Part
     def structural_ribs(self):
         """ This part returns the various ribs instances, representing the
         resulting calculated ribs with the same thickness as the thick main
-        plate. """
+        plate. Note that this instance is created in mm. """
         return SewnSolid(quantify=self.n_ribs + 2,
                          built_from=SectionProperties(
                              airfoils=self.spoiler_airfoils,

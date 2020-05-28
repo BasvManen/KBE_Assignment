@@ -38,7 +38,7 @@ class SectionProperties(GeomBase):
     n_cuts = Input()
     n_discretise = Input(120)
 
-    @Part(in_tree=True)
+    @Part(in_tree=False)
     def sections(self):
         """ As similarly in MainPlate, create the sections based on the
         airfoils list input. They are translated such that the first section
@@ -60,7 +60,7 @@ class SectionProperties(GeomBase):
                                       0.5 * self.spoiler_span /
                                       (len(self.airfoils) - 1)))
 
-    @Part(in_tree=True)
+    @Part(in_tree=False)
     def surface_lofted(self):
         """ Create the main plate based on the sections defined in the
         sections part. The main plate is then rotated based on the spoiler
@@ -338,7 +338,7 @@ class SectionProperties(GeomBase):
                              vector1=Vector(1, 0, 0),
                              vector2=Vector(0, 0, 1))
 
-    @Part(in_tree=True)
+    @Part(in_tree=False)
     def ribs_total(self):
         """ This part fuses the ribs_right and ribs_left parts together,
         to create one instance of rib parts. """

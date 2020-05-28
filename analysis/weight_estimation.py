@@ -23,7 +23,7 @@ class WeightEstimation(GeomBase):
     material_density = Input()
     spoiler_skin_thickness = Input()
     ribs_area = Input()
-    spoiler_geometry = Input(in_tree=True)
+    spoiler_geometry = Input(in_tree=False)
     strut_amount = Input()
 
     @Part(in_tree=False)
@@ -33,22 +33,24 @@ class WeightEstimation(GeomBase):
         thickness. """
         return Solid(self.spoiler_geometry.main_plate.lofted_shell)
 
-    @Part(in_tree=True)
+    @Part(in_tree=False)
     def thick_mainplate(self):
         """ This part returns the actual thick main plate, from the lofted
         shell in surface_lofted and the spoiler skin thickness (projected to
         the inside). """
         return ThickShell(built_from=self.surface_lofted,
-                          offset=-self.spoiler_skin_thickness)
+                          offset=-self.spoiler_skin_thickness,
+                          mesh_deflection=1e-3)
 
-    @Part(in_tree=True)
+    @Part(in_tree=False)
     def thick_mainplate_mirror(self):
         """ This part mirrors the half-span thick_mainplate part, to create
         the second half-span of the total main plate. """
         return MirroredShape(shape_in=self.thick_mainplate,
                              reference_point=Point(0, 0, 0),
                              vector1=Vector(1, 0, 0),
-                             vector2=Vector(0, 0, 1))
+                             vector2=Vector(0, 0, 1),
+                             mesh_deflection=1e-3)
 
     @Attribute
     def volume_mainplate(self):
@@ -61,7 +63,7 @@ class WeightEstimation(GeomBase):
     def volume_endplate(self):
         """ This attribute retrieves the volume of a single endplate and
         converts it to m^3. """
-        return self.spoiler_geometry.endplates.endplate_right.volume / 10 ** 9 \
+        return self.spoiler_geometry.endplates.solid.built_from.volume / 10 ** 9 \
             if self.spoiler_geometry.endplate_present else 0.
 
     @Attribute
