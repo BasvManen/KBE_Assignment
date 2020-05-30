@@ -37,11 +37,11 @@ class Spoiler(GeomBase):
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
 
-    # Car Inputs
-    car_length = Input()
-    car_width = Input()
-    car_maximum_height = Input()
-    car_middle_to_back_ratio = Input()
+    # # Car Inputs
+    # car_length = Input()
+    # car_width = Input()
+    # car_maximum_height = Input()
+    # car_middle_to_back_ratio = Input()
 
     # Calculate reference area based on chord and span
     @Attribute
@@ -107,17 +107,17 @@ class Spoiler(GeomBase):
                                               ),
                            hidden=False if self.endplate_present else True)
 
-    @Part
-    def car_model(self):
-        return Car(length_car=self.car_length,
-                   width_car=self.car_width,
-                   max_height_car=self.car_maximum_height,
-                   middle_to_back_height_ratio=self.car_middle_to_back_ratio,
-                   position=translate(self.position,
-                                      "x", -self.car_model.positions[0][6],
-                                      "y", -self.car_width/2,
-                                      "z", -self.car_model.heights[6]
-                                      - self.strut_height + 35.))
+    # @Part
+    # def car_model(self):
+    #     return Car(length_car=self.car_length,
+    #                width_car=self.car_width,
+    #                max_height_car=self.car_maximum_height,
+    #                middle_to_back_height_ratio=self.car_middle_to_back_ratio,
+    #                position=translate(self.position,
+    #                                   "x", -self.car_model.positions[0][6],
+    #                                   "y", -self.car_width/2,
+    #                                   "z", -self.car_model.heights[6]
+    #                                   - self.strut_height + 35.))
 
     # Define the STEP file nodes
     @Attribute
