@@ -1,43 +1,35 @@
-from parapy.exchange.step import STEPReader
 from parapy.core import Input, Attribute, Part, child
 from parapy.geom import *
-from math import radians
+from math import radians, atan, pi
 
 import numpy as np
-import os
-import sys
 
-DIR = os.path.dirname(__file__)
+###############################################################################
+# CAR MODEL CLASS                                                             #
+# In this file, a simple car model is defined                                 #
+#                                                                             #
+# Inputs:                                                                     #
+# - Length of the car                                                         #
+# - Width of the car                                                          #
+# - Maximum height of the car (located at the cockpit)                        #
+# - The ratio from the maximum height of the car, to the back of the car      #
+###############################################################################
 
 
 class Car(GeomBase):
-    # step_file = Input()
 
     length_car = Input()
     width_car = Input()
-
-    # @Attribute
-    # def car_file(self):
-    #     return STEPReader(filename=sys.path[1] + '\\inputs\\'
-    #                                + self.step_file + '.stp').children
-    #
-    # @Part
-    # def solids(self):
-    #     return TranslatedShape(
-    #         quantify=len(self.car_file[0].children[1].children),
-    #         shape_in=
-    #         self.car_file[0].children[1].children[child.index].solids[0],
-    #         displacement=Vector(0., 0., 0.))
-    #
-    # @Part
-    # def shells(self):
-    #     return SewnShell(
-    #         quantify=len(self.car_file[0].children[0].children),
-    #         built_from=
-    #         self.car_file[0].children[0].children[child.index])
+    max_height_car = Input()
+    middle_to_back_height_ratio = Input()
 
     @Attribute
     def positions(self):
+        """ This attribute returns the x_positions of the curves for the
+        lofted car solid, as well as the x location of the wheels and
+        spoiler position. All positions are based on a generic
+        high-performance LM GTE Pro car, and are scaled with the inputted
+        car length. """
         x_curves = np.array([0, 0.0563, 0.1958, 0.2925, 0.5000, 0.5625, 0.9375,
                              1.0000]) * self.length_car
         x_wheels = np.array([0.1958, 0.7833]) * self.length_car
@@ -46,12 +38,30 @@ class Car(GeomBase):
 
     @Attribute
     def heights(self):
-        height_curves = np.array([0.08375, 0.11667, 0.13625, 0.15625, 0.225,
-                                  0.23542, 0.17125, 0.16292]) * self.length_car
+        """ This attribute returns the height of the curves for the lofted
+        car solid. All values are based on a generic high-performance LM GTE
+        Pro car, and are scaled with the inputted maximum car height and
+        middle to back height ratio. """
+        height_curves = np.array(
+            [0.35574718, 0.49558236, 0.57875287, 0.66370742, 0.95573868,
+             1., 0.72742333, 0.69203976]) * self.max_height_car
+        height_curves[6] = height_curves[5] / self.middle_to_back_height_ratio
+        height_curves[7] = height_curves[6] / 1.05
         return height_curves
 
     @Attribute
+    def avl_angle(self):
+        """ This attribute calculates the angle of deflection for the AVL
+        analysis, due to the car body. It is assumed that the deflection
+        angle is dependent on the aft height change of the body. """
+        dif_height = (self.heights[5] - self.heights[7])
+        dif_position = (self.positions[0][7] - self.positions[0][5])
+        angle = atan(dif_height / dif_position) / 1.5 * 180 / pi
+        return angle
+
+    @Attribute
     def wheels_properties(self):
+        """ This attribute determines the wheel height, radius and width. """
         height_wheels = 180.
         radius_wheels = 300.
         width_wheels = 80.
@@ -59,6 +69,9 @@ class Car(GeomBase):
 
     @Part(in_tree=False)
     def curves(self):
+        """ This part returns several rectangular curves, which are
+        later chamfered and used for the lofted car solid. The curves are
+        based on positions, heights and width_car. """
         return Rectangle(quantify=8,
                          width=self.heights[child.index],
                          length=self.width_car,
@@ -69,6 +82,9 @@ class Car(GeomBase):
 
     @Attribute
     def chamfered_vertices(self):
+        """ This attribute creates vertex_tables for the ChamferedCurve
+        class, for the 4th and 5th index of curves. This is done to create
+        some width change, where the cockpit of the car would be located. """
         v11, v12, v13, v14 = self.curves[4].vertices
         v21, v22, v23, v24 = self.curves[5].vertices
 
@@ -85,6 +101,10 @@ class Car(GeomBase):
 
     @Part(in_tree=False)
     def chamfered_curve(self):
+        """ This part creates the chamfered curves for the lofted car solid.
+        Note that not only the 4th and 5th index of curves are chamfered,
+        as this would lead to uneven edges and vertices of the curves,
+        and thus problems with LoftedSolid. """
         return ChamferedWire(quantify=8,
                              built_from=self.curves[child.index],
                              vertex_table=self.chamfered_vertices[
@@ -102,11 +122,15 @@ class Car(GeomBase):
 
     @Part(in_tree=False)
     def lofted_car(self):
+        """ This part created the lofted car solid from the chamfered
+        curves. """
         return LoftedSolid(profiles=self.chamfered_curve,
                            mesh_deflection=1e-4)
 
     @Attribute
     def edges(self):
+        """ This attribute creates an edge_table for the filleting of the
+        lofted car solid. """
         table = []
         edge_index = self.lofted_car.edges
         edge_radius = np.array([0.04166667, 0., 0.01041667, 0., 0.04166667,
@@ -118,37 +142,39 @@ class Car(GeomBase):
             if edge_radius[i] != 0.:
                 table_instance = (edge_index[i], edge_radius[i])
                 table.append(table_instance)
-
         return table
 
     @Part(in_tree=False)
     def filleted_car(self):
+        """ This part fillets the lofted car solid, to create a finer car
+        solid. """
         return FilletedSolid(built_from=self.lofted_car,
                              edge_table=self.edges,
                              mesh_deflection=1e-4)
 
     @Part(in_tree=False)
     def wheel(self):
+        """ This attribute creates a single wheel instance, by rotatting and
+        translating a Cylinder solid, and later filleting it. """
         return FilletedSolid(
-            built_from=TranslatedShape(shape_in=RotatedShape(shape_in=
-                                                             Cylinder(radius=
-                                                                      self.wheels_properties[
-                                                                          1],
-                                                                      height=300.),
-                                                             rotation_point=self.position,
-                                                             vector=Vector(1,
-                                                                           0,
-                                                                           0),
-                                                             angle=radians(
-                                                                 90)),
-                                       displacement=
-                                       Vector(self.wheels_properties[0],
-                                              300.,
-                                              -self.positions[1][0])),
+            built_from=
+            TranslatedShape(shape_in=
+                            RotatedShape(shape_in=
+                                         Cylinder(radius=
+                                                  self.wheels_properties[1],
+                                                  height=300.),
+                                         rotation_point=self.position,
+                                         vector=Vector(1, 0, 0),
+                                         angle=radians(90)),
+                            displacement=Vector(self.wheels_properties[0],
+                                                300.,
+                                                -self.positions[1][0])),
             radius=30.)
 
     @Attribute
     def wheel_attributes(self):
+        """ This attribute directly defines a set of 4 wheels from the
+        single wheel instance, all located at their right locations. """
         wheel1 = self.wheel
         wheel2 = TranslatedShape(shape_in=wheel1,
                                  displacement=Vector(0.,
@@ -167,11 +193,19 @@ class Car(GeomBase):
 
     @Part
     def wheels(self):
-        return (Solid(quantify=4,
-                      built_from=self.wheel_attributes[child.index]))
+        """ This part creates the 4 wheels and rotates them into the right
+        orientation for the Main assembly. """
+        return RotatedShape(quantify=4,
+                            shape_in=self.wheel_attributes[child.index],
+                            rotation_point=self.position,
+                            vector=Vector(0, 1, 0),
+                            angle=radians(-90))
 
     @Attribute
     def tools(self):
+        """ This attribute defines 4 cutout tools, to be used to create
+        wheel bays from the filleted car solid. It uses cylinders with a
+        slightly higher radius than the wheels. """
         tool1 = TranslatedShape(shape_in=
                                 RotatedShape(shape_in=
                                              Cylinder(radius=
@@ -200,16 +234,30 @@ class Car(GeomBase):
                               vector2=Vector(0, 0, 1))
         return [tool1, tool2, tool3, tool4]
 
-    @Part
+    @Part(in_tree=False)
     def subtracted_car(self):
+        """ This part creates a subtracted solid from the filleted car and
+        the tools, to create a car with wheel bays. """
         return SubtractedSolid(shape_in=self.filleted_car,
                                tool=self.tools,
                                mesh_deflection=1e-4)
+
+    @Part
+    def car_model(self):
+        """ This part rotates the subtracted car, in order to have the right
+        orientation for the Main assembly. """
+        return RotatedShape(shape_in=self.subtracted_car,
+                            rotation_point=self.position,
+                            vector=Vector(0, 1, 0),
+                            angle=radians(-90),
+                            mesh_deflection=1e-4)
 
 
 if __name__ == '__main__':
     from parapy.gui import display
 
     obj = Car(length_car=4800.,
-              width_car=2050.)
+              width_car=2050.,
+              max_height_car=1300.,
+              middle_to_back_height_ratio=1.4)
     display(obj)
