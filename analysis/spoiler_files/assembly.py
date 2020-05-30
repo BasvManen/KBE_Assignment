@@ -37,6 +37,12 @@ class Spoiler(GeomBase):
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
 
+    # Car Inputs
+    car_length = Input()
+    car_width = Input()
+    car_maximum_height = Input()
+    car_middle_to_back_ratio = Input()
+
     # Calculate reference area based on chord and span
     @Attribute
     def reference_area(self):
@@ -101,6 +107,18 @@ class Spoiler(GeomBase):
                                               ),
                            hidden=False if self.endplate_present else True)
 
+    @Part
+    def car_model(self):
+        return Car(length_car=self.car_length,
+                   width_car=self.car_width,
+                   max_height_car=self.car_maximum_height,
+                   middle_to_back_height_ratio=self.car_middle_to_back_ratio,
+                   position=translate(self.position,
+                                      "x", -self.car_model.positions[0][6],
+                                      "y", -self.car_width/2,
+                                      "z", -self.car_model.heights[6]
+                                      - self.strut_height + 35.))
+
     # Define the STEP file nodes
     @Attribute
     def nodes_for_stepfile(self):
@@ -146,5 +164,9 @@ if __name__ == '__main__':
                   endplate_thickness=5.,
                   endplate_sweep=0.,
                   endplate_cant=0.,
-                  strut_amount=3)
+                  strut_amount=3,
+                  car_length=4800.,
+                  car_width=2050.,
+                  car_maximum_height=1300.,
+                  car_middle_to_back_ratio=1.4)
     display(obj)

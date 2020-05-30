@@ -150,11 +150,11 @@ class Car(GeomBase):
         solid. """
         return FilletedSolid(built_from=self.lofted_car,
                              edge_table=self.edges,
-                             mesh_deflection=1e-4)
+                             mesh_deflection=1e-5)
 
     @Part(in_tree=False)
     def wheel(self):
-        """ This attribute creates a single wheel instance, by rotatting and
+        """ This attribute creates a single wheel instance, by rotating and
         translating a Cylinder solid, and later filleting it. """
         return FilletedSolid(
             built_from=
@@ -162,7 +162,8 @@ class Car(GeomBase):
                             RotatedShape(shape_in=
                                          Cylinder(radius=
                                                   self.wheels_properties[1],
-                                                  height=300.),
+                                                  height=300.,
+                                                  position=self.position),
                                          rotation_point=self.position,
                                          vector=Vector(1, 0, 0),
                                          angle=radians(90)),
@@ -182,16 +183,20 @@ class Car(GeomBase):
                                                      self.positions[1][0]
                                                      - self.positions[1][1]))
         wheel3 = MirroredShape(shape_in=wheel1,
-                               reference_point=Point(0, self.width_car / 2, 0),
+                               reference_point=translate(self.position,
+                                                         "y",
+                                                         self.width_car / 2),
                                vector1=Vector(1, 0, 0),
                                vector2=Vector(0, 0, 1))
         wheel4 = MirroredShape(shape_in=wheel2,
-                               reference_point=Point(0, self.width_car / 2, 0),
+                               reference_point=translate(self.position,
+                                                         "y",
+                                                         self.width_car/2),
                                vector1=Vector(1, 0, 0),
                                vector2=Vector(0, 0, 1))
         return [wheel1, wheel2, wheel3, wheel4]
 
-    @Part
+    @Part(in_tree=True)
     def wheels(self):
         """ This part creates the 4 wheels and rotates them into the right
         orientation for the Main assembly. """
@@ -211,7 +216,8 @@ class Car(GeomBase):
                                              Cylinder(radius=
                                                       self.wheels_properties[
                                                           1] + 10.,
-                                                      height=400.),
+                                                      height=400.,
+                                                      position=self.position),
                                              rotation_point=self.position,
                                              vector=Vector(1, 0, 0),
                                              angle=radians(90)),
@@ -225,11 +231,15 @@ class Car(GeomBase):
                                                     self.positions[1][0]
                                                     - self.positions[1][1]))
         tool3 = MirroredShape(shape_in=tool1,
-                              reference_point=Point(0, self.width_car / 2, 0),
+                              reference_point=translate(self.position,
+                                                        "y",
+                                                        self.width_car / 2),
                               vector1=Vector(1, 0, 0),
                               vector2=Vector(0, 0, 1))
         tool4 = MirroredShape(shape_in=tool2,
-                              reference_point=Point(0, self.width_car / 2, 0),
+                              reference_point=translate(self.position,
+                                                        "y",
+                                                        self.width_car / 2),
                               vector1=Vector(1, 0, 0),
                               vector2=Vector(0, 0, 1))
         return [tool1, tool2, tool3, tool4]
@@ -250,7 +260,7 @@ class Car(GeomBase):
                             rotation_point=self.position,
                             vector=Vector(0, 1, 0),
                             angle=radians(-90),
-                            mesh_deflection=1e-4)
+                            mesh_deflection=1e-5)
 
 
 if __name__ == '__main__':
