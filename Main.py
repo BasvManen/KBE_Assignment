@@ -40,6 +40,7 @@ class Main(GeomBase):
     velocity = Input()
     maximum_velocity = Input()
     density = Input()
+    target_downforce = Input(0.)
 
     # Structural Inputs
     spoiler_skin_thickness = Input()
@@ -79,6 +80,18 @@ class Main(GeomBase):
         case = [('Incoming flow angle', {'alpha':
                                          self.geometry.car_model.avl_angle})]
         return case
+
+    @action(label="Geometry Iterator")
+    def geometry_iterator(self):
+        target = self.target_downforce
+        current = self.avl_analysis.total_force
+        while current < target:
+            self.spoiler_angle += 1
+            current = AvlAnalysis(spoiler_input=self.geometry,
+                                  case_settings=self.avl_case,
+                                  velocity=self.velocity,
+                                  density=self.density).total_force
+        return self.spoiler_angle
 
     @Part
     def avl_analysis(self):
