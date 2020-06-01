@@ -37,7 +37,6 @@ class Main(GeomBase):
     car_middle_to_back_ratio = Input()
 
     # Aerodynamic Inputs
-    cases = Input()
     velocity = Input()
     maximum_velocity = Input()
     density = Input()
@@ -75,11 +74,17 @@ class Main(GeomBase):
                        car_maximum_height=self.car_maximum_height,
                        car_middle_to_back_ratio=self.car_middle_to_back_ratio)
 
+    @Attribute
+    def avl_case(self):
+        case = [('Incoming flow angle', {'alpha':
+                                         self.geometry.car_model.avl_angle})]
+        return case
+
     @Part
     def avl_analysis(self):
         """ AVL Analysis of the given spoiler geometry. """
         return AvlAnalysis(spoiler_input=self.geometry,
-                           case_settings=self.cases,
+                           case_settings=self.avl_case,
                            velocity=self.velocity,
                            density=self.density)
 
@@ -261,7 +266,6 @@ if __name__ == '__main__':
     car_maximum_height = 1300.
     car_middle_to_back_ratio = 1.4
 
-    cases = [('Incoming flow angle', {'alpha': 2})]
     velocity = 25
     maximum_velocity = 60
     density = 1.225
@@ -290,7 +294,6 @@ if __name__ == '__main__':
                endplate_thickness=endplate_thickness,
                endplate_sweep=endplate_sweep,
                endplate_cant=endplate_cant,
-               cases=cases,
                velocity=velocity,
                maximum_velocity=maximum_velocity,
                density=density,

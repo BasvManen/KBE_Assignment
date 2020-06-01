@@ -53,7 +53,13 @@ class AvlAnalysis(avl.Interface):
                        endplate_thickness=
                        self.spoiler_input.endplate_thickness/1000,
                        endplate_sweep=self.spoiler_input.endplate_sweep,
-                       endplate_cant=self.spoiler_input.endplate_cant)
+                       endplate_cant=self.spoiler_input.endplate_cant,
+                       car_length=self.spoiler_input.car_length/1000,
+                       car_width=self.spoiler_input.car_width/1000,
+                       car_maximum_height=
+                       self.spoiler_input.car_maximum_height/1000,
+                       car_middle_to_back_ratio=
+                       self.spoiler_input.car_middle_to_back_ratio)
 
     @Attribute
     def reference_area(self):
