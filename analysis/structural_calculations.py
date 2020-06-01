@@ -1,4 +1,3 @@
-from math import tan, radians
 from analysis.structural_methods import mainplate_bending_xz, bending_stress, \
     normal_stress_due_to_strut, max_shear_stress, buckling_modes, failure_modes
 from analysis.spoiler_files.assembly import Spoiler
@@ -7,6 +6,7 @@ from analysis.weight_estimation import WeightEstimation
 from analysis.AVL_main import AvlAnalysis
 from parapy.geom import *
 from parapy.core import *
+from math import tan, radians
 from matplotlib import pyplot as plt
 
 
@@ -67,6 +67,12 @@ class StructuralAnalysis(GeomBase):
     endplate_sweep = Input()
     endplate_cant = Input()
 
+    # Car Inputs
+    car_length = Input()
+    car_width = Input()
+    car_maximum_height = Input()
+    car_middle_to_back_ratio = Input()
+
     # Additional inputs for calculations
     spoiler_skin_thickness = Input(0.001)
     n_ribs = Input(0)
@@ -81,8 +87,8 @@ class StructuralAnalysis(GeomBase):
     @Part(in_tree=False)
     def spoiler_in_mm(self):
         """ Create the spoiler assembly part in millimeters. This instance
-        is used for the weights estimation and the creation of the thick
-        structural main plate. """
+        is used for the weights estimation, the AVL analysis and the
+        creation of the thick structural main plate. """
         return Spoiler(label="Spoiler in mm",
                        spoiler_airfoils=self.spoiler_airfoils,
                        spoiler_span=self.spoiler_span * 1000,
@@ -99,29 +105,37 @@ class StructuralAnalysis(GeomBase):
                        endplate_present=self.endplate_present,
                        endplate_thickness=self.endplate_thickness * 1000,
                        endplate_sweep=self.endplate_sweep,
-                       endplate_cant=self.endplate_cant)
+                       endplate_cant=self.endplate_cant,
+                       car_length=self.car_length * 1000,
+                       car_width=self.car_width * 1000,
+                       car_maximum_height=self.car_maximum_height * 1000,
+                       car_middle_to_back_ratio=self.car_middle_to_back_ratio)
 
-    @Part(in_tree=False)
-    def spoiler_in_m(self):
-        """ Also create the spoiler assembly part in meters. This instance
-            is used as inputs for the AVL calculations. """
-        return Spoiler(label="Spoiler in m",
-                       spoiler_airfoils=self.spoiler_airfoils,
-                       spoiler_span=self.spoiler_span,
-                       spoiler_chord=self.spoiler_chord,
-                       spoiler_angle=self.spoiler_angle,
-                       strut_amount=self.strut_amount,
-                       strut_airfoil_shape=self.strut_airfoil_shape,
-                       strut_lat_location=self.strut_lat_location,
-                       strut_height=self.strut_height,
-                       strut_chord_fraction=self.strut_chord_fraction,
-                       strut_thickness=self.strut_thickness,
-                       strut_sweep=self.strut_sweep,
-                       strut_cant=self.strut_cant,
-                       endplate_present=False,
-                       endplate_thickness=self.endplate_thickness,
-                       endplate_sweep=self.endplate_sweep,
-                       endplate_cant=self.endplate_cant)
+    # @Part(in_tree=False)
+    # def spoiler_in_m(self):
+    #     """ Also create the spoiler assembly part in meters. This instance
+    #         is used as inputs for the AVL calculations. """
+    #     return Spoiler(label="Spoiler in m",
+    #                    spoiler_airfoils=self.spoiler_airfoils,
+    #                    spoiler_span=self.spoiler_span,
+    #                    spoiler_chord=self.spoiler_chord,
+    #                    spoiler_angle=self.spoiler_angle,
+    #                    strut_amount=self.strut_amount,
+    #                    strut_airfoil_shape=self.strut_airfoil_shape,
+    #                    strut_lat_location=self.strut_lat_location,
+    #                    strut_height=self.strut_height,
+    #                    strut_chord_fraction=self.strut_chord_fraction,
+    #                    strut_thickness=self.strut_thickness,
+    #                    strut_sweep=self.strut_sweep,
+    #                    strut_cant=self.strut_cant,
+    #                    endplate_present=False,
+    #                    endplate_thickness=self.endplate_thickness,
+    #                    endplate_sweep=self.endplate_sweep,
+    #                    endplate_cant=self.endplate_cant,
+    #                    car_length=self.car_length,
+    #                    car_width=self.car_width,
+    #                    car_maximum_height=self.car_maximum_height,
+    #                    car_middle_to_back_ratio=self.car_middle_to_back_ratio)
 
     @Part
     def weight_estimation(self):
@@ -145,14 +159,15 @@ class StructuralAnalysis(GeomBase):
 
     @Attribute
     def get_distributed_forces(self):
-        """ This attribute calculates the lift and drag distributions for
-        the inputted maximum velocity that the spoiler has to withstand. It
-        also outputs distribution of y locations at which these forces are
-        applied. Note that it also uses a slight safety factor of 1.25 on
-        this maximum velocity. """
+        """ This attribute calculates the lift and drag distributions from
+        AvlAnalysis, for the inputted maximum velocity that the spoiler has
+        to withstand. It also outputs distribution of y locations at which
+        these forces are applied. Note that it also uses a slight safety
+        factor of 1.25 on this maximum velocity. """
         # Define the safety factor and the case for the AVL analysis
         safety_factor = 1.25
-        case = [('AoA input', {'alpha': 0})]
+        case = [('AoA input',
+                 {'alpha': self.spoiler_in_mm.car_model.avl_angle})]
         # Perform the aerodynamic analysis
         analysis = AvlAnalysis(spoiler_input=self.spoiler_in_mm,
                                case_settings=case,
@@ -162,7 +177,7 @@ class StructuralAnalysis(GeomBase):
         # The outputted data is defined in a slightly off format. This
         # section places the lift, drag and y-distribution in a format to
         # comply with the rest of the class.
-        spacing = self.spoiler_in_m.spoiler_span / len(
+        spacing = self.spoiler_span / len(
             analysis.lift_distribution[0])
         lift_distribution = []
         drag_distribution = []
@@ -644,6 +659,10 @@ if __name__ == '__main__':
                              endplate_thickness=3 / 1000.,
                              endplate_sweep=3,
                              endplate_cant=3,
+                             car_length=4.8,
+                             car_width=2.05,
+                             car_maximum_height=1.3,
+                             car_middle_to_back_ratio=1.4,
                              maximum_velocity=80.,
                              air_density=1.225,
                              youngs_modulus=70 * 10 ** 9,

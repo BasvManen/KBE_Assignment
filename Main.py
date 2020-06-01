@@ -30,6 +30,12 @@ class Main(GeomBase):
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
 
+    # Car Inputs
+    car_length = Input()
+    car_width = Input()
+    car_maximum_height = Input()
+    car_middle_to_back_ratio = Input()
+
     # Aerodynamic Inputs
     cases = Input()
     velocity = Input()
@@ -63,7 +69,11 @@ class Main(GeomBase):
                        endplate_present=self.endplate_present,
                        endplate_thickness=self.endplate_thickness,
                        endplate_sweep=self.endplate_sweep,
-                       endplate_cant=self.endplate_cant)
+                       endplate_cant=self.endplate_cant,
+                       car_length=self.car_length,
+                       car_width=self.car_width,
+                       car_maximum_height=self.car_maximum_height,
+                       car_middle_to_back_ratio=self.car_middle_to_back_ratio)
 
     @Part
     def avl_analysis(self):
@@ -79,7 +89,7 @@ class Main(GeomBase):
         by iterating the skin thickness to overcome all failure modes for
         the spoiler. If a failure mode occurs, the skin thickness is
         increased and calculations are performed again. If it turns out that
-        the spoiler only failes due to the lack of ribs, the amount of ribs
+        the spoiler only fails due to the lack of ribs, the amount of ribs
         are increased. In the Python Console, a log is printed. """
         
         print("-----------------------------------------------")
@@ -118,6 +128,10 @@ class Main(GeomBase):
                 endplate_thickness=self.endplate_thickness / 1000.,
                 endplate_sweep=self.endplate_sweep,
                 endplate_cant=self.endplate_cant,
+                car_length=self.car_length / 1000,
+                car_width=self.car_width / 1000,
+                car_maximum_height=self.car_maximum_height / 1000,
+                car_middle_to_back_ratio=self.car_middle_to_back_ratio,
                 maximum_velocity=self.maximum_velocity,
                 air_density=self.density,
                 youngs_modulus=self.youngs_modulus * 10 ** 9,
@@ -153,29 +167,29 @@ class Main(GeomBase):
             elif not failure:
                 print(' -All failure modes satisfied')
 
-            print("")
-            print("-----------------------------------------------")
-            print('Final skin thickness = '
-                  + str(round(skin_thickness,
-                              (len(str(delta_thickness)) - 2))) + ' m')
+        print("")
+        print("-----------------------------------------------")
+        print('Final skin thickness = '
+              + str(round(skin_thickness,
+                          (len(str(delta_thickness)) - 2))) + ' m')
 
-            # Additionally, it is checked whether the skin thickness is viable
-            # compared to the thickness of the spoiler itself.
-            # t_c_mid = float(geom[0][-2:])
-            # t_c_tip = float(geom[1][-2:])
-            # minimum_t_c_ratio = min(t_c_mid, t_c_tip)
-            # geom_thickness = geom[3] / 1000. * minimum_t_c_ratio / 100
-            # if skin_thickness > 0.5 * geom_thickness:
-            #     msg = "Calculated skin thickness is too large for the " \
-            #           "thickness of the airfoil geometry. Define a thicker " \
-            #           "airfoil/larger chord or choose a stiffer material. "
-            #     header = "WARNING: GEOMETRY NOT POSSIBLE"
-            #     warnings.warn(msg)
+        # Additionally, it is checked whether the skin thickness is viable
+        # compared to the thickness of the spoiler itself.
+        # t_c_mid = float(geom[0][-2:])
+        # t_c_tip = float(geom[1][-2:])
+        # minimum_t_c_ratio = min(t_c_mid, t_c_tip)
+        # geom_thickness = geom[3] / 1000. * minimum_t_c_ratio / 100
+        # if skin_thickness > 0.5 * geom_thickness:
+        #     msg = "Calculated skin thickness is too large for the " \
+        #           "thickness of the airfoil geometry. Define a thicker " \
+        #           "airfoil/larger chord or choose a stiffer material. "
+        #     header = "WARNING: GEOMETRY NOT POSSIBLE"
+        #     warnings.warn(msg)
 
-            print('Final amount of ribs = ' + str(number_of_ribs))
-            print('Calculated total weight = ' + str(
-                round(structural_analysis.weights[4], 4)) + ' kg')
-            print("-----------------------------------------------")
+        print('Final amount of ribs = ' + str(number_of_ribs))
+        print('Calculated total weight = ' + str(
+            round(structural_analysis.weights[4], 4)) + ' kg')
+        print("-----------------------------------------------")
 
         return skin_thickness, number_of_ribs
 
@@ -205,6 +219,12 @@ class Main(GeomBase):
                                   self.endplate_thickness / 1000.,
                                   endplate_sweep=self.endplate_sweep,
                                   endplate_cant=self.endplate_cant,
+                                  car_length=self.car_length / 1000,
+                                  car_width=self.car_width / 1000,
+                                  car_maximum_height=
+                                  self.car_maximum_height / 1000,
+                                  car_middle_to_back_ratio=
+                                  self.car_middle_to_back_ratio,
                                   maximum_velocity=self.maximum_velocity,
                                   air_density=self.density,
                                   youngs_modulus=self.youngs_modulus * 10 ** 9,
@@ -236,6 +256,10 @@ if __name__ == '__main__':
     endplate_thickness = 5
     endplate_sweep = 0
     endplate_cant = 10
+    car_length = 4800.
+    car_width = 2050.
+    car_maximum_height = 1300.
+    car_middle_to_back_ratio = 1.4
 
     cases = [('Incoming flow angle', {'alpha': 2})]
     velocity = 25
@@ -276,5 +300,10 @@ if __name__ == '__main__':
                yield_strength=yield_strength,
                shear_strength=shear_strength,
                material_density=material_density,
-               poisson_ratio=poisson_ratio)
+               poisson_ratio=poisson_ratio,
+               car_length=car_length,
+               car_width=car_width,
+               car_maximum_height=car_maximum_height,
+               car_middle_to_back_ratio=car_middle_to_back_ratio)
+
     display(obj)
