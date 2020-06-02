@@ -62,7 +62,8 @@ class Spoiler(GeomBase):
                                             'z',
                                             self.spoiler_chord/6*child.index,
                                             'x',
-                                            self.spoiler_chord/6*child.index*tan(radians(self.endplate_sweep))))
+                                            self.spoiler_chord/6*child.index *
+                                            tan(radians(self.strut_sweep))))
 
     # Define wetted area
     @Attribute
