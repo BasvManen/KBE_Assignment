@@ -5,6 +5,7 @@ from parapy.core.validate import *
 from analysis.spoiler_files import Spoiler
 from analysis.AVL_main import AvlAnalysis
 from analysis.structural_calculations import StructuralAnalysis
+from numpy import round
 
 
 class Main(GeomBase):
@@ -40,6 +41,7 @@ class Main(GeomBase):
     velocity = Input()
     maximum_velocity = Input()
     density = Input()
+    iteration_parameter = Input("angle")
     target_downforce = Input(0.)
 
     # Structural Inputs
@@ -83,15 +85,65 @@ class Main(GeomBase):
 
     @action(label="Geometry Iterator")
     def geometry_iterator(self):
+        """ This action changes the geometry to achieve a certain downforce
+        level. As input, the variable parameter and the target downforce is
+        given. The iterator increases the parameter until the downforce is
+        reached. The geometry is changed automatically. """
+
+        print("-----------------------------------------------")
+        print('Geometry iterator: The chosen parameter will be ')
+        print('increased until the desired downforce is reached. ')
+        print("")
+        print("Chosen parameter: " + str(self.iteration_parameter))
+        print("Target downforce: " + str(self.target_downforce))
+        print("-----------------------------------------------")
+        # Obtain the zero measurements and define iteration number
         target = self.target_downforce
         current = self.avl_analysis.total_force
+        iteration_n = 0
+
+        # First, check if there are no typo's in the variable name. If there
+        # are typo's, cancel the iteration process and return nothing.
+        if self.iteration_parameter != "angle" and \
+           self.iteration_parameter != "span" and  \
+           self.iteration_parameter != "chord" and \
+           self.iteration_parameter != "velocity":
+            print("Selected parameter cannot be iterated")
+            print("")
+            print("ITERATION FINISHED")
+            print("-----------------------------------------------")
+            return None
+
+        # Print the zero measurements on the screen
+        print("Iteration #: " + str(iteration_n))
+        print("Current downforce: " + str(round(current, 1)) + " [N]")
+
+        # Start the iteration loop
         while current < target:
-            self.spoiler_angle += 1
+            iteration_n += 1
+
+            # Increase the parameter
+            if self.iteration_parameter == "angle":
+                self.spoiler_angle += 1
+            elif self.iteration_parameter == "span":
+                self.spoiler_span += 50
+            elif self.iteration_parameter == "chord":
+                self.spoiler_chord += 25
+            elif self.iteration_parameter == "velocity":
+                self.velocity += 2
+
+            # Calculate the new downforce based on the new geometry
             current = AvlAnalysis(spoiler_input=self.geometry,
                                   case_settings=self.avl_case,
                                   velocity=self.velocity,
                                   density=self.density).total_force
-        return self.spoiler_angle
+
+            # Print the iteration and current downforce on screen
+            print("Iteration #: " + str(iteration_n))
+            print("Current downforce: " + str(round(current, 1)) + " [N]")
+        print("")
+        print("ITERATION FINISHED")
+        print("-----------------------------------------------")
 
     @Part
     def avl_analysis(self):
