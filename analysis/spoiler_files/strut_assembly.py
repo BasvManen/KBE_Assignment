@@ -109,11 +109,11 @@ class Struts(GeomBase):
                                and child.index == 0
                                else self.struts.strut,
                                displacement=
-                               Vector(x=(self.main[0].chord
-                                         * cos(radians(self.main[0].angle))
+                               Vector(x=(self.main[-1].chord
+                                         * cos(radians(self.main[-1].angle))
                                          - self.strut_chord_fraction
-                                         * self.main[0].chord
-                                         * cos(radians(self.main[0].angle))) / 2,
+                                         * self.main[-1].chord
+                                         * cos(radians(self.main[-1].angle))) / 2,
                                       y=self.strut_y_position[child.index]))
 
     @Part(in_tree=False)
@@ -123,7 +123,7 @@ class Struts(GeomBase):
         which one is the wanted cut-off strut. """
         return PartitionedSolid(quantify=self.strut_amount
                                          - floor(self.strut_amount / 2),
-                                solid_in=self.main[0].surface,
+                                solid_in=self.main[-1].surface,
                                 tool=self.translated_strut[child.index],
                                 keep_tool=True,
                                 mesh_deflection=1e-4)

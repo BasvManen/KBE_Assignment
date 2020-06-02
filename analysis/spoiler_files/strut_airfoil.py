@@ -126,11 +126,11 @@ class StrutAirfoil(GeomBase):
         main plate. """
         return TranslatedCurve(curve_in=self.upper_curve_airfoil,
                                displacement=
-                               Vector((self.strut_height + self.main[0].chord)
+                               Vector((self.strut_height + self.main[-1].chord)
                                       * sin(radians(self.strut_sweepback_angle)),
-                                      (self.strut_height + self.main[0].chord)
+                                      (self.strut_height + self.main[-1].chord)
                                       * sin(radians(self.strut_cant_angle)),
-                                      self.strut_height + self.main[0].chord))
+                                      self.strut_height + self.main[-1].chord))
 
     # Create the initial solid for the extended strut, which will be
     # subtracted in the assembly class

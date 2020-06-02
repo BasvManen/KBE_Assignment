@@ -39,8 +39,8 @@ class StrutPlate(GeomBase):
         which is defined in the x-direction. It makes sure that the chord of
         the strut will never exceed the chord (projected in x-direction) of
         the main plate. """
-        return self.main[0].chord * self.chord_fraction \
-               * cos(radians(self.main[0].angle))
+        return self.main[-1].chord * self.chord_fraction \
+               * cos(radians(self.main[-1].angle))
 
     @Attribute
     def wetted_area(self):
@@ -95,11 +95,11 @@ class StrutPlate(GeomBase):
         return Rectangle(width=self.strut_chord, length=self.strut_thickness,
                          position=translate(
                              self.upper_curve_rectangle.position,
-                             "x", (self.strut_height + self.main[0].chord) *
+                             "x", (self.strut_height + self.main[-1].chord) *
                                   tan(radians(self.strut_sweepback_angle)),
-                             "y", (self.strut_height + self.main[0].chord) *
+                             "y", (self.strut_height + self.main[-1].chord) *
                                   tan(radians(self.strut_cant_angle)),
-                             "z", self.strut_height + self.main[0].chord),
+                             "z", self.strut_height + self.main[-1].chord),
                          centered=False)
 
     @Part(in_tree=False)

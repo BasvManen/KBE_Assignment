@@ -313,17 +313,17 @@ if __name__ == '__main__':
     # temporary.
 
     spoiler_airfoils = ['test', 'naca6406']
-    spoiler_span = 1600
+    spoiler_span = 3000
     spoiler_chord = 300
     spoiler_angle = 10
     plate_amount = 2
     strut_amount = 2
     strut_airfoil_shape = True
-    strut_lat_location = 0.75
+    strut_lat_location = 0.6
     strut_height = 250
     strut_chord_fraction = 0.6
     strut_thickness = 15
-    strut_sweep = 10
+    strut_sweep = 20
     strut_cant = 10
     endplate_present = True
     endplate_thickness = 5

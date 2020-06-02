@@ -38,6 +38,7 @@ class AvlAnalysis(avl.Interface):
                        spoiler_span=self.spoiler_input.spoiler_span/1000,
                        spoiler_chord=self.spoiler_input.spoiler_chord/1000,
                        spoiler_angle=self.spoiler_input.spoiler_angle,
+                       plate_amount=self.spoiler_input.plate_amount,
                        strut_amount=self.spoiler_input.strut_amount,
                        strut_airfoil_shape=
                        self.spoiler_input.strut_airfoil_shape,
@@ -86,8 +87,8 @@ class AvlAnalysis(avl.Interface):
         converts them into AVL sections, which are build from the section
         curvature. """
         return avl.SectionFromCurve(quantify=
-                                    len(self.spoiler.main_plate.sections),
-                                    curve_in=self.spoiler.main_plate.
+                                    len(self.spoiler.main_plate[0].sections),
+                                    curve_in=self.spoiler.main_plate[0].
                                     sections[child.index].curve
                                     )
 
