@@ -119,7 +119,9 @@ class Spoiler(GeomBase):
                    max_height_car=self.car_maximum_height,
                    middle_to_back_height_ratio=self.car_middle_to_back_ratio,
                    position=translate(self.position,
-                                      "x", -self.car_model.positions[0][6],
+                                      "x", -self.car_model.positions[0][6]
+                                      + self.spoiler_chord
+                                      * self.strut_chord_fraction,
                                       "y", -self.car_width/2,
                                       "z", -self.car_model.heights[6]
                                       - self.strut_height + 35.))
