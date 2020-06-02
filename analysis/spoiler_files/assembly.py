@@ -128,33 +128,6 @@ class Spoiler(GeomBase):
                                       "z", -self.car_model.heights[6]
                                       - self.strut_height + 35.))
 
-    # Define the STEP file nodes
-    @Attribute
-    def nodes_for_stepfile(self):
-        if self.endplate_present:
-            nodes = [self.main_plate.surface,
-                     self.main_plate.surface_mirrored,
-                     self.struts.strut_right,
-                     self.struts.strut_left,
-                     self.endplates.endplate_right,
-                     self.endplates.endplate_left]
-        else:
-            nodes = [self.main_plate.surface,
-                     self.main_plate.surface_mirrored,
-                     self.struts.strut_right,
-                     self.struts.strut_left]
-        return nodes
-
-    # Write the STEP components from the nodes
-    @Part
-    def step_writer_components(self):
-        return STEPWriter(default_directory=DIR,
-                          nodes=self.nodes_for_stepfile)
-
-    # @Part
-    # def car(self):
-    #     return Car(step_file='audi_step_file')
-
 
 if __name__ == '__main__':
     from parapy.gui import display

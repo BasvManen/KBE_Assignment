@@ -5,6 +5,7 @@ from parapy.core.validate import *
 from analysis.spoiler_files import Spoiler
 from analysis.AVL_main import AvlAnalysis
 from analysis.structural_calculations import StructuralAnalysis
+from analysis.STEP_writer import StepWriter
 from numpy import round
 
 
@@ -78,6 +79,10 @@ class Main(GeomBase):
                        car_width=self.car_width,
                        car_maximum_height=self.car_maximum_height,
                        car_middle_to_back_ratio=self.car_middle_to_back_ratio)
+
+    @Part
+    def step_writer(self):
+        return StepWriter(geometry_input=self.geometry)
 
     @Attribute
     def avl_case(self):
