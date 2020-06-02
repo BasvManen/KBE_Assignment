@@ -1,4 +1,6 @@
 from analysis.spoiler_files import Spoiler
+from analysis.avl_sections import AVLSections
+from analysis.avl_surfaces import AVLSurfaces
 from parapy.core import *
 from math import sin, radians
 
@@ -82,29 +84,19 @@ class AvlAnalysis(avl.Interface):
         return 0.5*self.density*self.velocity**2
 
     @Part
-    def avl_main_plate_sections(self):
-        """ This part retrieves the sections from the spoiler main plate and
-        converts them into AVL sections, which are build from the section
-        curvature. """
-        return avl.SectionFromCurve(quantify=
-                                    len(self.spoiler.main_plate[0].sections),
-                                    curve_in=self.spoiler.main_plate[0].
-                                    sections[child.index].curve
-                                    )
+    def avl_sections(self):
+        return AVLSections(quantify=self.spoiler.plate_amount,
+                           sections=self.spoiler.main_plate[child.index].sections)
 
     @Part
-    def avl_main_plate(self):
+    def avl_surfaces(self):
         """ This part creates the AVL surface of the main plate. The surface
         is created from the AVL sections for the main plate. """
-        return avl.Surface(name='Main Plate',
-                           n_chordwise=12,
-                           chord_spacing=avl.Spacing.equal,
-                           n_spanwise=20,
-                           span_spacing=avl.Spacing.equal,
-                           y_duplicate=self.spoiler.position.point[1],
-                           sections=self.avl_main_plate_sections,
-                           angle=self.spoiler.spoiler_angle
-                           )
+        return AVLSurfaces(quantify=self.spoiler.plate_amount,
+                           number=child.index,
+                           duplicate=self.spoiler.position.point[1],
+                           sections=self.avl_sections[child.index].plate_sections,
+                           angle=self.spoiler.spoiler_angle)
 
     @Attribute
     def configuration(self):
@@ -115,7 +107,7 @@ class AvlAnalysis(avl.Interface):
                                  reference_span=self.spoiler.spoiler_span,
                                  reference_chord=self.spoiler.spoiler_chord,
                                  reference_point=self.spoiler.position.point,
-                                 surfaces=[self.avl_main_plate],
+                                 surfaces=[plate.surface for plate in self.avl_surfaces],
                                  mach=0.0
                                  # Because of the low velocities, the flow is
                                  # assumed incompressible.
