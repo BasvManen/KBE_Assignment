@@ -187,6 +187,7 @@ class Main(GeomBase):
                 spoiler_chord=self.spoiler_chord / 1000.,
                 spoiler_angle=self.spoiler_angle,
                 spoiler_skin_thickness=skin_thickness,
+                plate_amount=self.plate_amount,
                 n_ribs=number_of_ribs,
                 strut_amount=self.strut_amount,
                 strut_airfoil_shape=self.strut_airfoil_shape,
@@ -276,6 +277,7 @@ class Main(GeomBase):
                                   spoiler_angle=self.spoiler_angle,
                                   spoiler_skin_thickness=
                                   self.skin_thickness_iterator[0],
+                                  plate_amount=self.plate_amount,
                                   n_ribs=self.skin_thickness_iterator[1],
                                   strut_amount=self.strut_amount,
                                   strut_airfoil_shape=self.strut_airfoil_shape,
@@ -346,7 +348,8 @@ if __name__ == '__main__':
     material_density = 2700
     poisson_ratio = 0.33
 
-    obj = Main(spoiler_airfoils=spoiler_airfoils,
+    obj = Main(label="Spoiler",
+               spoiler_airfoils=spoiler_airfoils,
                spoiler_span=spoiler_span,
                spoiler_chord=spoiler_chord,
                spoiler_angle=spoiler_angle,

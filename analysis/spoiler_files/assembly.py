@@ -68,7 +68,7 @@ class Spoiler(GeomBase):
     # Define wetted area
     @Attribute
     def wetted_area(self):
-        return self.main_plate.wetted_area \
+        return self.main_plate[0].wetted_area * self.plate_amount \
                + self.struts.struts.wetted_area * self.strut_amount + \
                (self.endplates.wetted_area if self.endplate_present else 0)
 

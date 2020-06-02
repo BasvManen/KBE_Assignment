@@ -50,6 +50,7 @@ class StructuralAnalysis(GeomBase):
     spoiler_span = Input()
     spoiler_chord = Input()
     spoiler_angle = Input()
+    plate_amount = Input()
 
     # Strut Inputs
     strut_amount = Input()
@@ -94,6 +95,7 @@ class StructuralAnalysis(GeomBase):
                        spoiler_span=self.spoiler_span * 1000,
                        spoiler_chord=self.spoiler_chord * 1000,
                        spoiler_angle=self.spoiler_angle,
+                       plate_amount=self.plate_amount,
                        strut_amount=self.strut_amount,
                        strut_airfoil_shape=self.strut_airfoil_shape,
                        strut_lat_location=self.strut_lat_location,
@@ -424,7 +426,8 @@ class StructuralAnalysis(GeomBase):
         return SewnSolid(quantify=2,
                          built_from=self.weight_estimation.thick_mainplate
                          if child.index == 0
-                         else self.weight_estimation.thick_mainplate_mirror)
+                         else self.weight_estimation.thick_mainplate_mirror,
+                         mesh_deflection=1e-5)
 
     @Part
     def structural_ribs(self):
@@ -440,7 +443,8 @@ class StructuralAnalysis(GeomBase):
                              spoiler_skin_thickness=
                              self.spoiler_skin_thickness * 1000,
                              n_cuts=self.number_of_lateral_cuts,
-                             n_ribs=self.n_ribs).ribs_total[child.index])
+                             n_ribs=self.n_ribs).ribs_total[child.index],
+                         mesh_deflection=1e-5)
 
     @action(label="Plot the normal stress along the spoiler")
     def plot_normal_stress(self):

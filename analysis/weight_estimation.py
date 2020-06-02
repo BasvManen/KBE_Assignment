@@ -31,7 +31,7 @@ class WeightEstimation(GeomBase):
         """ This part returns the lofted shell of the main plate geometry,
         which is an input to create the thick main plate with actual
         thickness. """
-        return Solid(self.spoiler_geometry.main_plate.lofted_shell)
+        return Solid(self.spoiler_geometry.main_plate[0].lofted_shell)
 
     @Part(in_tree=False)
     def thick_mainplate(self):
@@ -40,7 +40,7 @@ class WeightEstimation(GeomBase):
         the inside). """
         return ThickShell(built_from=self.surface_lofted,
                           offset=-self.spoiler_skin_thickness,
-                          mesh_deflection=1e-3)
+                          mesh_deflection=1e-5)
 
     @Part(in_tree=False)
     def thick_mainplate_mirror(self):
@@ -50,7 +50,7 @@ class WeightEstimation(GeomBase):
                              reference_point=Point(0, 0, 0),
                              vector1=Vector(1, 0, 0),
                              vector2=Vector(0, 0, 1),
-                             mesh_deflection=1e-3)
+                             mesh_deflection=1e-5)
 
     @Attribute
     def volume_mainplate(self):
@@ -114,7 +114,8 @@ class WeightEstimation(GeomBase):
     def total_weight(self):
         """ This attribute calculates the total weight of the spoiler
         assembly, in kg. """
-        return self.weight_mainplate + self.weight_endplate * 2 \
+        return self.weight_mainplate * self.spoiler_geometry.plate_amount \
+               + self.weight_endplate * 2  \
                + self.weight_strut * self.strut_amount + self.weight_ribs
 
 
