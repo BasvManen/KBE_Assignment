@@ -51,7 +51,7 @@ class Endplates(GeomBase):
         end product of this class for the right endplate. """
         return RotatedShape(shape_in=self.endplate.solid,
                             rotation_point=self.position.point,
-                            vector=self.main.surface.position.orientation.Vx,
+                            vector=self.main[0].surface.position.orientation.Vx,
                             angle=radians(-self.cant),
                             label="right_side")
 

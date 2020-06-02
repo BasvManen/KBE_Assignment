@@ -4,7 +4,7 @@ from parapy.core.validate import *
 from parapy.geom import *
 from parapy.exchange import STEPWriter
 import kbeutils.avl as avl
-from math import sin, cos, tan, radians, floor
+from math import sin, cos, radians, floor, tan
 import os
 
 DIR = os.path.dirname(__file__)
@@ -60,7 +60,9 @@ class Spoiler(GeomBase):
                          tip_cant=self.endplate_cant,
                          position=translate(self.position,
                                             'z',
-                                            self.spoiler_chord/6*child.index))
+                                            self.spoiler_chord/6*child.index,
+                                            'x',
+                                            self.spoiler_chord/6*child.index*tan(radians(self.endplate_sweep))))
 
     # Define wetted area
     @Attribute
@@ -83,33 +85,30 @@ class Spoiler(GeomBase):
 
     @Attribute
     def endplate_height(self):
-        z1 = self.main_plate.surface.edges[-1].bbox.bounds[2]
-        z2 = self.main_plate.surface.edges[-1].bbox.bounds[5]
-        return z2 - z1
+        z1 = self.main_plate[0].surface.edges[-1].bbox.bounds[2]
+        z2 = self.main_plate[-1].surface.edges[-1].bbox.bounds[5]
+        return z2, (z2 - z1)
 
     @Attribute
     def endplate_chord(self):
-        x1 = self.main_plate.surface.edges[-1].bbox.bounds[0]
-        x2 = self.main_plate.surface.edges[-1].bbox.bounds[3]
-        return x2 - x1
+        x1 = self.main_plate[0].surface.edges[-1].bbox.bounds[0]
+        x2 = self.main_plate[-1].surface.edges[-1].bbox.bounds[3]
+        return x2, (x2 - x1)
 
     # Define the endplates (part)
     @Part
     def endplates(self):
         return DynamicType(type=Endplates,
-                           chord=self.endplate_chord,
-                           height=self.endplate_height,
+                           chord=self.endplate_chord[1],
+                           height=self.endplate_height[1],
                            thickness=self.endplate_thickness,
                            sweep=self.endplate_sweep,
                            cant=self.endplate_cant,
                            main=self.main_plate,
                            position=translate(self.position,
-                                              'x', (self.spoiler_chord * cos(
-                                               radians(self.spoiler_angle))),
+                                              'x', self.endplate_chord[0],
                                               'y', self.spoiler_span/2,
-                                              'z', (self.spoiler_chord * sin(
-                                               radians(self.spoiler_angle)))
-                                              ),
+                                              'z', self.endplate_height[0]),
                            hidden=False if self.endplate_present else True)
 
     @Part

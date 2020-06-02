@@ -325,10 +325,10 @@ if __name__ == '__main__':
     strut_thickness = 15
     strut_sweep = 10
     strut_cant = 10
-    endplate_present = False
+    endplate_present = True
     endplate_thickness = 5
-    endplate_sweep = 0
-    endplate_cant = 10
+    endplate_sweep = 15
+    endplate_cant = 0
     car_length = 4800.
     car_width = 2050.
     car_maximum_height = 1300.
