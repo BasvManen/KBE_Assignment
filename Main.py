@@ -14,6 +14,7 @@ class Main(GeomBase):
     spoiler_span = Input(validator=Positive)
     spoiler_chord = Input(validator=Positive)
     spoiler_angle = Input(validator=Range(-60., 60.))
+    plate_amount = Input(validator=GreaterThanOrEqualTo(1))
 
     # Strut Inputs
     strut_amount = Input(2, validator=GreaterThanOrEqualTo(2))
@@ -60,6 +61,7 @@ class Main(GeomBase):
                        spoiler_span=self.spoiler_span,
                        spoiler_chord=self.spoiler_chord,
                        spoiler_angle=self.spoiler_angle,
+                       plate_amount=self.plate_amount,
                        strut_amount=self.strut_amount,
                        strut_airfoil_shape=self.strut_airfoil_shape,
                        strut_lat_location=self.strut_lat_location,
@@ -314,6 +316,7 @@ if __name__ == '__main__':
     spoiler_span = 1600
     spoiler_chord = 300
     spoiler_angle = 10
+    plate_amount = 2
     strut_amount = 2
     strut_airfoil_shape = True
     strut_lat_location = 0.75
@@ -322,7 +325,7 @@ if __name__ == '__main__':
     strut_thickness = 15
     strut_sweep = 10
     strut_cant = 10
-    endplate_present = True
+    endplate_present = False
     endplate_thickness = 5
     endplate_sweep = 0
     endplate_cant = 10
@@ -347,6 +350,7 @@ if __name__ == '__main__':
                spoiler_span=spoiler_span,
                spoiler_chord=spoiler_chord,
                spoiler_angle=spoiler_angle,
+               plate_amount=plate_amount,
                strut_amount=strut_amount,
                strut_airfoil_shape=strut_airfoil_shape,
                strut_lat_location=strut_lat_location,

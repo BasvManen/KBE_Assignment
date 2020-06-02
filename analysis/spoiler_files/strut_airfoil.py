@@ -37,8 +37,8 @@ class StrutAirfoil(GeomBase):
         which is defined in the x-direction. It makes sure that the chord of
         the strut will never exceed the chord (projected in x-direction) of
         the main plate. """
-        return self.main.chord * self.chord_fraction \
-               * cos(radians(self.main.angle))
+        return self.main[0].chord * self.chord_fraction \
+               * cos(radians(self.main[0].angle))
 
     @Attribute
     def thickness_to_chord(self):
@@ -126,11 +126,11 @@ class StrutAirfoil(GeomBase):
         main plate. """
         return TranslatedCurve(curve_in=self.upper_curve_airfoil,
                                displacement=
-                               Vector((self.strut_height + self.main.chord)
+                               Vector((self.strut_height + self.main[0].chord)
                                       * sin(radians(self.strut_sweepback_angle)),
-                                      (self.strut_height + self.main.chord)
+                                      (self.strut_height + self.main[0].chord)
                                       * sin(radians(self.strut_cant_angle)),
-                                      self.strut_height + self.main.chord))
+                                      self.strut_height + self.main[0].chord))
 
     # Create the initial solid for the extended strut, which will be
     # subtracted in the assembly class

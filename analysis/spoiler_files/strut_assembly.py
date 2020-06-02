@@ -51,7 +51,7 @@ class Struts(GeomBase):
         for i in range(amount):
             if self.strut_amount % 2 == 0:
                 y_translation.append(self.strut_lat_location
-                                     * self.main.span
+                                     * self.main[0].span
                                      / (self.strut_amount - 1) / 2 * (
                                              2 * i + 1))
             else:
@@ -59,7 +59,7 @@ class Struts(GeomBase):
                     y_translation.append(self.strut_thickness)
                 else:
                     y_translation.append(self.strut_lat_location
-                                         * self.main.span
+                                         * self.main[0].span
                                          / (self.strut_amount - 1) * i)
         return y_translation
 
@@ -109,11 +109,11 @@ class Struts(GeomBase):
                                and child.index == 0
                                else self.struts.strut,
                                displacement=
-                               Vector(x=(self.main.chord
-                                         * cos(radians(self.main.angle))
+                               Vector(x=(self.main[0].chord
+                                         * cos(radians(self.main[0].angle))
                                          - self.strut_chord_fraction
-                                         * self.main.chord
-                                         * cos(radians(self.main.angle))) / 2,
+                                         * self.main[0].chord
+                                         * cos(radians(self.main[0].angle))) / 2,
                                       y=self.strut_y_position[child.index]))
 
     @Part(in_tree=False)
@@ -123,7 +123,7 @@ class Struts(GeomBase):
         which one is the wanted cut-off strut. """
         return PartitionedSolid(quantify=self.strut_amount
                                          - floor(self.strut_amount / 2),
-                                solid_in=self.main.surface,
+                                solid_in=self.main[0].surface,
                                 tool=self.translated_strut[child.index],
                                 keep_tool=True,
                                 mesh_deflection=1e-4)

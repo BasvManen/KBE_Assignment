@@ -20,6 +20,7 @@ class Spoiler(GeomBase):
     spoiler_span = Input(validator=Positive)
     spoiler_chord = Input(validator=Positive)
     spoiler_angle = Input(validator=Range(-60., 60.))
+    plate_amount = Input(validator=GreaterThanOrEqualTo(1))
 
     # Strut Inputs
     strut_amount = Input(2, validator=GreaterThanOrEqualTo(2))
@@ -51,11 +52,15 @@ class Spoiler(GeomBase):
     # Define the main plate (part)
     @Part
     def main_plate(self):
-        return MainPlate(airfoils=self.spoiler_airfoils,
+        return MainPlate(quantify=self.plate_amount,
+                         airfoils=self.spoiler_airfoils,
                          span=self.spoiler_span,
                          chord=self.spoiler_chord,
                          angle=self.spoiler_angle,
-                         tip_cant=self.endplate_cant)
+                         tip_cant=self.endplate_cant,
+                         position=translate(self.position,
+                                            'z',
+                                            self.spoiler_chord/6*child.index))
 
     # Define wetted area
     @Attribute
