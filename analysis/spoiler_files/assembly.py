@@ -4,7 +4,7 @@ from parapy.core.validate import *
 from parapy.geom import *
 from parapy.exchange import STEPWriter
 import kbeutils.avl as avl
-from math import sin, cos, radians, floor
+from math import sin, cos, tan, radians, floor
 import os
 
 DIR = os.path.dirname(__file__)
@@ -121,7 +121,9 @@ class Spoiler(GeomBase):
                    position=translate(self.position,
                                       "x", -self.car_model.positions[0][6]
                                       + self.spoiler_chord
-                                      * self.strut_chord_fraction,
+                                      * self.strut_chord_fraction
+                                      - self.strut_height
+                                      * tan(radians(self.strut_sweep)),
                                       "y", -self.car_width/2,
                                       "z", -self.car_model.heights[6]
                                       - self.strut_height + 35.))
