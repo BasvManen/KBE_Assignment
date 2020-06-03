@@ -1,6 +1,4 @@
 from analysis.spoiler_files import Spoiler
-from analysis.avl_sections import AVLSections
-from analysis.avl_surfaces import AVLSurfaces
 from parapy.core import *
 from math import sin, radians
 
@@ -22,6 +20,21 @@ import numpy as np
 ###############################################################################
 
 
+def number_to_letter(integer):
+    """ This function converts the quantify number of the main plate to a
+    letter in the alphabet. This is done, because the name of an AVL
+    surface cannot contain any digits. 0 converts to A, 1 to B etc. """
+
+    alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K",
+                "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
+                "W", "X", "Y", "Z"]
+    return alphabet[integer]
+
+
+from analysis.avl_sections import AVLSections
+from analysis.avl_surfaces import AVLSurfaces
+
+
 class AvlAnalysis(avl.Interface):
 
     # INPUTS
@@ -31,7 +44,7 @@ class AvlAnalysis(avl.Interface):
     density = Input()
     viscosity = Input(1.47e-5)
 
-    @Part
+    @Part(in_tree=False)
     def spoiler(self):
         """ This part retrieves the input of the main file spoiler and creates
         an identical spoiler, but this time with dimensions in meters instead
@@ -86,7 +99,8 @@ class AvlAnalysis(avl.Interface):
     @Part
     def avl_sections(self):
         return AVLSections(quantify=self.spoiler.plate_amount,
-                           sections=self.spoiler.main_plate[child.index].sections)
+                           sections=self.spoiler.main_plate
+                           [child.index].sections)
 
     @Part
     def avl_surfaces(self):
@@ -95,7 +109,8 @@ class AvlAnalysis(avl.Interface):
         return AVLSurfaces(quantify=self.spoiler.plate_amount,
                            number=child.index,
                            duplicate=self.spoiler.position.point[1],
-                           sections=self.avl_sections[child.index].plate_sections,
+                           sections=self.avl_sections
+                           [child.index].plate_sections,
                            angle=self.spoiler.spoiler_angle)
 
     @Attribute
@@ -107,7 +122,8 @@ class AvlAnalysis(avl.Interface):
                                  reference_span=self.spoiler.spoiler_span,
                                  reference_chord=self.spoiler.spoiler_chord,
                                  reference_point=self.spoiler.position.point,
-                                 surfaces=[plate.surface for plate in self.avl_surfaces],
+                                 surfaces=[plate.surface for plate
+                                           in self.avl_surfaces],
                                  mach=0.0
                                  # Because of the low velocities, the flow is
                                  # assumed incompressible.
@@ -146,7 +162,8 @@ class AvlAnalysis(avl.Interface):
         area and the Reynolds number. """
         s_wet = self.spoiler.wetted_area
         s_front = (self.spoiler.spoiler_chord * self.spoiler.spoiler_span *
-                   sin(radians(self.spoiler.spoiler_angle)))
+                   sin(radians(self.spoiler.spoiler_angle)) *
+                   self.spoiler.plate_amount)
         phi = 1 + 5 * (s_front / s_wet)
         # Empirical method for the form factor
         cf = 0.455 / ((np.log10(self.reynolds_number))**2.58)
@@ -171,10 +188,16 @@ class AvlAnalysis(avl.Interface):
         """ This attribute returns the lift distribution along the span. The
         first list contains the span-wise location, the second list contains
         the local lift coefficient multiplied with the local chord. """
-        return [self.results[self.case_settings[0][0]]['StripForces']
-                ['Main Plate']['Yle'],
-                self.results[self.case_settings[0][0]]['StripForces']
-                ['Main Plate']['c cl']]
+        y_pos = np.zeros((40, self.spoiler.plate_amount))
+        lift = np.zeros((40, self.spoiler.plate_amount))
+        for i in range(self.spoiler.plate_amount):
+            y_pos[:, i] = np.array([self.results[self.case_settings[0][0]]
+                                   ['StripForces'][number_to_letter(i)]
+                                   ['Yle']])
+            lift[:, i] = np.array([self.results[self.case_settings[0][0]]
+                                  ['StripForces'][number_to_letter(i)]
+                                  ['c cl']])
+        return y_pos, lift
 
     @Attribute
     def drag_distribution(self):
@@ -182,30 +205,49 @@ class AvlAnalysis(avl.Interface):
         span. The first list contains the span-wise location, the second list
         contains the local (total) drag coefficient multiplied with the local
         chord. """
-        return [self.results[self.case_settings[0][0]]['StripForces']
-                ['Main Plate']['Yle'],
-                np.multiply((self.results[self.case_settings[0][0]]
-                            ['StripForces']['Main Plate']['cd'] +
-                             self.parasite_drag_coefficient),
-                self.results[self.case_settings[0][0]]['StripForces']
-                ['Main Plate']['Chord'])]
+        y_pos = np.zeros((40, self.spoiler.plate_amount))
+        drag = np.zeros((40, self.spoiler.plate_amount))
+        for i in range(self.spoiler.plate_amount):
+            y_pos[:, i] = np.array([self.results[self.case_settings[0][0]]
+                                    ['StripForces'][number_to_letter(i)]
+                                    ['Yle']])
+            drag[:, i] = (np.multiply(
+                          np.array([self.results[self.case_settings[0][0]]
+                                   ['StripForces'][number_to_letter(i)]
+                                   ['cd']]),
+                          np.array([self.results[self.case_settings[0][0]]
+                                   ['StripForces'][number_to_letter(i)]
+                                   ['Chord']])) +
+                          self.parasite_drag_coefficient)
+        return y_pos, drag
 
     @action(label="Plot lift distribution")
     def lift_plot(self):
         """ This action retrieves the lift distribution from the attribute and
         returns a plot of the lift distribution along the span. The left side
         and the right side of the main plate are plotted separately. """
-        # Original surface data
-        x_1 = self.lift_distribution[0][:len(self.lift_distribution[0])//2]
-        y_1 = self.lift_distribution[1][:len(self.lift_distribution[0])//2]
-
-        # Mirrored surface data
-        x_2 = self.lift_distribution[0][len(self.lift_distribution[0])//2:]
-        y_2 = self.lift_distribution[1][len(self.lift_distribution[0])//2:]
+        x1 = np.zeros((20, self.spoiler.plate_amount))
+        x2 = np.zeros((20, self.spoiler.plate_amount))
+        y1 = np.zeros((20, self.spoiler.plate_amount))
+        y2 = np.zeros((20, self.spoiler.plate_amount))
 
         plt.figure()
-        plt.plot(x_1, y_1, c="black")
-        plt.plot(x_2, y_2, c="black")
+        for i in range(self.spoiler.plate_amount):
+            # Original surface data
+            x1[:, i] = self.lift_distribution[0][:len(self.lift_distribution[0]
+                                                      [:, i])//2, i]
+            y1[:, i] = self.lift_distribution[1][:len(self.lift_distribution[1]
+                                                      [:, i])//2, i]
+
+            # Mirrored surface data
+            x2[:, i] = self.lift_distribution[0][len(self.lift_distribution[0]
+                                                     [:, i])//2:, i]
+            y2[:, i] = self.lift_distribution[1][len(self.lift_distribution[1]
+                                                     [:, i])//2:, i]
+
+            plt.plot(x1[:, i], y1[:, i], c="black")
+            plt.plot(x2[:, i], y2[:, i], c="black")
+
         # Total force coefficient visible in plot title
         plt.title("Total Downforce Coefficient: " + str(self.c_l))
         # Axis labels
@@ -219,16 +261,28 @@ class AvlAnalysis(avl.Interface):
         attribute and returns a plot of the drag distribution along the span.
         THe left side and the right side of the main plate are plotted
         separately. """
-        # Original surface data
-        x_1 = self.drag_distribution[0][:len(self.drag_distribution[0])//2]
-        y_1 = self.drag_distribution[1][:len(self.drag_distribution[0])//2]
+        x1 = np.zeros((20, self.spoiler.plate_amount))
+        x2 = np.zeros((20, self.spoiler.plate_amount))
+        y1 = np.zeros((20, self.spoiler.plate_amount))
+        y2 = np.zeros((20, self.spoiler.plate_amount))
 
-        # Mirrored surface data
-        x_2 = self.drag_distribution[0][len(self.drag_distribution[0])//2:]
-        y_2 = self.drag_distribution[1][len(self.drag_distribution[0])//2:]
+        plt.figure()
+        for i in range(self.spoiler.plate_amount):
+            # Original surface data
+            x1[:, i] = self.drag_distribution[0][:len(self.drag_distribution[0]
+                                                      [:, i])//2, i]
+            y1[:, i] = self.drag_distribution[1][:len(self.drag_distribution[1]
+                                                      [:, i])//2, i]
 
-        plt.plot(x_1, y_1, c="black")
-        plt.plot(x_2, y_2, c="black")
+            # Mirrored surface data
+            x2[:, i] = self.drag_distribution[0][len(self.drag_distribution[0]
+                                                     [:, i])//2:, i]
+            y2[:, i] = self.drag_distribution[1][len(self.drag_distribution[1]
+                                                     [:, i])//2:, i]
+
+            plt.plot(x1[:, i], y1[:, i], c="black")
+            plt.plot(x2[:, i], y2[:, i], c="black")
+
         # Total force coefficient visible in plot title
         plt.title("Total Drag Coefficient: " + str(self.c_d))
         # Axis labels
