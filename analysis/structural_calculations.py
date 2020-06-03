@@ -9,6 +9,8 @@ from parapy.core import *
 from math import tan, radians
 from matplotlib import pyplot as plt
 
+import numpy as np
+
 
 # Import and define the pop-up warnings
 def generate_warning(warning_header, msg):
@@ -183,16 +185,20 @@ class StructuralAnalysis(GeomBase):
             analysis.lift_distribution[0])
         lift_distribution = []
         drag_distribution = []
+        y_distribution = []
+        i_crit = np.argmax(analysis.lift_distribution[1][0])
         for i in range(int(len(analysis.lift_distribution[0]) / 2)):
-            lift_distribution.append(-analysis.lift_distribution[1][i]
+            lift_distribution.append(-analysis.lift_distribution[1][i][i_crit]
                                      * analysis.dyn_pressure
                                      * spacing)
-            drag_distribution.append(analysis.drag_distribution[1][i]
+            drag_distribution.append(analysis.drag_distribution[1][i][i_crit]
                                      * analysis.dyn_pressure
                                      * spacing)
+        for i in range(len(analysis.lift_distribution[0])):
+            y_distribution.append(analysis.lift_distribution[0][i][i_crit])
         lift_distribution = lift_distribution[::-1] + lift_distribution
         drag_distribution = drag_distribution[::-1] + drag_distribution
-        y_distribution = sorted(analysis.lift_distribution[0])
+        y_distribution = sorted(y_distribution)
         return lift_distribution, drag_distribution, y_distribution
 
     @Attribute
