@@ -11,7 +11,7 @@ class AVLSurfaces(Base):
 
     @Part
     def surface(self):
-        return avl.Surface(name=str(self.number),
+        return avl.Surface(name="Main Plate",
                            n_chordwise=12,
                            chord_spacing=avl.Spacing.equal,
                            n_spanwise=20,
