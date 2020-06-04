@@ -2,8 +2,6 @@ from analysis.spoiler_files import MainPlate, Endplates, Struts, Car
 from parapy.core import Input, Attribute, Part, child, DynamicType
 from parapy.core.validate import *
 from parapy.geom import *
-from parapy.exchange import STEPWriter
-import kbeutils.avl as avl
 from math import sin, cos, radians, floor, tan
 import os
 
@@ -54,7 +52,10 @@ class Spoiler(GeomBase):
     def main_plate(self):
         return MainPlate(quantify=self.plate_amount,
                          airfoils=self.spoiler_airfoils,
-                         span=self.spoiler_span,
+                         span=(self.spoiler_span -
+                               sin(radians(self.endplate_cant)) * 1.8 *
+                               (self.spoiler_chord/6) *
+                               (self.plate_amount - 1 - child.index)),
                          chord=self.spoiler_chord,
                          angle=self.spoiler_angle,
                          tip_cant=self.endplate_cant,
