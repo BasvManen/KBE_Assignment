@@ -4,22 +4,30 @@
 ##############################
 
 # Main Plate Inputs
-6406 6406 	# sequence of main plate shapes from mid plane to tip. Either 4 of 5 digit NACA airfoils.
-1600.		# span of the main plate [mm]
-500. 		# chord of the main plate [mm]
-10. 		# downward inclination of the main plate [deg]
+test naca6408 naca6406 		# sequence of main plate shapes from mid plane to tip. Either 4 of 5 digit NACA airfoils.
+3000.				# span of the main plate [mm]
+300. 				# chord of the main plate [mm]
+10. 				# downward inclination of the main plate [deg]
+2				# Amount of main plates
 
 # Strut Inputs
-False		# Bool to specify struts shape. True for airfoil shape, False for a simple filleted plate.
-0.7		# placement of the struts on the main plate in terms of fraction of the semi span of the main plate.
-250.		# height of the struts [mm]
-0.7		# chord of the struts as a fraction of the main plate chord
-5. 		# thickness of the struts [mm]
-15.		# sweepback angle of the struts [deg]
-10.		# cant angle of the struts [deg]
+2				# Amount of struts
+True				# Bool to specify struts shape. True for airfoil shape, False for a simple filleted plate.
+0.6				# placement of the struts on the main plate in terms of fraction of the semi span of the main plate.
+250.				# height of the struts [mm]
+0.6				# chord of the struts as a fraction of the main plate chord
+15. 				# thickness of the struts [mm]
+20.				# sweepback angle of the struts [deg]
+10.				# cant angle of the struts [deg]
 
 # Endplate Inputs
-True		# Bool to specify whether endplates are present on the configuration
-1. 		# thickness of the endplates [mm]
-0. 		# sweepback angle of the endplates [deg]
-0. 		# cant angle of the endplates [deg]
+True				# Bool to specify whether endplates are present on the configuration
+5. 				# thickness of the endplates [mm]
+15. 				# sweepback angle of the endplates [deg]
+15. 				# cant angle of the endplates [deg]
+
+# Car Inputs
+4800.				# Length of the car [mm]
+2050.				# Width of the car [mm]
+1300.				# (Maximum) height of the car [mm]
+1.4				# Car middle-to-back height ratio [-]

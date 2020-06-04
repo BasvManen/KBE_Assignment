@@ -17,32 +17,40 @@ def read_geometry_inputs(filename_geometry):
         airfoil.append(elements[6][i])
 
     # MainPlate Inputs
-    airfoil_mid = airfoil[0]
-    airfoil_tip = airfoil[1]
+    spoiler_airfoils = airfoil
     spoiler_span = float(elements[7][0])
     spoiler_chord = float(elements[8][0])
     spoiler_angle = float(elements[9][0])
+    plate_amount = int(elements[10][0])
 
     # Strut Inputs
-    strut_airfoil_shape = bool(elements[12][0])
-    strut_lat_location = float(elements[13][0])
-    strut_height = float(elements[14][0])
-    strut_chord_fraction = float(elements[15][0])
-    strut_thickness = float(elements[16][0])
-    strut_sweep = float(elements[17][0])
-    strut_cant = float(elements[18][0])
+    strut_amount = int(elements[13][0])
+    strut_airfoil_shape = bool(elements[14][0])
+    strut_lat_location = float(elements[15][0])
+    strut_height = float(elements[16][0])
+    strut_chord_fraction = float(elements[17][0])
+    strut_thickness = float(elements[18][0])
+    strut_sweep = float(elements[19][0])
+    strut_cant = float(elements[20][0])
 
     # Endplate Inputs
-    endplate_present = bool(elements[21][0])
-    endplate_thickness = float(elements[22][0])
-    endplate_sweep = float(elements[23][0])
-    endplate_cant = float(elements[24][0])
+    endplate_present = bool(elements[23][0])
+    endplate_thickness = float(elements[24][0])
+    endplate_sweep = float(elements[25][0])
+    endplate_cant = float(elements[26][0])
 
-    return airfoil_mid, airfoil_tip, spoiler_span, spoiler_chord, \
-        spoiler_angle, strut_airfoil_shape, strut_lat_location, \
-        strut_height, strut_chord_fraction, strut_thickness, \
-        strut_sweep, strut_cant, endplate_present, endplate_thickness, \
-        endplate_sweep, endplate_cant
+    # Car Inputs
+    car_length = float(elements[29][0])
+    car_width = float(elements[30][0])
+    car_maximum_height = float(elements[31][0])
+    car_middle_to_back_ratio = float(elements[32][0])
+
+    return (spoiler_airfoils, spoiler_span, spoiler_chord, spoiler_angle,
+            plate_amount, strut_amount, strut_airfoil_shape,
+            strut_lat_location, strut_height, strut_chord_fraction,
+            strut_thickness, strut_sweep, strut_cant, endplate_present,
+            endplate_thickness, endplate_sweep, endplate_cant, car_length,
+            car_width, car_maximum_height, car_middle_to_back_ratio)
 
 
 def read_material_inputs(filename_materials):
