@@ -4,6 +4,7 @@ from parapy.core.validate import *
 
 from analysis.spoiler_files import Spoiler
 from analysis.AVL_main import AvlAnalysis
+from analysis.XFOIL_main import XFoilAnalysis
 from analysis.structural_calculations import StructuralAnalysis
 from analysis.STEP_writer import StepWriter
 from numpy import round
@@ -159,6 +160,14 @@ class Main(GeomBase):
                            case_settings=self.avl_case,
                            velocity=self.velocity,
                            density=self.density)
+
+    @Part
+    def xfoil_analysis(self):
+        """ XFOIL Analysis of the given spoiler section. """
+        return XFoilAnalysis(spoiler=self.geometry,
+                             velocity=self.velocity,
+                             density=self.density,
+                             angle_of_attack=self.geometry.car_model.avl_angle)
 
     @Attribute
     def skin_thickness_iterator(self):
