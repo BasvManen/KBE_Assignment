@@ -8,6 +8,7 @@ from analysis.XFOIL_main import XFoilAnalysis
 from analysis.structural_calculations import StructuralAnalysis
 from analysis.STEP_writer import StepWriter
 from numpy import round
+from inputs.read_inputs import read_geometry_inputs, read_material_inputs, read_flow_inputs
 
 
 class Main(GeomBase):
@@ -325,34 +326,26 @@ class Main(GeomBase):
 if __name__ == '__main__':
     from parapy.gui import display
 
-    # Inputs, this needs to be defined in a separate dat file, so this is
-    # temporary.
+    geometry = "inputs/input_geometry.dat"
+    flow = "inputs/input_flow_conditions.dat"
+    material = "inputs/input_material_properties.dat"
 
-    spoiler_airfoils = ['test', 'naca6406']
-    spoiler_span = 3000
-    spoiler_chord = 300
-    spoiler_angle = 10
-    plate_amount = 2
-    strut_amount = 2
-    strut_airfoil_shape = True
-    strut_lat_location = 0.6
-    strut_height = 250
-    strut_chord_fraction = 0.6
-    strut_thickness = 15
-    strut_sweep = 20
-    strut_cant = 10
-    endplate_present = False
-    endplate_thickness = 5
-    endplate_sweep = 15
-    endplate_cant = 15
-    car_length = 4800.
-    car_width = 2050.
-    car_maximum_height = 1300.
-    car_middle_to_back_ratio = 1.4
+    # GEOMETRY INPUTS
+    (spoiler_airfoils, spoiler_span, spoiler_chord, spoiler_angle,
+     plate_amount, strut_amount, strut_airfoil_shape,
+     strut_lat_location, strut_height, strut_chord_fraction,
+     strut_thickness, strut_sweep, strut_cant, endplate_present,
+     endplate_thickness, endplate_sweep, endplate_cant, car_length,
+     car_width, car_maximum_height, car_middle_to_back_ratio) \
+        = read_geometry_inputs(geometry)
 
-    velocity = 25
-    maximum_velocity = 60
-    density = 1.225
+    # FLOW INPUTS
+    velocity, maximum_velocity, density = read_flow_inputs(flow)
+
+    # MATERIAL INPUTS
+    # TODO
+    # De functie voor material properties werkt niet meer, er zijn ook minder
+    # variables dan in de .dat file staan op dit moment.
 
     initial_spoiler_skin_thickness = 1
     initial_n_ribs = 1
