@@ -4,6 +4,7 @@ from math import radians
 
 from analysis.spoiler_files.endplate import Endplate
 
+
 ###############################################################################
 # ENDPLATE ASSEMBLY CLASS                                                     #
 # In this file, the endplate assembly is defined,                             #
@@ -20,13 +21,15 @@ from analysis.spoiler_files.endplate import Endplate
 
 
 class Endplates(GeomBase):
-
     chord = Input()
     height = Input()
     thickness = Input()
     sweep = Input()
     cant = Input()
     main = Input(in_tree=False)
+
+    # Input to interactively hide the endplates in the GUI
+    hide = Input(False)
 
     @Attribute
     def wetted_area(self):
@@ -53,7 +56,8 @@ class Endplates(GeomBase):
                             rotation_point=self.position.point,
                             vector=self.main[0].surface.position.orientation.Vx,
                             angle=radians(-self.cant),
-                            label="right_side")
+                            label="right_side",
+                            hidden=self.hide)
 
     @Part
     def mirrored_solid(self):
@@ -64,4 +68,5 @@ class Endplates(GeomBase):
                              reference_point=XOY,
                              vector1=self.position.Vx,
                              vector2=self.position.Vz,
-                             label="left_side")
+                             label="left_side",
+                             hidden=self.hide)

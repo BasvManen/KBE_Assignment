@@ -29,7 +29,7 @@ class Main(GeomBase):
     strut_cant = Input(validator=Range(-30., 30.))
 
     # Endplate Inputs
-    endplate_present = Input(True, validator=OneOf([True, False]))
+    endplate_present = Input(validator=OneOf([True, False]))
     endplate_thickness = Input(validator=And(Positive))
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
@@ -341,7 +341,7 @@ if __name__ == '__main__':
     strut_thickness = 15
     strut_sweep = 20
     strut_cant = 10
-    endplate_present = True
+    endplate_present = False
     endplate_thickness = 5
     endplate_sweep = 15
     endplate_cant = 15

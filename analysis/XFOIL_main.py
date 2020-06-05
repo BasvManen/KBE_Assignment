@@ -10,13 +10,13 @@ import numpy as np
 
 class XFoilAnalysis(GeomBase):
 
-    spoiler = Input(in_tree=True)
+    spoiler = Input(in_tree=False)
     fraction = Input(0.3)
-    velocity = Input(25)
-    density = Input(1.225)
+    velocity = Input()
+    density = Input()
     angle_of_attack = Input()
 
-    @Part
+    @Part(in_tree=False)
     def cutting_plane(self):
         return Plane(Point(0, self.fraction*self.spoiler.spoiler_span/2, 0),
                      normal=VY)

@@ -115,32 +115,6 @@ class StructuralAnalysis(GeomBase):
                        car_maximum_height=self.car_maximum_height * 1000,
                        car_middle_to_back_ratio=self.car_middle_to_back_ratio)
 
-    # @Part(in_tree=False)
-    # def spoiler_in_m(self):
-    #     """ Also create the spoiler assembly part in meters. This instance
-    #         is used as inputs for the AVL calculations. """
-    #     return Spoiler(label="Spoiler in m",
-    #                    spoiler_airfoils=self.spoiler_airfoils,
-    #                    spoiler_span=self.spoiler_span,
-    #                    spoiler_chord=self.spoiler_chord,
-    #                    spoiler_angle=self.spoiler_angle,
-    #                    strut_amount=self.strut_amount,
-    #                    strut_airfoil_shape=self.strut_airfoil_shape,
-    #                    strut_lat_location=self.strut_lat_location,
-    #                    strut_height=self.strut_height,
-    #                    strut_chord_fraction=self.strut_chord_fraction,
-    #                    strut_thickness=self.strut_thickness,
-    #                    strut_sweep=self.strut_sweep,
-    #                    strut_cant=self.strut_cant,
-    #                    endplate_present=False,
-    #                    endplate_thickness=self.endplate_thickness,
-    #                    endplate_sweep=self.endplate_sweep,
-    #                    endplate_cant=self.endplate_cant,
-    #                    car_length=self.car_length,
-    #                    car_width=self.car_width,
-    #                    car_maximum_height=self.car_maximum_height,
-    #                    car_middle_to_back_ratio=self.car_middle_to_back_ratio)
-
     @Part
     def weight_estimation(self):
         """ This part instance retrieves the WeightEstimation class. Note that

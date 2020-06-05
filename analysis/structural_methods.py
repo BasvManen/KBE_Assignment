@@ -341,6 +341,10 @@ def max_shear_stress(force_x, force_z, skin_thickness, Ixx, Izz, Ixz,
         else:
             tau_total.append(min(q_total[i]) / skin_thickness)
 
+    # Mirror one half of the shear to the other side of the spoiler
+    half_index = floor(len(tau_total) / 2)
+    tau_total = tau_total[0:half_index] + tau_total[0:half_index][::-1]
+
     return tau_total
 
 

@@ -111,6 +111,7 @@ class Spoiler(GeomBase):
                                               'x', self.endplate_chord[0],
                                               'y', self.spoiler_span/2,
                                               'z', self.endplate_height[0]),
+                           hide=False if self.endplate_present else True,
                            hidden=False if self.endplate_present else True)
 
     @Part
