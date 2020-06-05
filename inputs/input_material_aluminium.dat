@@ -7,6 +7,5 @@
 2700.		# density of the used material [kg/m3]
 68.9		# Youngs modulus of the used material [GPa]
 276.		# Tensile yield strength of the used material [MPa]
-26.0		# Shear modulus of the used material [GPa]
 207.		# Shear strength of the used material [MPa]
 0.33        	# Poisson ratio of the used material

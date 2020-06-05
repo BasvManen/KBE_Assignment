@@ -68,11 +68,10 @@ def read_material_inputs(filename_materials):
     material_density = float(elements[6][0])
     youngs_modulus = float(elements[7][0])
     yield_strength = float(elements[8][0])
-    shear_modulus = float(elements[9][0])
-    shear_strength = float(elements[10][0])
-    poisson_ratio = float(elements[11][0])
+    shear_strength = float(elements[9][0])
+    poisson_ratio = float(elements[10][0])
 
-    return material_density, youngs_modulus, yield_strength, shear_modulus, \
+    return material_density, youngs_modulus, yield_strength, \
         shear_strength, poisson_ratio
 
 

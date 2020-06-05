@@ -343,17 +343,12 @@ if __name__ == '__main__':
     velocity, maximum_velocity, density = read_flow_inputs(flow)
 
     # MATERIAL INPUTS
-    # TODO
-    # De functie voor material properties werkt niet meer, er zijn ook minder
-    # variables dan in de .dat file staan op dit moment.
+    material_density, youngs_modulus, yield_strength, shear_strength, \
+        poisson_ratio = read_material_inputs(material)
 
+    # ADDITIONAL INITIAL INPUTS FOR STRUCTURAL CALCULATIONS
     initial_spoiler_skin_thickness = 1
     initial_n_ribs = 1
-    youngs_modulus = 69
-    yield_strength = 225
-    shear_strength = 225
-    material_density = 2700
-    poisson_ratio = 0.33
 
     obj = Main(label="Spoiler",
                spoiler_airfoils=spoiler_airfoils,
