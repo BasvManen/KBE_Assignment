@@ -31,8 +31,6 @@ class StrutPlate(GeomBase):
     strut_cant_angle = Input()
     main = Input()
 
-    do_avl = Input(False)
-
     @Attribute
     def strut_chord(self):
         """" This attribute calculates the actual chord of the struts,
@@ -46,7 +44,7 @@ class StrutPlate(GeomBase):
     def wetted_area(self):
         """ This attribute calculates the total wetted area of the struts.
         It calculates the area of each of the sides of the struts, and adds
-        these seperate contributions. """
+        these separate contributions. """
         return 2 * (2 * self.strut_height * self.strut_chord +
                     2 * self.strut_height * self.strut_thickness +
                     2 * self.strut_chord * self.strut_thickness)
@@ -72,16 +70,6 @@ class StrutPlate(GeomBase):
                                   tan(radians(self.strut_cant_angle)),
                              "z", -self.strut_height),
                          centered=False)
-
-    # Define upper section for AVL surface
-    @Part(in_tree=False)
-    def avl_section_up(self):
-        return avl.SectionFromCurve(curve_in=self.upper_curve_rectangle)
-
-    # Define lower section for AVL surface
-    @Part(in_tree=False)
-    def avl_section_lo(self):
-        return avl.SectionFromCurve(curve_in=self.lower_curve_rectangle)
 
     @Part(in_tree=False)
     def extended_curve_rectangle(self):
@@ -118,40 +106,3 @@ class StrutPlate(GeomBase):
         SpoilerAssembly class. """
         return FilletedSolid(built_from=self.solid,
                              radius=self.strut_thickness / 3)
-
-    # # Define the intersection of the strut and the main plate.
-    # # This is needed to define the cutting plane for the strut
-    # @Part(in_tree=False)
-    # def partitioned_solid(self):
-    #     return PartitionedSolid(solid_in=self.main.surface, tool=self.fillet,
-    #                             keep_tool=True)
-    #
-    # # Create the strut by cutting the filleted solid at the main plate
-    # @Part
-    # def strut_right(self):
-    #     return SubtractedSolid(shape_in=
-    #                            SubtractedSolid(shape_in=self.fillet,
-    #                                            tool=
-    #                                            self.partitioned_solid.solids[
-    #                                                2]),
-    #                            tool=self.partitioned_solid.solids[1])
-
-    # # Mirror of the first strut
-    # @Part
-    # def strut_left(self):
-    #     return MirroredShape(shape_in=self.strut_right,
-    #                          reference_point=Point(0, 0, 0),
-    #                          vector1=self.position.Vx,
-    #                          vector2=self.position.Vz)
-
-    # Define the surface for the AVL analysis
-    @Part
-    def avl_surface(self):
-        return avl.Surface(name="Struts",
-                           n_chordwise=12,
-                           chord_spacing=avl.Spacing.cosine,
-                           n_spanwise=20,
-                           span_spacing=avl.Spacing.cosine,
-                           y_duplicate=self.position.point[1],
-                           sections=[self.avl_section_up, self.avl_section_lo],
-                           hidden=not self.do_avl)

@@ -53,6 +53,7 @@ class StructuralAnalysis(GeomBase):
     spoiler_chord = Input()
     spoiler_angle = Input()
     plate_amount = Input()
+    plate_distance = Input()
 
     # Strut Inputs
     strut_amount = Input()
@@ -98,6 +99,7 @@ class StructuralAnalysis(GeomBase):
                        spoiler_chord=self.spoiler_chord * 1000,
                        spoiler_angle=self.spoiler_angle,
                        plate_amount=self.plate_amount,
+                       plate_distance=self.plate_distance,
                        strut_amount=self.strut_amount,
                        strut_airfoil_shape=self.strut_airfoil_shape,
                        strut_lat_location=self.strut_lat_location,

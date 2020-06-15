@@ -29,8 +29,6 @@ class StrutAirfoil(GeomBase):
     strut_cant_angle = Input()
     main = Input()
 
-    do_avl = Input(False)
-
     @Attribute
     def strut_chord(self):
         """" This attribute calculates the actual chord of the struts,
@@ -64,7 +62,6 @@ class StrutAirfoil(GeomBase):
             name = '000' + str(self.thickness_to_chord)
         return name
 
-    # Define wetted area
     @Attribute
     def wetted_area(self):
         """ This attribute calculates the total wetted area of the struts
@@ -106,15 +103,6 @@ class StrutAirfoil(GeomBase):
                                                        self.strut_cant_angle)),
                                                    -self.strut_height))
 
-    # Initialise AVL input for the struts
-    @Part(in_tree=False)
-    def avl_section_up(self):
-        return avl.SectionFromCurve(curve_in=self.upper_curve_airfoil)
-
-    @Part(in_tree=False)
-    def avl_section_lo(self):
-        return avl.SectionFromCurve(curve_in=self.lower_curve_airfoil)
-
     @Part(in_tree=False)
     def extended_airfoil(self):
         """ In order to cut off the strut at the lower side of the main
@@ -132,8 +120,6 @@ class StrutAirfoil(GeomBase):
                                       * sin(radians(self.strut_cant_angle)),
                                       self.strut_height + self.main[-1].chord))
 
-    # Create the initial solid for the extended strut, which will be
-    # subtracted in the assembly class
     @Part(in_tree=True)
     def strut(self):
         """ Create the initial ruled solid for the extended strut from the
@@ -143,32 +129,3 @@ class StrutAirfoil(GeomBase):
         return RuledSolid(profile1=self.extended_airfoil,
                           profile2=self.lower_curve_airfoil,
                           mesh_deflection=1e-5)
-
-    # # Initialise subtraction of the solid at the main plate lower surface by
-    # # cutting the solid into several pieces.
-    # @Part(in_tree=False)
-    # def partitioned_solid(self):
-    #     return PartitionedSolid(solid_in=self.main.surface,
-    #                             tool=self.solid,
-    #                             keep_tool=True,
-    #                             mesh_deflection=1e-5)
-    #
-    # # Create part of the strut from the subtracted solid
-    # @Part
-    # def strut(self):
-    #     return SubtractedSolid(shape_in=SubtractedSolid(shape_in=self.solid,
-    #                                                     tool=self.partitioned_solid.solids[2]),
-    #                            tool=self.partitioned_solid.solids[1],
-    #                            mesh_deflection=1e-5)
-
-    # Create aerodynamic surface for AVL analysis
-    @Part
-    def avl_surface(self):
-        return avl.Surface(name="Struts",
-                           n_chordwise=12,
-                           chord_spacing=avl.Spacing.cosine,
-                           n_spanwise=20,
-                           span_spacing=avl.Spacing.cosine,
-                           y_duplicate=self.position.point[1],
-                           sections=[self.avl_section_up, self.avl_section_lo],
-                           hidden=not self.do_avl)

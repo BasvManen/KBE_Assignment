@@ -54,6 +54,7 @@ class AvlAnalysis(avl.Interface):
                        spoiler_chord=self.spoiler_input.spoiler_chord/1000,
                        spoiler_angle=self.spoiler_input.spoiler_angle,
                        plate_amount=self.spoiler_input.plate_amount,
+                       plate_distance=self.spoiler_input.plate_distance,
                        strut_amount=self.spoiler_input.strut_amount,
                        strut_airfoil_shape=
                        self.spoiler_input.strut_airfoil_shape,

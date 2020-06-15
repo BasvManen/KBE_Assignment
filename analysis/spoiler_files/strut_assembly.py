@@ -1,6 +1,5 @@
 from analysis.spoiler_files import StrutAirfoil, StrutPlate
 from parapy.core import Input, Attribute, Part, child, DynamicType
-from parapy.core.validate import *
 from parapy.geom import *
 from math import sin, cos, radians, floor
 

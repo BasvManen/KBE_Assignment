@@ -218,6 +218,7 @@ class Main(GeomBase):
                 spoiler_angle=self.spoiler_angle,
                 spoiler_skin_thickness=skin_thickness,
                 plate_amount=self.plate_amount,
+                plate_distance=self.plate_distance,
                 n_ribs=number_of_ribs,
                 strut_amount=self.strut_amount,
                 strut_airfoil_shape=self.strut_airfoil_shape,
@@ -295,6 +296,7 @@ class Main(GeomBase):
                                   spoiler_skin_thickness=
                                   self.skin_thickness_iterator[0],
                                   plate_amount=self.plate_amount,
+                                  plate_distance=self.plate_distance,
                                   n_ribs=self.skin_thickness_iterator[1],
                                   strut_amount=self.strut_amount,
                                   strut_airfoil_shape=self.strut_airfoil_shape,
