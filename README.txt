@@ -1,103 +1,80 @@
+############ KBE APP TO SUPPORT DESIGN OF AUTOMOTIVE REAR SPOILERS ############
 
-# KBE app to support design of automotive rear spoilers
+This application is developed for the course AE4204 Knowledge Based
+Engineering. The app is designed to help with automating the design of rear car
+spoilers, especially for high-performance racing divisions.
 
-This application is developed for the course AE4204 Knowledge Based Engineering. The app
-is designed to help with automating the design of rear car spoilers, especially for 
-high-performance racing divisions. 
+#################################### USAGE ####################################
 
+Run the Main.py file to start the KBE application. An interface will pop up, in
+which a spoiler is created using the input files as defined in the "inputs"
+folder. Based on the inputs, the following analyses can be performed:
 
-## Usage 
+1. Output of a geometry STEP file, to be used in CAD software.
+2. 3D aerodynamic analysis of the given geometry to obtain the downforce and
+   drag distributions and the total forces.
+3. 2D (viscous) aerodynamic analysis of a given section of the geometry to
+   investigate the effect of spoiler angle on total lift force.
+4. Structural analysis of the given geometry to obtain stresses, moments and
+   deflections along the span of the spoiler.
 
-When running the interface of the application, a menu will pop up in which the user has to 
-make a choice has to be between analysis approaches:
+Furthermore, the application is also able to calculate certain aspects of the
+geometry, given a (desired) downforce. This is done with an iterative process.
 
-	1. Perform calculations for a given spoiler geometry
-	2. Calculate spoiler geometry for a given downforce
+1. The application can calculate the spoiler angle, spoiler span or spoiler
+   chord required to achieve a desired downforce.
+2. The application can calculate the required skin thickness to avoid
+   structural failure, given a geometry and material.
 
-When option 1. 'Perform calculations for a given spoiler geometry' is chosen, the user can 
-choose between the following 4 analysis modes:
+#################################### INPUT ####################################
 
-	1. Show geometry
-	2. Calculate lift and drag distribution
-	3. Calculate spoiler angle vs downforce for a given section
-	4. Perform structural analysis and calculate weight
+Three .dat files need to be provided to explore all capabilities of the spoiler
+design application. These input files are defined as follows:
 
-In each of these modes, the user has to specify the inputs for the geometry of the spoiler. 
-For mode 2, 3 and 4, the user also has to specify the flow conditions of the spoiler. 
-For mode 4, the properties of the used material have to be specified as well.
-In order to specify these inputs, the interface will ask for a .dat file from the 'inputs'
-folder. In this folder some generic examples are already provided. Please do not alter the
-format of these files and adhere to the prescribed layout as presented in these files when 
-entering a new input file. When calling any input file, the user can simply type the 
-file_name + .extension of the file, for instance as:
+- Geometry Input
+    1.  Section airfoils of the main plate
+    2.  Span of the main plate
+    3.  Chord of the main plate
+    4.  Angle of the main plate (positive defined upwards)
+    5.  Amount of main plates
+    6.  Amount of struts
+    7.  Strut shape (flat plate or airfoil shape)
+    8.  Placement of the struts w.r.t. the main plate
+    9.  Height of the struts
+    10. Chord of the struts (as a fraction of the main plate)
+    11. Thickness of the struts
+    12. Sweepback angle of the struts
+    13. Cant angle of the struts
+    14. Definition whether endplates are present or not
+    15. Thickness of the endplates
+    16. Sweepback angle of the endplates
+    17. Cant angle of the endplates
+    18. Length of the car
+    19. Width of the car
+    20. (Maximum) height of the car
+    21. Car middle-to-back height ratio
 
-	input_properties.dat
+- Flow Conditions Input
+    1. Car design 'cruise' speed
+    2. Car design top speed
+    3. Free flow air density
 
-Mode 1 will directly send the user to the ParaPy GUI where the whole spoiler geometry can 
-be visualised and interactively altered. Here, the user can also write a STEP-file of the
-geometry.
+- Material Properties Input
+    1. Material density
+    2. Material Young's modulus
+    3. Material tensile yield strength
+    4. Material shear strength
+    5. Material Poisson ratio
 
-Mode 2 will perform some aerodynamic calculations for the lift and drag force of the spoiler
-geometry. These calculations are from both AVL and emperical methods. It will subsequently
-send the user to the ParaPy GUI where the lift and drag distributions can be evaluated.
+################################### OUTPUTS ###################################
+The following outputs can be obtained from the application:
 
-Mode 3 will use the user specified section to do a viscous analysis using XFOIL. The 
-application will send the user to the ParaPy GUI where a plot is generated in which the 
-section downforce coefficient is plotted against different spoiler angles.
-
-Mode 4 will perform calculations on wheter the geometry can withstand the aerodynamic forces
-on the spoiler. It will first ask for an initial skin thickness, and will iteratively 
-increase this thickness untill the spoiler does not fail under the aerodynamic forces. Next,
-it will output the final total weight and it will send the user to the ParaPy GUI where 
-the stresses and deflections of the spoiler geometry can be visualised.
-
-
-If in the initial menu, option 2. 'Calculate spoiler geometry for a given downforce' is
-chosen, again the geometry and flow conditions have to be inputted as explained above. Next,
-the geometry iterator will be started, in which the user has to specify one of the 
-following parameters to be iterated:
-
-	1. Spoiler angle
-	2. Spoiler span
-	3. Spoiler chord
-	4. Car velocity
-
-The user has to specify a desired target downforce in Newton, which the application will 
-consequently try to find by adjusting one of the above mentioned parameters. If the desired
-downforce is found, the application will save the geometry for which the desired downforce is
-obtained and the ParaPy GUI will be opened. Here, the geometry can be visualized and the lift 
-and drag distribution of the optimized spoiler can be plotted.
-
-
-## Inputs and outputs
-
-To summarise inputs and outputs of the different modes:
-* : note that the inputs and outputs for all modes of analysis type 2 are the same
-
-MODE	|	INPUTS			|	OUTPUTS
--------------------------------------------------------------------------------------
-1.1	|	geometry		|	geometry visualisation,
-	|				|	STEP-file
-	|				|
-1.2	|	geometry,		|	total aerodynamic forces,
-	|	flow conditions		|	aerodynamic force distribution plots
-	|				|
-1.3	|	geometry,		|	sectional downforce plot
-	|	flow conditions,	|
-	|	span-wise section	|	
-	|				|
-1.4	|	geometry,		|	stress plots,
-	|	flow conditions,	|	deflection plots,
-	|	material properties,	|	total weight
-	|	initial skin thickness	|	
--------------------------------------------------------------------------------------
-2*	|	geometry,		|	geometry visualisation,		
-	|	flow properties,	|	STEP-file,
-	|	desired downforce	|	total aerodynamic forces,
-	|				|	aerodynamic force distribution plots
-
-
-
-
-
-
+1. .STEP file for CAD software
+2. Spoiler downforce distribution and total downforce
+3. Spoiler drag distribution and total drag force
+4. Sectional spoiler angle vs. downforce coefficient plot
+5. Spoiler skin thickness and spoiler weight
+5. Normal stress along the spoiler span
+6. Shear stress along the spoiler span
+7. Deflection in x and z direction along the spoiler span
+8. Bending moment along the spoiler span
