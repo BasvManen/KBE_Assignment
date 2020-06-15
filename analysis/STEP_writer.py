@@ -40,7 +40,7 @@ class StepWriter(GeomBase):
         the Spoiler geometry. """
         nodes = []
         if self.geometry_input.strut_amount % 2 == 0:
-            for i in range(self.geometry_input.strut_amount / 2):
+            for i in range(round(self.geometry_input.strut_amount / 2)):
                 nodes.append(self.geometry_input.struts.struts_right[i])
                 nodes.append(self.geometry_input.struts.struts_left[i])
         else:
@@ -54,8 +54,8 @@ class StepWriter(GeomBase):
     def endplate_nodes(self):
         """ This attribute defines the STEP-file nodes for the endplates of
         the Spoiler geometry. """
-        nodes = [self.geometry_input.endplates.right_side,
-                 self.geometry_input.endplates.left_side]
+        nodes = [self.geometry_input.endplates.solid,
+                 self.geometry_input.endplates.mirrored_solid]
         return nodes
 
     @Attribute
