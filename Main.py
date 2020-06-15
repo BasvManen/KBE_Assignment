@@ -29,6 +29,7 @@ class Main(GeomBase):
     spoiler_chord = Input(validator=Positive)
     spoiler_angle = Input(validator=Range(-60., 60.))
     plate_amount = Input(validator=GreaterThanOrEqualTo(1))
+    plate_distance = Input(0.18, validator=Range(limit1=0.1, limit2=1.0))
 
     # Strut Inputs
     strut_amount = Input(2, validator=GreaterThanOrEqualTo(2))
@@ -76,6 +77,7 @@ class Main(GeomBase):
                        spoiler_chord=self.spoiler_chord,
                        spoiler_angle=self.spoiler_angle,
                        plate_amount=self.plate_amount,
+                       plate_distance=self.plate_distance,
                        strut_amount=self.strut_amount,
                        strut_airfoil_shape=self.strut_airfoil_shape,
                        strut_lat_location=self.strut_lat_location,

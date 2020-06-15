@@ -2,14 +2,18 @@ from analysis.spoiler_files import MainPlate, Endplates, Struts, Car
 from parapy.core import Input, Attribute, Part, child, DynamicType
 from parapy.core.validate import *
 from parapy.geom import *
-from math import sin, cos, radians, floor, tan
+from math import sin, radians, tan
 import os
 
 DIR = os.path.dirname(__file__)
 
-
-# MAIN SPOILER CLASS
-# In this file, the main spoiler geometry will be defined
+###############################################################################
+# SPOILER ASSEMBLY CLASS                                                      #
+# In this file, the spoiler geometry is assembled.                            #
+#                                                                             #
+# Inputs:                                                                     #
+# - All geometry parameters as defined in the .dat input file.                #
+###############################################################################
 
 
 class Spoiler(GeomBase):
@@ -19,6 +23,7 @@ class Spoiler(GeomBase):
     spoiler_chord = Input(validator=Positive)
     spoiler_angle = Input(validator=Range(-60., 60.))
     plate_amount = Input(validator=GreaterThanOrEqualTo(1))
+    plate_distance = Input(validator=Range(limit1=0.1, limit2=1.0))
 
     # Strut Inputs
     strut_amount = Input(2, validator=GreaterThanOrEqualTo(2))
@@ -42,39 +47,48 @@ class Spoiler(GeomBase):
     car_maximum_height = Input()
     car_middle_to_back_ratio = Input()
 
-    # Calculate reference area based on chord and span
     @Attribute
     def reference_area(self):
+        """ This attribute calculates the reference area of the spoiler,
+        which is used as reference for the aerodynamic analysis. """
         return self.spoiler_chord * self.spoiler_span
 
-    # Define the main plate (part)
     @Part
     def main_plate(self):
+        """ This part returns the main plate(s) of the spoiler. """
         return MainPlate(quantify=self.plate_amount,
                          airfoils=self.spoiler_airfoils,
+                         # The span needs to account for the endplate cant.
                          span=(self.spoiler_span -
                                sin(radians(self.endplate_cant)) * 1.8 *
-                               (self.spoiler_chord/6) *
+                               (self.spoiler_chord*self.plate_distance) *
                                (self.plate_amount - 1 - child.index)),
                          chord=self.spoiler_chord,
                          angle=self.spoiler_angle,
                          tip_cant=self.endplate_cant,
+                         # The position of the plates is determined by the
+                         # input distance between the plates and the strut
+                         # sweep angle.
                          position=translate(self.position,
                                             'z',
-                                            self.spoiler_chord/6*child.index,
+                                            self.spoiler_chord *
+                                            self.plate_distance*child.index,
                                             'x',
-                                            self.spoiler_chord/6*child.index *
+                                            self.spoiler_chord *
+                                            self.plate_distance*child.index *
                                             tan(radians(self.strut_sweep))))
 
-    # Define wetted area
     @Attribute
     def wetted_area(self):
+        """ This attribute calculates the wetted area of the spoiler,
+        which is used to calculate the friction drag. """
         return self.main_plate[0].wetted_area * self.plate_amount \
                + self.struts.struts.wetted_area * self.strut_amount + \
                (self.endplates.wetted_area if self.endplate_present else 0)
 
     @Part
     def struts(self):
+        """ This part returns the struts of the spoiler. """
         return Struts(strut_amount=self.strut_amount,
                       strut_airfoil_shape=self.strut_airfoil_shape,
                       strut_lat_location=self.strut_lat_location,
@@ -87,19 +101,25 @@ class Spoiler(GeomBase):
 
     @Attribute
     def endplate_height(self):
+        """ This attribute calculates the vertical distance between the top
+        and bottom of the plate(s). This is then defined as the endplate
+        height. """
         z1 = self.main_plate[0].surface.edges[-1].bbox.bounds[2]
         z2 = self.main_plate[-1].surface.edges[-1].bbox.bounds[5]
         return z2, (z2 - z1)
 
     @Attribute
     def endplate_chord(self):
+        """"  This attribute calculates the horizontal distance between the top
+        and bottom of the plate(s). This is then defined as the endplate
+        chord. """
         x1 = self.main_plate[0].surface.edges[-1].bbox.bounds[0]
         x2 = self.main_plate[-1].surface.edges[-1].bbox.bounds[3]
         return x2, (x2 - x1)
 
-    # Define the endplates (part)
     @Part
     def endplates(self):
+        """This part returns the endplates. """
         return DynamicType(type=Endplates,
                            chord=self.endplate_chord[1],
                            height=self.endplate_height[1],
@@ -116,6 +136,7 @@ class Spoiler(GeomBase):
 
     @Part
     def car_model(self):
+        """ This part returns the car model. """
         return Car(length_car=self.car_length,
                    width_car=self.car_width,
                    max_height_car=self.car_maximum_height,
@@ -130,27 +151,3 @@ class Spoiler(GeomBase):
                                       "z", -self.car_model.heights[6]
                                       - self.strut_height + 35.))
 
-
-if __name__ == '__main__':
-    from parapy.gui import display
-
-    obj = Spoiler(spoiler_airfoils=["test", "naca6408", "naca6406"],
-                  spoiler_span=1600.,
-                  spoiler_chord=300.,
-                  spoiler_angle=10.,
-                  strut_lat_location=0.6,
-                  strut_thickness=10.,
-                  strut_height=250.,
-                  strut_chord_fraction=0.4,
-                  strut_sweep=10.,
-                  strut_cant=0.,
-                  endplate_present=True,
-                  endplate_thickness=5.,
-                  endplate_sweep=0.,
-                  endplate_cant=0.,
-                  strut_amount=3,
-                  car_length=4800.,
-                  car_width=2050.,
-                  car_maximum_height=1300.,
-                  car_middle_to_back_ratio=1.4)
-    display(obj)
