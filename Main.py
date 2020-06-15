@@ -8,7 +8,18 @@ from analysis.XFOIL_main import XFoilAnalysis
 from analysis.structural_calculations import StructuralAnalysis
 from analysis.STEP_writer import StepWriter
 from numpy import round
-from inputs.read_inputs import read_geometry_inputs, read_material_inputs, read_flow_inputs
+from inputs.read_inputs import read_geometry_inputs, read_material_inputs, \
+                               read_flow_inputs
+
+###############################################################################
+# KBE APPLICATION MAIN FILE                                                   #
+# From this file, the KBE application is started                              #
+#                                                                             #
+# Inputs:                                                                     #
+# - Geometry input .dat file                                                  #
+# - Flow conditions input .dat file                                           #
+# - Material properties input .dat file                                       #
+###############################################################################
 
 
 class Main(GeomBase):
@@ -84,10 +95,12 @@ class Main(GeomBase):
 
     @Part
     def step_writer(self):
+        """ STEP writer module of the geometry. """
         return StepWriter(geometry_input=self.geometry)
 
     @Attribute
     def avl_case(self):
+        """ This attribute creates the AVL case based on the car geometry. """
         case = [('Incoming flow angle', {'alpha':
                                          self.geometry.car_model.avl_angle})]
         return case
@@ -261,6 +274,7 @@ class Main(GeomBase):
               + str(round(skin_thickness,
                           (len(str(delta_thickness)) - 2))) + ' m')
 
+        # TODO KAN DIT ERUIT?
         # Additionally, it is checked whether the skin thickness is viable
         # compared to the thickness of the spoiler itself.
         # t_c_mid = float(geom[0][-2:])
