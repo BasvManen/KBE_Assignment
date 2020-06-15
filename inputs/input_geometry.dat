@@ -4,7 +4,7 @@
 ##############################
 
 # Main Plate Inputs
-test naca6408 naca6406 		# sequence of main plate shapes from mid plane to tip. Either 4 of 5 digit NACA airfoils.
+cam naca6408 naca6406 		# sequence of main plate shapes from mid plane to tip. Either 4 of 5 digit NACA airfoils.
 3000.				# span of the main plate [mm]
 300. 				# chord of the main plate [mm]
 10. 				# downward inclination of the main plate [deg]
