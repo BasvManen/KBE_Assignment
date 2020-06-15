@@ -5,9 +5,9 @@
 
 # Main Plate Inputs
 cam naca6408 naca6406 		# sequence of main plate shapes from mid plane to tip. Either 4 of 5 digit NACA airfoils.
-3000.				# span of the main plate [mm]
+2000.				# span of the main plate [mm]
 300. 				# chord of the main plate [mm]
-10. 				# downward inclination of the main plate [deg]
+6. 				# downward inclination of the main plate [deg]
 2				# Amount of main plates
 
 # Strut Inputs
@@ -18,7 +18,7 @@ True				# Bool to specify struts shape. True for airfoil shape, False for a simp
 0.6				# chord of the struts as a fraction of the main plate chord
 15. 				# thickness of the struts [mm]
 20.				# sweepback angle of the struts [deg]
-10.				# cant angle of the struts [deg]
+0.				# cant angle of the struts [deg]
 
 # Endplate Inputs
 True				# Bool to specify whether endplates are present on the configuration
