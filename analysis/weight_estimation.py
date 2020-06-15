@@ -117,38 +117,3 @@ class WeightEstimation(GeomBase):
         return self.weight_mainplate * self.spoiler_geometry.plate_amount \
                + self.weight_endplate * 2  \
                + self.weight_strut * self.strut_amount + self.weight_ribs
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-
-
-    ribs_area = SectionProperties(
-            airfoils=['test', 'test'],
-                      spoiler_span=1600.,
-                      spoiler_chord=300.,
-                      spoiler_angle=10.,
-            spoiler_skin_thickness=2,
-            n_cuts=4,
-            n_ribs=0).ribs_area
-
-    spoiler = Spoiler(spoiler_airfoils=['test', 'test'],
-                      spoiler_span=1600.,
-                      spoiler_chord=300.,
-                      spoiler_angle=10.,
-                      strut_amount=2,
-                      strut_airfoil_shape=True,
-                      strut_lat_location=0.7,
-                      strut_height=250.,
-                      strut_chord_fraction=0.4,
-                      strut_thickness=10.,
-                      strut_sweep=15.,
-                      strut_cant=10.,
-                      endplate_present=False,
-                      endplate_thickness=3,
-                      endplate_sweep=3,
-                      endplate_cant=3, hidden=True)
-    obj = WeightEstimation(material_density=2700., spoiler_skin_thickness=2,
-                           ribs_area = ribs_area, spoiler_geometry=spoiler)
-
-    display(obj)

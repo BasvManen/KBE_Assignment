@@ -261,13 +261,3 @@ class Car(GeomBase):
                             vector=Vector(0, 1, 0),
                             angle=radians(-90),
                             mesh_deflection=1e-5)
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-
-    obj = Car(length_car=4800.,
-              width_car=2050.,
-              max_height_car=1300.,
-              middle_to_back_height_ratio=1.4)
-    display(obj)

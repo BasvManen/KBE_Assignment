@@ -150,4 +150,3 @@ class Spoiler(GeomBase):
                                       "y", -self.car_width/2,
                                       "z", -self.car_model.heights[6]
                                       - self.strut_height + 35.))
-

@@ -347,18 +347,3 @@ class SectionProperties(GeomBase):
                          if child.index <= round((self.n_ribs + 2) / 2 + 0.1)-1
                          else self.ribs_left[
                              child.index - round((self.n_ribs + 2) / 2 + 0.1)])
-
-
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-
-    obj = SectionProperties(airfoils=['test', 'test'],
-                            spoiler_span=1600.,
-                            spoiler_chord=300.,
-                            spoiler_angle=10.,
-                            spoiler_skin_thickness=2,
-                            n_cuts=40,
-                            n_ribs=0)
-    display(obj)

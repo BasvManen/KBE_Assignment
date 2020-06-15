@@ -92,10 +92,3 @@ class Section(GeomBase):
                                 from_position=XOY,
                                 to_position=self.position
                                 )
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-    obj = Section(airfoil_name="test",
-                  chord=2)
-    display(obj)

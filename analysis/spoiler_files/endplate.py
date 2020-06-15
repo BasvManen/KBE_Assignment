@@ -59,13 +59,3 @@ class Endplate(GeomBase):
         return FilletedSolid(built_from=RuledSolid(profile1=self.upper_curve,
                                                    profile2=self.lower_curve),
                              radius=self.thickness/3)
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-    obj = Endplate(chord=800,
-                   height=200,
-                   thickness=20,
-                   sweep=0)
-    display(obj)
-

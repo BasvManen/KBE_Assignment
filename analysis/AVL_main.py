@@ -290,31 +290,3 @@ class AvlAnalysis(avl.Interface):
         plt.xlabel("Span-wise location [m]")
         plt.ylabel("Local drag coefficient")
         plt.show()
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-
-    obj = Spoiler(spoiler_airfoils=["test", "naca6408", "naca6406"],
-                  spoiler_span=1.6,
-                  spoiler_chord=0.3,
-                  spoiler_angle=10.,
-                  strut_lat_location=0.6,
-                  strut_thickness=0.01,
-                  strut_height=0.25,
-                  strut_chord_fraction=0.4,
-                  strut_sweep=10.,
-                  strut_cant=0.,
-                  endplate_present=False,
-                  endplate_thickness=0.05,
-                  endplate_sweep=0.,
-                  endplate_cant=0.,
-                  strut_amount=3)
-
-    cases = [('Incoming flow angle', {'alpha': 2})]
-
-    analysis = AvlAnalysis(spoiler_input=obj,
-                           velocity=10,
-                           density=1.225,
-                           case_settings=cases)
-    display(analysis)

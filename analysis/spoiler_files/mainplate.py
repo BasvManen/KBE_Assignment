@@ -105,14 +105,3 @@ class MainPlate(GeomBase):
                              # Mirror the shape in the XZ-plane
                              label="left_side"
                              )
-
-
-if __name__ == '__main__':
-    from parapy.gui import display
-    obj = MainPlate(label="mainplate",
-                    airfoils=["test", "naca6408", "naca6406"],
-                    span=4,
-                    chord=2,
-                    angle=10,
-                    tip_cant=15)
-    display(obj)
