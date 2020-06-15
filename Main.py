@@ -24,7 +24,7 @@ from inputs.read_inputs import read_geometry_inputs, read_material_inputs, \
 
 class Main(GeomBase):
     # Main Plate Inputs
-    spoiler_airfoils = Input()
+    spoiler_airfoils = Input(validator=all_is_string)
     spoiler_span = Input(validator=Positive)
     spoiler_chord = Input(validator=Positive)
     spoiler_angle = Input(validator=Range(-60., 60.))
@@ -43,15 +43,15 @@ class Main(GeomBase):
 
     # Endplate Inputs
     endplate_present = Input(validator=OneOf([True, False]))
-    endplate_thickness = Input(validator=And(Positive))
+    endplate_thickness = Input(validator=Positive)
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
 
     # Car Inputs
-    car_length = Input()
-    car_width = Input()
-    car_maximum_height = Input()
-    car_middle_to_back_ratio = Input()
+    car_length = Input(validator=Positive)
+    car_width = Input(validator=Positive)
+    car_maximum_height = Input(validator=Positive)
+    car_middle_to_back_ratio = Input(validator=Range(0.99, 1.51))
 
     # Aerodynamic Inputs
     velocity = Input()
@@ -275,20 +275,6 @@ class Main(GeomBase):
         print('Final skin thickness = '
               + str(round(skin_thickness,
                           (len(str(delta_thickness)) - 2))) + ' m')
-
-        # TODO KAN DIT ERUIT?
-        # Additionally, it is checked whether the skin thickness is viable
-        # compared to the thickness of the spoiler itself.
-        # t_c_mid = float(geom[0][-2:])
-        # t_c_tip = float(geom[1][-2:])
-        # minimum_t_c_ratio = min(t_c_mid, t_c_tip)
-        # geom_thickness = geom[3] / 1000. * minimum_t_c_ratio / 100
-        # if skin_thickness > 0.5 * geom_thickness:
-        #     msg = "Calculated skin thickness is too large for the " \
-        #           "thickness of the airfoil geometry. Define a thicker " \
-        #           "airfoil/larger chord or choose a stiffer material. "
-        #     header = "WARNING: GEOMETRY NOT POSSIBLE"
-        #     warnings.warn(msg)
 
         print('Final amount of ribs = ' + str(number_of_ribs))
         print('Calculated total weight = ' + str(
