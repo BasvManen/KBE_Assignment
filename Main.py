@@ -80,7 +80,7 @@ class Main(GeomBase):
                        plate_distance=self.plate_distance,
                        strut_amount=self.strut_amount,
                        strut_airfoil_shape=self.strut_airfoil_shape,
-                       strut_lat_location=self.strut_lat_location,
+                       strut_lat_location=self.imposed_strut_width,
                        strut_height=self.strut_height,
                        strut_chord_fraction=self.strut_chord_fraction,
                        strut_thickness=self.strut_thickness,
@@ -222,7 +222,7 @@ class Main(GeomBase):
                 n_ribs=number_of_ribs,
                 strut_amount=self.strut_amount,
                 strut_airfoil_shape=self.strut_airfoil_shape,
-                strut_lat_location=self.strut_lat_location,
+                strut_lat_location=self.imposed_strut_width,
                 strut_height=self.strut_height / 1000.,
                 strut_chord_fraction=self.strut_chord_fraction,
                 strut_thickness=self.strut_thickness / 1000.,
@@ -300,7 +300,7 @@ class Main(GeomBase):
                                   n_ribs=self.skin_thickness_iterator[1],
                                   strut_amount=self.strut_amount,
                                   strut_airfoil_shape=self.strut_airfoil_shape,
-                                  strut_lat_location=self.strut_lat_location,
+                                  strut_lat_location=self.imposed_strut_width,
                                   strut_height=self.strut_height / 1000.,
                                   strut_chord_fraction=
                                   self.strut_chord_fraction,
@@ -325,6 +325,35 @@ class Main(GeomBase):
                                   shear_strength=self.shear_strength,
                                   material_density=self.material_density,
                                   poisson_ratio=self.poisson_ratio)
+
+    @Attribute
+    def imposed_strut_width(self):
+        """ This attribute checks if the struts are still attached to the car.
+        If this is not the case, a warning will appear and the position is
+        automatically fixed to the maximum position. """
+        if self.spoiler_span * self.strut_lat_location > 0.9 * self.car_width:
+            msg = ("The struts are no longer attached to the car. Strut "
+                   "lateral position is automatically changed.")
+            generate_warning("Warning: Spoiler not attached", msg)
+            new_lat_location = 0.9 * self.car_width / self.spoiler_span
+            return new_lat_location
+        else:
+            return self.strut_lat_location
+
+
+def generate_warning(warning_header, msg):
+    """ Generate a warning box if a condition is violated. Inputs are the
+    warning box header and warning box message. """
+    from tkinter import Tk, messagebox
+
+    window = Tk()
+    window.withdraw()
+
+    messagebox.showwarning(warning_header, msg)
+
+    window.deiconify()
+    window.destroy()
+    window.quit()
 
 
 if __name__ == '__main__':
