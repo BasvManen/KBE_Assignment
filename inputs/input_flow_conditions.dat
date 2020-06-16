@@ -5,6 +5,6 @@
 
 # External Flow Conditions
 50. 		# car design 'cruise' speed [m/s]
-90.		    # car design top speed [m/s]
+85.		    # car design top speed [m/s]
 1.225		# free flow air density [kg/m3]
 

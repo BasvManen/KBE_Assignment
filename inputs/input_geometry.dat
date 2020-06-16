@@ -17,7 +17,7 @@ True				# Bool to specify struts shape. True for airfoil shape, False for a simp
 250.				# height of the struts [mm]
 0.6				# chord of the struts as a fraction of the main plate chord
 15. 				# thickness of the struts [mm]
-20.				# sweepback angle of the struts [deg]
+15.				# sweepback angle of the struts [deg]
 0.				# cant angle of the struts [deg]
 
 # Endplate Inputs
