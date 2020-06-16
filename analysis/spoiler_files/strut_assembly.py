@@ -75,7 +75,8 @@ class Struts(GeomBase):
                            strut_thickness=self.strut_thickness,
                            strut_sweepback_angle=self.strut_sweep,
                            strut_cant_angle=self.strut_cant,
-                           main=self.main)
+                           main=self.main,
+                           mesh_deflection=1e-4)
 
     @Part(in_tree=False)
     def struts_no_cant(self):
@@ -92,7 +93,8 @@ class Struts(GeomBase):
                            strut_thickness=self.strut_thickness,
                            strut_sweepback_angle=self.strut_sweep,
                            strut_cant_angle=0.,
-                           main=self.main)
+                           main=self.main,
+                           mesh_deflection=1e-4)
 
     @Part(in_tree=False)
     def translated_strut(self):
@@ -135,7 +137,8 @@ class Struts(GeomBase):
                               - self.strut_amount % 2,
                      built_from=
                      self.partitioned_solid[child.index
-                                            + self.strut_amount % 2].solids[3])
+                                            + self.strut_amount % 2].solids[3],
+                     mesh_deflection=1e-4)
 
     @Part
     def struts_left(self):
@@ -148,7 +151,8 @@ class Struts(GeomBase):
                              shape_in=self.struts_right[child.index],
                              reference_point=Point(0., 0., 0.),
                              vector1=Vector(1., 0., 0.),
-                             vector2=Vector(0., 0., 1.))
+                             vector2=Vector(0., 0., 1.),
+                             mesh_deflection=1e-4)
 
     @Part
     def strut_mid(self):

@@ -32,7 +32,7 @@ class Car(GeomBase):
         car length. """
         x_curves = np.array([0, 0.0563, 0.1958, 0.2925, 0.5000, 0.5625, 0.9375,
                              1.0000]) * self.length_car
-        x_wheels = np.array([0.1958, 0.7833]) * self.length_car
+        x_wheels = np.array([0.1958, 0.8133]) * self.length_car
         x_spoiler = 0.8688 * self.length_car
         return x_curves, x_wheels, x_spoiler
 
