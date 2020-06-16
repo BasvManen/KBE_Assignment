@@ -8,8 +8,10 @@ from analysis.XFOIL_main import XFoilAnalysis
 from analysis.structural_calculations import StructuralAnalysis
 from analysis.STEP_writer import StepWriter
 from numpy import round
+from math import cos, tan, radians
 from inputs.read_inputs import read_geometry_inputs, read_material_inputs, \
-                               read_flow_inputs
+    read_flow_inputs
+
 
 ###############################################################################
 # KBE APPLICATION MAIN FILE                                                   #
@@ -25,9 +27,9 @@ from inputs.read_inputs import read_geometry_inputs, read_material_inputs, \
 class Main(GeomBase):
     # Main Plate Inputs
     spoiler_airfoils = Input(validator=all_is_string)
-    spoiler_span = Input(validator=Positive)
-    spoiler_chord = Input(validator=Positive)
-    spoiler_angle = Input(validator=Range(-60., 60.))
+    spoiler_span = Input(validator=Positive())
+    spoiler_chord = Input(validator=Positive())
+    spoiler_angle = Input(validator=Range(-40., 40.))
     plate_amount = Input(validator=GreaterThanOrEqualTo(1))
     plate_distance = Input(0.18, validator=Range(limit1=0.1, limit2=1.0))
 
@@ -35,22 +37,22 @@ class Main(GeomBase):
     strut_amount = Input(2, validator=GreaterThanOrEqualTo(2))
     strut_airfoil_shape = Input(True, validator=OneOf([True, False]))
     strut_lat_location = Input(validator=Range(limit1=0.1, limit2=1.0))
-    strut_height = Input(validator=Positive)
+    strut_height = Input(validator=Positive())
     strut_chord_fraction = Input(validator=Range(0.3, 1.0))
-    strut_thickness = Input(validator=Positive)
+    strut_thickness = Input(validator=Positive())
     strut_sweep = Input(validator=Range(-60., 60.))
     strut_cant = Input(validator=Range(-30., 30.))
 
     # Endplate Inputs
     endplate_present = Input(validator=OneOf([True, False]))
-    endplate_thickness = Input(validator=Positive)
+    endplate_thickness = Input(validator=Positive())
     endplate_sweep = Input(validator=Range(-60., 60.))
     endplate_cant = Input(validator=Range(-60., 60.))
 
     # Car Inputs
-    car_length = Input(validator=Positive)
-    car_width = Input(validator=Positive)
-    car_maximum_height = Input(validator=Positive)
+    car_length = Input(validator=Positive())
+    car_width = Input(validator=Positive())
+    car_maximum_height = Input(validator=Positive())
     car_middle_to_back_ratio = Input(validator=Range(0.99, 1.51))
 
     # Aerodynamic Inputs
@@ -82,7 +84,7 @@ class Main(GeomBase):
                        strut_airfoil_shape=self.strut_airfoil_shape,
                        strut_lat_location=self.imposed_strut_width,
                        strut_height=self.strut_height,
-                       strut_chord_fraction=self.strut_chord_fraction,
+                       strut_chord_fraction=self.imposed_strut_chord_fraction,
                        strut_thickness=self.strut_thickness,
                        strut_sweep=self.strut_sweep,
                        strut_cant=self.strut_cant,
@@ -104,7 +106,7 @@ class Main(GeomBase):
     def avl_case(self):
         """ This attribute creates the AVL case based on the car geometry. """
         case = [('Incoming flow angle', {'alpha':
-                                         self.geometry.car_model.avl_angle})]
+                                             self.geometry.car_model.avl_angle})]
         return case
 
     @action(label="Geometry Iterator")
@@ -129,9 +131,9 @@ class Main(GeomBase):
         # First, check if there are no typo's in the variable name. If there
         # are typo's, cancel the iteration process and return nothing.
         if self.iteration_parameter != "angle" and \
-           self.iteration_parameter != "span" and  \
-           self.iteration_parameter != "chord" and \
-           self.iteration_parameter != "velocity":
+                self.iteration_parameter != "span" and \
+                self.iteration_parameter != "chord" and \
+                self.iteration_parameter != "velocity":
             print("Selected parameter cannot be iterated")
             print("")
             print("ITERATION FINISHED")
@@ -193,7 +195,7 @@ class Main(GeomBase):
         increased and calculations are performed again. If it turns out that
         the spoiler only fails due to the lack of ribs, the amount of ribs
         are increased. In the Python Console, a log is printed. """
-        
+
         print("-----------------------------------------------")
         print('Structural iterator: the spoiler skin thickness '
               'will be increased until the spoiler failure modes are '
@@ -224,7 +226,7 @@ class Main(GeomBase):
                 strut_airfoil_shape=self.strut_airfoil_shape,
                 strut_lat_location=self.imposed_strut_width,
                 strut_height=self.strut_height / 1000.,
-                strut_chord_fraction=self.strut_chord_fraction,
+                strut_chord_fraction=self.imposed_strut_chord_fraction,
                 strut_thickness=self.strut_thickness / 1000.,
                 strut_sweep=self.strut_sweep,
                 strut_cant=self.strut_cant,
@@ -303,7 +305,7 @@ class Main(GeomBase):
                                   strut_lat_location=self.imposed_strut_width,
                                   strut_height=self.strut_height / 1000.,
                                   strut_chord_fraction=
-                                  self.strut_chord_fraction,
+                                  self.imposed_strut_chord_fraction,
                                   strut_thickness=self.strut_thickness / 1000.,
                                   strut_sweep=self.strut_sweep,
                                   strut_cant=self.strut_cant,
@@ -339,6 +341,27 @@ class Main(GeomBase):
             return new_lat_location
         else:
             return self.strut_lat_location
+
+    @Attribute
+    def imposed_strut_chord_fraction(self):
+        """ This attribute checks if the struts do not stick out of the back
+        of the car model. If this is the case, a warning will appear and the
+        strut chord fraction is automatically fixed to its maximum value.
+        """
+        x_coordinate = ((0.0625 - 0.020833) * self.car_length
+                        + self.spoiler_chord / 2
+                        * self.strut_chord_fraction)
+        if (self.spoiler_chord * self.strut_chord_fraction
+            * cos(radians(self.spoiler_angle))) > x_coordinate:
+            msg = ("The struts are no longer fully attached to the car. Strut "
+                   "chord fraction is automatically changed.")
+            generate_warning("Warning: Spoiler struts not fully attached", msg)
+            new_chord_fraction = x_coordinate \
+                                 / self.spoiler_chord \
+                                 / cos(radians(self.spoiler_angle))
+            return new_chord_fraction
+        else:
+            return self.strut_chord_fraction
 
 
 def generate_warning(warning_header, msg):
@@ -377,7 +400,7 @@ if __name__ == '__main__':
 
     # MATERIAL INPUTS
     material_density, youngs_modulus, yield_strength, shear_strength, \
-        poisson_ratio = read_material_inputs(material)
+    poisson_ratio = read_material_inputs(material)
 
     # ADDITIONAL INITIAL INPUTS FOR STRUCTURAL CALCULATIONS
     initial_spoiler_skin_thickness = 1

@@ -143,10 +143,12 @@ class Spoiler(GeomBase):
                    middle_to_back_height_ratio=self.car_middle_to_back_ratio,
                    position=translate(self.position,
                                       "x", -self.car_model.positions[0][6]
-                                      + self.spoiler_chord
+                                      + self.spoiler_chord / 2
+                                      * (1 - self.strut_chord_fraction)
+                                      + self.spoiler_chord / 2
                                       * self.strut_chord_fraction
                                       - self.strut_height
                                       * tan(radians(self.strut_sweep)),
                                       "y", -self.car_width/2,
                                       "z", -self.car_model.heights[6]
-                                      - self.strut_height + 35.))
+                                      - self.strut_height + 38.))

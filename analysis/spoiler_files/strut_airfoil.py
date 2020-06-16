@@ -64,11 +64,7 @@ class StrutAirfoil(GeomBase):
 
     @Attribute
     def wetted_area(self):
-        """ This attribute calculates the total wetted area of the struts
-
-
-
-        """
+        """ This attribute calculates the total wetted area of the struts. """
         return 2 * self.strut_chord * self.strut_height * \
                (0.5*self.thickness_to_chord/100 + 1.98)
 
